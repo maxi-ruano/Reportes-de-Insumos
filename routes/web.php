@@ -14,3 +14,9 @@
 Route::get('/', function () {
     return view('welcome');
 });
+Route::group(['prefix' => 'admin'], function () {
+    Route::auth();
+    //Route::resource('','AdminController');
+    Route::resource('computadoras','TeoricoPcController');
+
+});
