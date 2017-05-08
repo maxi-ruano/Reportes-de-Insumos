@@ -9,4 +9,9 @@ class EtlPreguntaRespuesta extends Model
   protected $table = 'etl_pregunta_respuesta';
   protected $primaryKey = 'etl_pregunta_respuesta_id';
   protected $fillable = ['etl_pregunta_respuesta_id', 'pregunta_id','respuesta_id', 'habilitado','correcta','modificacion_date', 'orden'];
+
+  public function EtlRespuesta()
+  {
+    return $this->belongsTo('App\EtlRespuesta', 'respuesta_id', 'etl_respuesta_id');
+  }
 }

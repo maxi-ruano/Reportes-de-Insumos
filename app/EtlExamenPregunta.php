@@ -16,4 +16,9 @@ class EtlExamenPregunta extends Model
        {
          return $this->belongsTo('App\EtlPregunta', 'pregunta_id', 'etl_pregunta_id');
        }
+
+       public function etlPreguntaRespuestas()
+       {
+         return $this->hasMany('App\etlPreguntaRespuesta', 'pregunta_id', 'pregunta_id');
+       }
 }

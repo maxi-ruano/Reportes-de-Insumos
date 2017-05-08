@@ -1,0 +1,35 @@
+html,body {
+  height: 100%;
+}
+/* Set height of the grid so .sidenav can be 100% (adjust if needed) */
+.row.content {height: 100%;
+ background-color: #f1f1f1;
+}
+.contenedor-full {height: 100%;
+ margin-bottom: 0px;
+}
+.contenedor-examen-panel {height: 95%;
+margin-bottom: 0px;
+}
+.pregunta {height: 35%}
+.respuestas {height: 65%}
+.datos-personales {height: 30%}
+.progreso {height: 40%}
+.acciones {height: 30%}
+
+
+/* Set gray background color and 100% height */
+.sidenav {
+ background-color: #f1f1f1;
+ height: 100%;
+}
+
+
+/* On small screens, set height to 'auto' for sidenav and grid */
+@media screen and (max-width: 767px) {
+ .sidenav {
+   height: auto;
+   padding: 15px;
+ }
+ .row.content {height: auto;}
+}

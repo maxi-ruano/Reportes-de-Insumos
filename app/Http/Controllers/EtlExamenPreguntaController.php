@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 
 use App\EtlExamenPregunta;
 
+use App\EtlPreguntaRespuesta;
+
 class EtlExamenPreguntaController extends Controller
 {
     /**
@@ -15,7 +17,7 @@ class EtlExamenPreguntaController extends Controller
      */
     public function index()
     {
-        $preguntas = EtlExamenPregunta::find('13698247');
+        $preguntas = EtlExamenPregunta::all();
         //$preguntas = 'hola este es el index';
         dd($preguntas);
     }
@@ -89,6 +91,13 @@ class EtlExamenPreguntaController extends Controller
     public function getPreguntasExamen(Request $request)
     {
       $preguntas = EtlExamenPregunta::where('examen_id', $request->input('dni'))->get();
+
+      foreach ($preguntas as $key => $value) {
+        $value['respuestas'] = EtlPreguntaRespuesta::where('pregunta_id', $value->pregunta_id)->get();
+      }
+
       return View('examen.pregunta')->with('preguntas', $preguntas);
     }
+
+
 }
