@@ -19,6 +19,7 @@ Route::get('/', function () {
 Route::group(['prefix' => 'admin'], function () {
     Route::auth();
     //Route::resource('','AdminController');
+    Route::get('computadoras/active', 'TeoricoPcController@isActive');
     Route::resource('computadoras','TeoricoPcController');
 });
 // Route::get('rendir_examen','EtlExamenController@rendir_examen');

@@ -47,7 +47,7 @@ class TeoricoPcController extends Controller
         } else {
             echo("Ip invalida");
         }
-           
+
     }
 
     /**
@@ -109,5 +109,25 @@ class TeoricoPcController extends Controller
         //
     }
 
-    
+    public function isActive(Request $request) {
+      $ip = ip2long($request->ip());
+      $teoricopc = TeoricoPc::where('ip', '=', $ip)->first();
+      $error_array = array();
+      if ($teoricopc->examen_id == NULL OR $teoricopc->examen_id = '') {
+          array_push($error_array, 'No hay examen asignado en esta IP');
+      }
+      if ($teoricopc->activo != true) {
+          array_push($error_array, 'Esta IP no esta habilitada');
+      }
+      print_r($error_array);
+      if (count($error_array) > 0) {
+          //echo dd($error_array);
+          return 'Maquina no habilitada para rendir';
+      }
+      else {
+          return 'Maquina habilitada para rendir';
+      }
+    }
+
+
 }

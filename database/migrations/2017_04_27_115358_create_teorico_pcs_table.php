@@ -15,11 +15,11 @@ class CreateTeoricoPcsTable extends Migration
     {
         Schema::create('teorico_pcs', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('ip')->unsigned();
+            $table->bigInteger('ip')->unsigned();
             $table->integer('sucursal_id')->unsigned();
-            $table->foreign('sucursal_id')
-                ->references('id')->on('sys_multivalue');
             $table->integer('estado')->unsigned();
+            $table->boolean('activo');
+            $table->bigInteger('examen_id');
             $table->timestamps();
         });
     }
