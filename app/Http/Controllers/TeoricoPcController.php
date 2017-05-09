@@ -113,19 +113,23 @@ class TeoricoPcController extends Controller
       $ip = ip2long($request->ip());
       $teoricopc = TeoricoPc::where('ip', '=', $ip)->first();
       $error_array = array();
-      if ($teoricopc->examen_id == NULL OR $teoricopc->examen_id = '') {
+      $response_array = array();
+      if ($teoricopc->examen_id == NULL OR $teoricopc->examen_id == '') {
           array_push($error_array, 'No hay examen asignado en esta IP');
       }
       if ($teoricopc->activo != true) {
           array_push($error_array, 'Esta IP no esta habilitada');
       }
-      print_r($error_array);
+      //print_r($error_array);
       if (count($error_array) > 0) {
-          //echo dd($error_array);
-          return 'Maquina no habilitada para rendir';
+          array_push($response_array, false);
+          array_push($response_array, $error_array);
+          return $response_array;
       }
       else {
-          return 'Maquina habilitada para rendir';
+        array_push($response_array, true);
+        array_push($response_array, $teoricopc->examen_id);
+          return $response_array;
       }
     }
 

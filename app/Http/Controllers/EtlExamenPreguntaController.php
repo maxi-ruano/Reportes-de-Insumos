@@ -88,16 +88,16 @@ class EtlExamenPreguntaController extends Controller
         //
     }
 
-    public function getPreguntasExamen(Request $request)
+    public function getPreguntasExamen($examen_id)
     {
-      $preguntas = EtlExamenPregunta::where('examen_id', $request->input('dni'))->get();
+      $preguntas = EtlExamenPregunta::where('examen_id', $examen_id)->get();
 
       foreach ($preguntas as $key => $value) {
         $value['respuestas'] = EtlPreguntaRespuesta::where('pregunta_id', $value->pregunta_id)->get();
       }
 
       return View('examen.pregunta')->with('preguntas', $preguntas)
-                                    ->with('examen', $request->input('dni'));
+                                    ->with('examen', $examen_id);
     }
 
     public function guardarRespuesta(Request $request){

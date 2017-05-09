@@ -1,8 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use Illuminate\Http\Request;
+use App\Http\Controllers\TeoricoPcController;
+use App\Http\Controllers\EtlExamenPreguntaController;
 
 class HomeController extends Controller
 {
@@ -13,7 +14,7 @@ class HomeController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth');
+        //$this->middleware('auth');
     }
 
     /**
@@ -21,8 +22,19 @@ class HomeController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('home');
+        $TeoricoPcController = new TeoricoPcController;
+        $EtlExamenPreguntaController = new EtlExamenPreguntaController;
+        $active = $TeoricoPcController->isActive($request);
+        if ($active[0] != true) {
+          //echo "Maquina no habilitada para rendir";
+          //print_r($active[1]);
+          return view('layouts.block');
+        }
+        else {
+          return $EtlExamenPreguntaController->getPreguntasExamen($active[1]);
+        }
+        //return view('home');
     }
 }

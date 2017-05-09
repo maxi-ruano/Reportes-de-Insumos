@@ -13,11 +13,9 @@
 Route::post('rendir_examen',['uses' => 'EtlExamenPreguntaController@getPreguntasExamen','as' => 'rendir_examen']);
 Route::get('guardar_respuesta',['uses' => 'EtlExamenPreguntaController@guardarRespuesta','as' => 'guardaRespuesta']);
 // Route::get('/address/{id}/destroy',['uses' => 'AddressesController@destroy','as' => 'sysfile.addresses.destroy']);
-Route::get('/', function () {
-    return view('examen.caratulaExamen');
-});
+Route::get('/', 'HomeController@index');
 Route::group(['prefix' => 'admin'], function () {
-    Route::auth();
+    //Route::auth();
     //Route::resource('','AdminController');
     Route::get('computadoras/active', 'TeoricoPcController@isActive');
     Route::resource('computadoras','TeoricoPcController');
