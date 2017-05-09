@@ -17,20 +17,24 @@
 
 <script>
   var preguntas = new Array();
+  var pregunta_id;
 </script>
 
 @section('scripts')
   <script>
     function siguientePregunta(idSiguiente){
       //console.log(res)
+      console.log(preguntas);
       $('.textoPregunta').html('<h2>'+preguntas[idSiguiente]['pregunta']+'</h2>');
+      pregunta_id = preguntas[idSiguiente]['pregunta_id'];
       var respuestas = preguntas[idSiguiente]['respuestas'];
+
       $('.option-respuestas').empty();
 
       for (var i = 0; i < respuestas.length; i++) {
         $('.option-respuestas').append('<div class="form-check">'+
           '<label class="form-check-label">'+
-            '<h2>'+'<input type="radio" class="form-check-input" name="optionsRadios" id="optionsRadios1" value="option1" checked>'+
+            '<h2>'+'<input type="radio" class="form-check-input" name="optionsRadios" value="'+respuestas[i]['id']+'" checked>'+
             '&nbsp&nbsp'+respuestas[i]['respuesta']+'</h2>'+
           '</label>'+
         '</div>');
@@ -87,9 +91,40 @@
         }
     }, 1000);
     siguientePregunta(0);
+
+
+    //GUARDAR RESPUESTAS AJAX
+    //$('#submit').on('submit', function (e) {
+    $('#boton').on('click', function (e) {
+        //console.log($('.optionsRadios').find(":selected").id;
+        console.log(examen);
+
+        e.preventDefault();
+        var examen = examen;
+        var pregunta_id = pregunta_id;
+        var respuesta_id = $('input[name=optionsRadios]:checked').val();//17534
+        $.ajax({
+            type: "GET",
+            url: 'http://localhost/deve_teorico/public/guardar_respuesta',
+            data: {examen: examen, respuesta_id: respuesta_id, pregunta_id: pregunta_id},
+            success: function( msg ) {
+              console.log(msg)
+                //$("#ajaxResponse").append("<div>"+msg+"</div>");
+            },
+
+            error: function(xhr, status, error) {
+              var err = eval("(" + xhr.responseText + ")");
+              console.log(err.Message);
+            }
+
+        });
+    });
+
   </script>
 @endsection
-
+<script>
+  var examen = '{!! $examen !!}';
+</script>
 @foreach($preguntas as $pregunta)
   <script>
     var respuestas = new Array();
@@ -98,7 +133,6 @@
     <script>
       respuestas.push({respuesta:'{!! $respuesta->EtlRespuesta->texto !!}',
                        id:'{!! $respuesta->EtlRespuesta->etl_respuesta_id !!}'});
-                       //console.log('{!! $respuesta->EtlRespuesta->texto !!}');
     </script>
   @endforeach
     <script>

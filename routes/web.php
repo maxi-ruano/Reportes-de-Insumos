@@ -11,7 +11,7 @@
 |
 */
 Route::post('rendir_examen',['uses' => 'EtlExamenPreguntaController@getPreguntasExamen','as' => 'rendir_examen']);
-Route::post('guardar_respuesta',['uses' => 'EtlExamenController@guardar_respuesta','as' => 'guardar_respuesta']);
+Route::get('guardar_respuesta',['uses' => 'EtlExamenPreguntaController@guardarRespuesta','as' => 'guardaRespuesta']);
 // Route::get('/address/{id}/destroy',['uses' => 'AddressesController@destroy','as' => 'sysfile.addresses.destroy']);
 Route::get('/', function () {
     return view('examen.caratulaExamen');

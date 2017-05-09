@@ -9,8 +9,11 @@ class EtlExamenPregunta extends Model
 
        protected $table = 'etl_examen_pregunta';
        protected $primaryKey = 'etl_examen_pregunta_id';
-       protected $fillable = ['etl_examen_pregunta_id','examen_id','modificacion_id',
+       protected $fillable = ['etl_examen_pregunta_id','examen_id','modification_date',
                                'pregunta_id','respuesta_id'];
+
+       //const CREATED_AT = 'post_date';
+       const UPDATED_AT = 'modification_date';
 
        public function etlPregunta()
        {

@@ -87,6 +87,7 @@
                 <legend>Acciones</legend>
                   <p>
                     <button type="button" class="btn btn-primary btn-lg" onclick="siguientePregunta(1)" id="botonPregunta">Siguiente</button>
+                    <button type="button" class="btn btn-primary btn-lg" id="boton">enviar</button>
                   </p>
               </div>
             </div>
