@@ -25,7 +25,6 @@ class HomeController extends Controller
     public function index(Request $request)
     {
         $TeoricoPcController = new TeoricoPcController;
-        $EtlExamenPreguntaController = new EtlExamenPreguntaController;
         $active = $TeoricoPcController->isActive($request);
         if ($active[0] != true) {
           //echo "Maquina no habilitada para rendir";
@@ -33,6 +32,7 @@ class HomeController extends Controller
           return view('layouts.block');
         }
         else {
+          $EtlExamenPreguntaController = new EtlExamenPreguntaController;
           return $EtlExamenPreguntaController->getPreguntasExamen($active[1]);
         }
         //return view('home');

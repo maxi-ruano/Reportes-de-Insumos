@@ -17,7 +17,7 @@
 
   <body>
 
-
+    <h1>Sin teorico asignado</h1>
     <!-- jQuery -->
     <script src="{{ asset('vendors/jquery/dist/jquery.min.js')}}"></script>
     <!-- Bootstrap -->
