@@ -1,7 +1,29 @@
 @extends('layouts.templeateExamen')
 
 @section('pregunta')
-  <p class="textoPregunta"></p>
+  <row>
+      <div class="col-sm-8">
+        <p class="textoPregunta"></p>
+      </div>
+      <div class="col-sm-4 div-pregunta-img">
+
+
+        <!--<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">Popup image</button>-->
+
+
+      </div>
+      <div id="myModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+              <div class="modal-body">
+                  <img src="" class="img-pregunta img-responsive">
+              </div>
+          </div>
+        </div>
+      </div>
+  </row>
+
+
 @endsection
 @section('nombre')
   Diego Torres
@@ -25,7 +47,15 @@
     var examen = '{!! $examen !!}';
     var pregunta;
     function siguientePregunta(idSiguiente){
+
       $('.textoPregunta').html('<h2>'+preguntas[idSiguiente]['pregunta']+'</h2>');
+      if(preguntas[idSiguiente]['imagen']){
+        $(".div-pregunta-img").html('<img src="" alt="..." class="img-pregunta img-thumbnail img-responsive" data-toggle="modal" data-target="#myModal">')
+        $(".img-pregunta").attr('src','http://192.168.76.200/etlnuevo/assets/images/' + preguntas[idSiguiente]['imagen']);
+      }else
+        $(".div-pregunta-img").empty();
+
+      $('').html('<h2>'+preguntas[idSiguiente]['imagen']+'</h2>');
       pregunta = preguntas[idSiguiente]['id'];
       var respuestas = preguntas[idSiguiente]['respuestas'];
 
@@ -90,6 +120,7 @@
     siguientePregunta(0);
     //GUARDAR RESPUESTAS AJAX
       $('#botonPregunta').on('click', function (e) {
+
           e.preventDefault();
           var examen_id = examen;
           var pregunta_id = pregunta;
@@ -98,7 +129,12 @@
               type: "GET",
               url: 'http://192.168.76.215/deve_teorico/public/guardar_respuesta',
               data: {examen_id: examen_id, respuesta_id: respuesta_id, pregunta_id: pregunta_id},
+              //async:false,
+              beforeSend: function(){
+                  $('#botonPregunta').attr('disabled','disabled');
+              },
               success: function( msg ) {
+                $('#botonPregunta').prop('disabled',false);
                 console.log(msg)
               },
 
@@ -108,6 +144,19 @@
               }
           });
         });
+
+      // MOSTRAR IMAGEN PREGUNTA EN MODAL
+      function centerModal() {
+        $(this).css('display', 'block');
+        var $dialog = $(this).find(".modal-dialog");
+        var offset = ($(window).height() - $dialog.height()) / 2;
+        $dialog.css("margin-top", offset);
+      }
+
+      $('.modal').on('show.bs.modal', centerModal);
+      $(window).on("resize", function () {
+        $('.modal:visible').each(centerModal);
+      });
   </script>
 @endsection
 <script>

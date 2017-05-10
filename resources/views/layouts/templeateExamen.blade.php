@@ -48,14 +48,19 @@
         </div>
         <div class="col-sm-3 sidenav">
           <div class="datos-personales">
+            <row>
             <div class="panel panel-default  contenedor-examen-panel">
-              <div class="panel-body text-center">
-                <h3>@yield('nombre')<h3>
-                  <p>
-                    <img src="{{ asset('production/images/img.jpg')}}" alt="..." class=" img-thumbnail">
-                  </p>
+
+              <div class="text-center">
+
+                <h3>@yield('nombre')</h3>
+
+                    <img src="{{ asset('production/images/img.jpg')}}" alt="..." class=" img-thumbnail img-responsive">
+
+
               </div>
-            </div>
+
+            </div></row>
           </div>
           <div class="progreso">
             <div class="panel panel-default  contenedor-examen-panel">
@@ -77,7 +82,6 @@
                 <div id="regresion" class="text-center">
 
                 </div>
-
               </div>
             </div>
           </div>
@@ -87,7 +91,6 @@
                 <legend>Acciones</legend>
                   <p>
                     <button type="button" class="btn btn-primary btn-lg" onclick="siguientePregunta(1)" id="botonPregunta">Siguiente</button>
-
                   </p>
               </div>
             </div>
