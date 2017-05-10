@@ -6,27 +6,27 @@
 @section('nombre')
   Diego Torres
 @endsection
+
 @section('respuestas')
   <fieldset class="form-group">
     <legend>Selecciones su respuesta:</legend>
     <div class="option-respuestas">
-
     </div>
   </fieldset>
 @endsection
 
 <script>
   var preguntas = new Array();
-  var pregunta_id;
+
 </script>
 
 @section('scripts')
   <script>
+    var examen = '{!! $examen !!}';
+    var pregunta;
     function siguientePregunta(idSiguiente){
-      //console.log(res)
-      console.log(preguntas);
       $('.textoPregunta').html('<h2>'+preguntas[idSiguiente]['pregunta']+'</h2>');
-      pregunta_id = preguntas[idSiguiente]['pregunta_id'];
+      pregunta = preguntas[idSiguiente]['id'];
       var respuestas = preguntas[idSiguiente]['respuestas'];
 
       $('.option-respuestas').empty();
@@ -44,9 +44,6 @@
       $('.progress-preguntas').css('width', ((100/preguntas.length)*idSiguiente)+'%');
       $('.numerador-preguntas').text('Pregunta '+idSiguiente + ' de ' + preguntas.length)
 
-
-
-      console.log('idSiguiente: '+idSiguiente);
       if(idSiguiente != 30){
         $('#botonPregunta').attr("onclick","siguientePregunta("+idSiguiente+")");
       }else{
@@ -91,39 +88,30 @@
         }
     }, 1000);
     siguientePregunta(0);
-
-
     //GUARDAR RESPUESTAS AJAX
-    //$('#submit').on('submit', function (e) {
-    $('#boton').on('click', function (e) {
-        //console.log($('.optionsRadios').find(":selected").id;
-        console.log(examen);
+      $('#botonPregunta').on('click', function (e) {
+          e.preventDefault();
+          var examen_id = examen;
+          var pregunta_id = pregunta;
+          var respuesta_id = $('input[name=optionsRadios]:checked').val();
+          $.ajax({
+              type: "GET",
+              url: 'http://192.168.76.215/deve_teorico/public/guardar_respuesta',
+              data: {examen_id: examen_id, respuesta_id: respuesta_id, pregunta_id: pregunta_id},
+              success: function( msg ) {
+                console.log(msg)
+              },
 
-        e.preventDefault();
-        var examen = examen;
-        var pregunta_id = pregunta_id;
-        var respuesta_id = $('input[name=optionsRadios]:checked').val();//17534
-        $.ajax({
-            type: "GET",
-            url: 'http://localhost/deve_teorico/public/guardar_respuesta',
-            data: {examen: examen, respuesta_id: respuesta_id, pregunta_id: pregunta_id},
-            success: function( msg ) {
-              console.log(msg)
-                //$("#ajaxResponse").append("<div>"+msg+"</div>");
-            },
-
-            error: function(xhr, status, error) {
-              var err = eval("(" + xhr.responseText + ")");
-              console.log(err.Message);
-            }
-
+              error: function(xhr, status, error) {
+                var err = eval("(" + xhr.responseText + ")");
+                console.log(err.Message);
+              }
+          });
         });
-    });
-
   </script>
 @endsection
 <script>
-  var examen = '{!! $examen !!}';
+
 </script>
 @foreach($preguntas as $pregunta)
   <script>

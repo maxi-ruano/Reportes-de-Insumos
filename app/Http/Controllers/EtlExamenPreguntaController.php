@@ -8,6 +8,8 @@ use App\EtlExamenPregunta;
 
 use App\EtlPreguntaRespuesta;
 
+use App\Http\Controllers\DB;
+
 class EtlExamenPreguntaController extends Controller
 {
     /**
@@ -101,10 +103,15 @@ class EtlExamenPreguntaController extends Controller
     }
 
     public function guardarRespuesta(Request $request){
-      /*$etlExamenPregunta = EtlExamenPregunta::find($request->input('idExamenPregunta'));
+      $res = 'No se puedo guardar la respuesta';
+      $etlExamenPregunta = EtlExamenPregunta::where('examen_id',$request->input('examen_id'))
+                                            ->where('pregunta_id',$request->input('pregunta_id'))->first();
+
       $etlExamenPregunta->respuesta_id = $request->input('respuesta_id');
-      $etlExamenPregunta->save();*/
-      return response()->json($request);
+      $etlExamenPregunta->save();
+      if($etlExamenPregunta->respuesta_id == $request->input('respuesta_id'))
+        $res = 'success';
+      return response()->json(['res' => $res]);
     }
 
 
