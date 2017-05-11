@@ -46,7 +46,8 @@
   <script>
     var examen = '{!! $examen !!}';
     var pregunta;
-    function siguientePregunta(idSiguiente){
+    var idSiguiente = 0;
+    function cargarPregunta(){
 
       $('.textoPregunta').html('<h2>'+preguntas[idSiguiente]['pregunta']+'</h2>');
       if(preguntas[idSiguiente]['imagen']){
@@ -74,9 +75,11 @@
       $('.progress-preguntas').css('width', ((100/preguntas.length)*idSiguiente)+'%');
       $('.numerador-preguntas').text('Pregunta '+idSiguiente + ' de ' + preguntas.length)
 
-      if(idSiguiente != 30){
-        $('#botonPregunta').attr("onclick","siguientePregunta("+idSiguiente+")");
-      }else{
+      actualizarBoton();
+    }
+
+    function actualizarBoton(){
+      if(idSiguiente == 30){
         $('#botonPregunta').text("Finalizar Examen");
         $('#botonPregunta').attr("onclick","enviarRespuestas()");
       }
@@ -117,7 +120,7 @@
             $('#regresion').html("EXPIRED");
         }
     }, 1000);
-    siguientePregunta(0);
+    cargarPregunta();
     //GUARDAR RESPUESTAS AJAX
       $('#botonPregunta').on('click', function (e) {
 
@@ -131,10 +134,11 @@
               data: {examen_id: examen_id, respuesta_id: respuesta_id, pregunta_id: pregunta_id},
               //async:false,
               beforeSend: function(){
-                  $('#botonPregunta').attr('disabled','disabled');
+                $('#botonPregunta').attr('disabled','disabled');
               },
               success: function( msg ) {
                 $('#botonPregunta').prop('disabled',false);
+                cargarPregunta();
                 console.log(msg)
               },
 

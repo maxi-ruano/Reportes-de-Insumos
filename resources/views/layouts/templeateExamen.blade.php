@@ -90,7 +90,7 @@
               <div class="panel-body text-center">
                 <legend>Acciones</legend>
                   <p>
-                    <button type="button" class="btn btn-primary btn-lg" onclick="siguientePregunta(1)" id="botonPregunta">Siguiente</button>
+                    <button type="button" class="btn btn-primary btn-lg" id="botonPregunta">Siguiente</button>
                   </p>
               </div>
             </div>
