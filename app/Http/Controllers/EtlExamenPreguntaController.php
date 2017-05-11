@@ -114,7 +114,7 @@ class EtlExamenPreguntaController extends Controller
                                ->where('tipo_doc', $examen->tramite->tipo_doc)->first();
 
       $nombre = $datosPersona->nombre .' '. $datosPersona->apellido;
-      
+
       return View('examen.pregunta')->with('preguntas', $preguntas)
                                     ->with('examen', $examen_id)
                                     ->with('nombre', $nombre)

@@ -89,11 +89,12 @@
 
     function actualizarBoton(){
       if(idSiguiente == 30){
-        $('#botonPregunta').text("Finalizar Examen");
-        $('#botonPregunta').attr("onclick","enviarRespuestas()");
+        $('#botonFinalizar').attr('type','submit');
+        $('.examen_input').attr('value', examen);
+        $('.div-boton-siguiente').empty();
       }
     }
-
+    //');
     function enviarRespuestas(){
         $('.preguntaDiv').text('se envio');
     }

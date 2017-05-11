@@ -102,6 +102,7 @@ class EtlExamenController extends Controller
       //obtenemos las preguntas y respuestas del examen
       $preguntasYRespuestas = EtlExamenPregunta::where('examen_id', $request->examen_id)
                                                ->orderBy('pregunta_id', 'asc')->get();
+
       $preguntas_ids = array();
       foreach ($preguntasYRespuestas as $key => $value){
         array_push($preguntas_ids, $value->pregunta_id);
@@ -111,7 +112,9 @@ class EtlExamenController extends Controller
                                                                ->where('correcta', 'true')
                                                                ->orderBy('pregunta_id', 'asc')->get();
       //calculamos cuantas respuestas son correctas
+    
        $correctas = 0;
+
        foreach( $preguntasYRespuestas as $key =>  $respuestaExamen)
         foreach( $respuestasCorrectas as $key =>  $respuestaCorrecta)
            if($respuestaExamen->pregunta_id == $respuestaCorrecta->pregunta_id){
@@ -119,7 +122,6 @@ class EtlExamenController extends Controller
                $correctas++;
              break;
            }
-
       //calculamos la nota
       $porcentaje = ($correctas/count($preguntasYRespuestas)) * 100;
       $porcentaje = round($porcentaje,2);
@@ -136,7 +138,7 @@ class EtlExamenController extends Controller
       $examen->aprobado = $aprobado;
       $examen->porcentaje = $porcentaje;
       $examen->ip = $request->ip;
-      //$examen->save();
+      $examen->save();
 
       echo $porcentaje;
     }
