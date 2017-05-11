@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\EtlExamenPregunta;
 use App\EtlExamen;
 use App\EtlPreguntaRespuesta;
-
+use App\DatosPersonales;
 use App\Http\Controllers\DB;
 
 class EtlExamenPreguntaController extends Controller
@@ -109,10 +109,15 @@ class EtlExamenPreguntaController extends Controller
                     $examen->tramite->nro_doc .
                     strtoupper($examen->tramite->sexo) .
                     ".JPG";
+      $datosPersona = DatosPersonales::where('nro_doc', $examen->tramite->nro_doc)
+                               ->where('pais', $examen->tramite->pais)
+                               ->where('tipo_doc', $examen->tramite->tipo_doc)->first();
 
+      $nombre = $datosPersona->nombre .' '. $datosPersona->apellido;
+      
       return View('examen.pregunta')->with('preguntas', $preguntas)
                                     ->with('examen', $examen_id)
-                                    ->with('nombre', 'juan carlos')
+                                    ->with('nombre', $nombre)
                                     ->with('fotografia', $fotografia);
     }
 

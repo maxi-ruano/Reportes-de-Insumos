@@ -28,15 +28,20 @@
 
 @endsection
 @section('persona')
-  <h3><p>{!! $nombre !!}</p></h3>
+  <h4>{!! $nombre !!}</h4>
   <img src="{!! $fotografia !!}" alt="..." class=" img-thumbnail img-responsive img-persona" width="150" height="150">
 @endsection
 
 @section('respuestas')
   <fieldset class="form-group">
     <legend>Selecciones su respuesta:</legend>
-    <div class="option-respuestas">
+    <div class="row">
+
+    <div class="col-sm-12 option-respuestas btn-group-vertical" data-toggle="buttons">
+
     </div>
+
+  </div >
   </fieldset>
 @endsection
 
@@ -66,12 +71,13 @@
       $('.option-respuestas').empty();
 
       for (var i = 0; i < respuestas.length; i++) {
-        $('.option-respuestas').append('<div class="form-check">'+
-          '<label class="form-check-label">'+
-            '<h2>'+'<input type="radio" class="form-check-input" name="optionsRadios" value="'+respuestas[i]['id']+'" checked>'+
-            '&nbsp&nbsp'+respuestas[i]['respuesta']+'</h2>'+
-          '</label>'+
-        '</div>');
+
+        $('.option-respuestas').append(
+          '<label class="btn btn-primary btn-responsive" style="white-space: normal;">'+
+            '<input type="radio" class="form-check-input" name="optionsRadios" value="'+respuestas[i]['id']+'" checked>'+
+            '<h3>'+respuestas[i]['respuesta']+'</h3>'+
+          '</label><br>'
+        );
       }
 
       idSiguiente = idSiguiente+1;
@@ -126,7 +132,6 @@
     cargarPregunta();
     //GUARDAR RESPUESTAS AJAX
       $('#botonPregunta').on('click', function (e) {
-
           e.preventDefault();
           var examen_id = examen;
           var pregunta_id = pregunta;

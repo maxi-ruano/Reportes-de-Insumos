@@ -41,7 +41,7 @@
             <div class=" contenedor-examen-panel panel panel-default">
               <div class="panel-body">
                 @yield('respuestas')
-
+              
               </div>
             </div>
           </div>
@@ -53,7 +53,7 @@
 
               <div class="text-center">
                 @yield('persona')
-                
+
 
               </div>
 
