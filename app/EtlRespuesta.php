@@ -10,4 +10,5 @@ class EtlRespuesta extends Model
     protected $primaryKey = 'etl_respuesta_id';
     protected $fillable = ['etl_respuesta_id', 'texto', 'habilitado', 'modificacion_date'];
 
+
 }
