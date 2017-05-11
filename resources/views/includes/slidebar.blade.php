@@ -6,7 +6,7 @@
     <ul class="nav side-menu">
       <li><a><i class="fa fa-users"></i> Bedel <span class="fa fa-chevron-down"></span></a>
         <ul class="nav child_menu">
-          <li><a href="">Asignacion PCs</a></li>
+          <li><a href="">Teorico</a></li>
         </ul>
       </li>
     </ul>

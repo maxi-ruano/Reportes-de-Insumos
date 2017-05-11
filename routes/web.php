@@ -20,6 +20,7 @@ Route::group(['prefix' => 'admin'], function () {
     Route::get('computadoras/active', 'TeoricoPcController@isActive');
     Route::resource('computadoras','TeoricoPcController');
 });
+Route::resource('bedel','BedelController');
 // Route::get('rendir_examen','EtlExamenController@rendir_examen');
 Route::resource('examen', 'EtlExamenController');
 Route::resource('preguntas', 'EtlExamenPreguntaController');
