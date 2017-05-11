@@ -27,6 +27,7 @@
             <div class="panel-body text-center">
               <legend><h1>El examen a finalizado</h1></legend>
               <p>Resultado del examen: {{ $porcentaje }}</p>
+              <p>{{ $mensaje }}</p>
               <p>Acerquese al bedel para recibir instrucciones</p>
             </div>
           </div>

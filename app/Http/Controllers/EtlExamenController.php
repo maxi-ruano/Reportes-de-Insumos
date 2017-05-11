@@ -130,8 +130,12 @@ class EtlExamenController extends Controller
       $porcentajeAprovacion = EtlParametro::find($ID_PORCENTAJE_APROBACION);
 
       $aprobado = 'false';
-      if($porcentaje >= $porcentajeAprovacion->valor)
+      $mensaje = 'examen REPROBADO';
+      if($porcentaje >= $porcentajeAprovacion->valor){
         $aprobado = 'true';
+        $mensaje = 'examen APROBADO';
+      }
+
 
       //guardamos el resultado
       $examen = EtlExamen::find($request->examen_id);
@@ -140,7 +144,8 @@ class EtlExamenController extends Controller
       $examen->ip = $request->ip;
       $examen->save();
 
-      return View('layouts.templatebasica')->with('porcentaje', $porcentaje);
+      return View('layouts.templatebasica')->with('porcentaje', $porcentaje)
+                                           ->with('mensaje', $mensaje);
       echo $porcentaje;
     }
 }

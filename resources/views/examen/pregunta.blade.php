@@ -88,13 +88,13 @@
     }
 
     function actualizarBoton(){
-      if(idSiguiente == 1){
+      if(idSiguiente == 30){
         $('#botonFinalizar').attr('type','submit');
         $('.examen_input').attr('value', examen);
         $('.div-boton-siguiente').empty();
       }
     }
-    //');
+
     function enviarRespuestas(){
         $('.preguntaDiv').text('se envio');
     }
@@ -139,6 +139,7 @@
         if (distance < 0) {
             clearInterval(x);
             $('#regresion').html("EXPIRED");
+
         }
     }, 1000);
     cargarPregunta();
