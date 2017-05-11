@@ -112,7 +112,7 @@ class EtlExamenController extends Controller
                                                                ->where('correcta', 'true')
                                                                ->orderBy('pregunta_id', 'asc')->get();
       //calculamos cuantas respuestas son correctas
-    
+
        $correctas = 0;
 
        foreach( $preguntasYRespuestas as $key =>  $respuestaExamen)
@@ -140,6 +140,7 @@ class EtlExamenController extends Controller
       $examen->ip = $request->ip;
       $examen->save();
 
+      return View('layouts.templatebasica')->with('porcentaje', $porcentaje);
       echo $porcentaje;
     }
 }

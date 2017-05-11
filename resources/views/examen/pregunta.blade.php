@@ -88,7 +88,7 @@
     }
 
     function actualizarBoton(){
-      if(idSiguiente == 30){
+      if(idSiguiente == 1){
         $('#botonFinalizar').attr('type','submit');
         $('.examen_input').attr('value', examen);
         $('.div-boton-siguiente').empty();
