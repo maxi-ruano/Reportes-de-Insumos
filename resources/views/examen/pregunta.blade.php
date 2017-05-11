@@ -16,7 +16,9 @@
         <div class="modal-dialog">
           <div class="modal-content">
               <div class="modal-body">
+                <div class="text-center">
                   <img src="" class="img-pregunta img-responsive">
+                </div>
               </div>
           </div>
         </div>
@@ -25,8 +27,9 @@
 
 
 @endsection
-@section('nombre')
-  Diego Torres
+@section('persona')
+  <h3><p>{!! $nombre !!}</p></h3>
+  <img src="{!! $fotografia !!}" alt="..." class=" img-thumbnail img-responsive img-persona" width="150" height="150">
 @endsection
 
 @section('respuestas')
@@ -51,7 +54,7 @@
 
       $('.textoPregunta').html('<h2>'+preguntas[idSiguiente]['pregunta']+'</h2>');
       if(preguntas[idSiguiente]['imagen']){
-        $(".div-pregunta-img").html('<img src="" alt="..." class="img-pregunta img-thumbnail img-responsive" data-toggle="modal" data-target="#myModal">')
+        $(".div-pregunta-img").html('<img src="" alt="..." class="img-pregunta img-thumbnail img-responsive" data-toggle="modal" data-target="#myModal" width="200" height="200">>')
         $(".img-pregunta").attr('src','http://192.168.76.200/etlnuevo/assets/images/' + preguntas[idSiguiente]['imagen']);
       }else
         $(".div-pregunta-img").empty();

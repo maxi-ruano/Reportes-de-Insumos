@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\EtlExamenPregunta;
-
+use App\EtlExamen;
 use App\EtlPreguntaRespuesta;
 
 use App\Http\Controllers\DB;
@@ -93,13 +93,27 @@ class EtlExamenPreguntaController extends Controller
     public function getPreguntasExamen($examen_id)
     {
       $preguntas = EtlExamenPregunta::where('examen_id', $examen_id)->get();
-
       foreach ($preguntas as $key => $value) {
         $value['respuestas'] = EtlPreguntaRespuesta::where('pregunta_id', $value->pregunta_id)->get();
       }
+      $examen = EtlExamen::find($examen_id);
+
+      if($examen->tramite->sucursal == 1 || $examen->tramite->sucursal == 2)
+        $ip = "192.168.76.200";
+      else
+        $ip = $examen->tramite->SysRptServer->ip;
+
+      $fotografia = "http://". $ip ."/data/fotos/" .
+                    str_pad($examen->tramite->pais, 3, "0", STR_PAD_LEFT) .
+                    $examen->tramite->tipo_doc .
+                    $examen->tramite->nro_doc .
+                    strtoupper($examen->tramite->sexo) .
+                    ".JPG";
 
       return View('examen.pregunta')->with('preguntas', $preguntas)
-                                    ->with('examen', $examen_id);
+                                    ->with('examen', $examen_id)
+                                    ->with('nombre', 'juan carlos')
+                                    ->with('fotografia', $fotografia);
     }
 
     public function guardarRespuesta(Request $request){

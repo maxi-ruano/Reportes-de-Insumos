@@ -15,4 +15,9 @@ class EtlExamen extends Model
    {
      return $this->hasMany('App\EtlExamenPregunta', 'examen_id', 'etl_examen_id');
    }
+
+   public function tramite()
+   {
+     return $this->belongsTo('App\Tramites', 'tramite_id', 'tramite_id');
+   }
 }

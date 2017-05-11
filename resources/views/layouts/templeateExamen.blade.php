@@ -52,11 +52,8 @@
             <div class="panel panel-default  contenedor-examen-panel">
 
               <div class="text-center">
-
-                <h3>@yield('nombre')</h3>
-
-                    <img src="{{ asset('production/images/img.jpg')}}" alt="..." class=" img-thumbnail img-responsive">
-
+                @yield('persona')
+                
 
               </div>
 
