@@ -2,7 +2,7 @@
 @section('titlePage', 'Teorico')
 @section('content')
 <!-- page content -->
-@var_dump($peticion)
+
 <div class="row">
   <div class="col-md-12 col-sm-12 col-xs-12">
     <div class="x_panel">
@@ -12,10 +12,10 @@
         <div class="clearfix"></div>
       </div>
       <div class="x_content">
-                {!! Form::open(['route' => 'computadoras.store', 'id'=>'formCategory', 'method' => 'GET', 'class' => 'form-horizontal', 'role' => 'form', 'files' => true ]) !!}
+                {!! Form::open(['route' => 'bedel.index', 'id'=>'formCategory', 'method' => 'GET', 'class' => 'form-horizontal', 'role' => 'form', 'files' => true ]) !!}
                 <div class="form-group">
                     <div class="col-md-3 col-sm-3">
-                      <select class="form-control">
+                      <select name="pais" class="form-control">
                         @foreach($paises as $pais)
                         @if($pais->id == 1)
                         <option value="{{ $pais->id }}" selected>{{ $pais->description }}</option>
@@ -41,16 +41,16 @@
                       </div>
 
                       <div class="col-md-5 col-sm-5">
-                        <input type="text" class="form-control" placeholder="Documento">
+                        <input name="doc" type="text" class="form-control" placeholder="Documento">
                       </div>
 
                         <div class="col-md-1 col-sm-1">
-                          <select class="form-control">
+                          <select name="sexo" class="form-control">
                             @foreach($sexo as $sex)
                             @if($sex->id == 0)
-                            <option value="{{ $sex->id }}" selected>{{ $sex->description }}</option>
+                            <option value="{{ strtolower($sex->description) }}" selected>{{ $sex->description }}</option>
                             @else
-                            <option value="{{ $sex->id }}">{{ $sex->description }}</option>
+                            <option value="{{ strtolower($sex->description) }}">{{ $sex->description }}</option>
                             @endif
                             @endforeach
                           </select>
@@ -64,6 +64,10 @@
                     <!--</div>-->
                       </div>
                 {!! Form::close() !!}
+
+                @foreach($peticion as $res)
+                  <p>{{ $res}}</p>
+                @endforeach
       </div>
     </div>
   </div>

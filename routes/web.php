@@ -24,4 +24,5 @@ Route::group(['prefix' => 'admin'], function () {
 // Route::get('rendir_examen','EtlExamenController@rendir_examen');
 Route::resource('examen', 'EtlExamenController');
 Route::resource('preguntas', 'EtlExamenPreguntaController');
+Route::resource('bedel', 'BedelController');
 ///var/www/html/deve_teorico/app/Http/Controllers/EtlExamenController.php

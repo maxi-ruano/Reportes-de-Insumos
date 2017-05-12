@@ -20,8 +20,13 @@ class BedelController extends Controller
       $paises = SysMultivalue::where('type','PAIS')->orderBy('description', 'asc')->get();
       $tdoc = SysMultivalue::where('type','TDOC')->orderBy('id', 'asc')->get();
       $sexo = SysMultivalue::where('type','SEXO')->orderBy('id', 'asc')->get();
+    // /dd($request->doc.' '. $request->sexo.' '. $request->pais);
+
       if (isset($request->doc) && $request->doc != '' && isset($request->sexo) && $request->sexo != '' && isset($request->pais) && $request->pais != '') {
+        //dd($request->doc.' '. $request->sexo.' '. $request->pais);
         $peticion = $this->getTramiteExactly($request->doc, $request->sexo, $request->pais);
+
+        dd($peticion);
       }
       $peticion = $peticion ?? array(false);
       return view('bedel.asignacion')->with('paises',$paises)->with('tipo_doc',$tdoc)->with('sexo',$sexo)->with('peticion',$peticion);
@@ -36,7 +41,8 @@ class BedelController extends Controller
       ->where('pais', $pais)
       ->where('estado', 8)
       ->orderBy('tramite_id', 'desc')
-      ->get();
+      ->toSql();
+
       if ($posibles != null) {
         array_push($response_array,true);
         array_push($response_array,$posibles);
