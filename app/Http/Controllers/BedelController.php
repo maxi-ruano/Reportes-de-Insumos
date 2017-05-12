@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 
 use App\SysMultivalue;
 
+use App\Tramites;
+
 class BedelController extends Controller
 {
     /**
@@ -13,11 +15,38 @@ class BedelController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-      $multivalue = SysMultivalue::where('type','PAIS')->get();
-      return view('bedel.asignacion')->with('paises',$multivalue);
+      $paises = SysMultivalue::where('type','PAIS')->orderBy('description', 'asc')->get();
+      $tdoc = SysMultivalue::where('type','TDOC')->orderBy('id', 'asc')->get();
+      $sexo = SysMultivalue::where('type','SEXO')->orderBy('id', 'asc')->get();
+      if (isset($request->doc) && $request->doc != '' && isset($request->sexo) && $request->sexo != '' && isset($request->pais) && $request->pais != '') {
+        $peticion = $this->getTramiteExactly($request->doc, $request->sexo, $request->pais);
+      }
+      $peticion = $peticion ?? array(false);
+      return view('bedel.asignacion')->with('paises',$paises)->with('tipo_doc',$tdoc)->with('sexo',$sexo)->with('peticion',$peticion);
     }
+
+
+    public function getTramiteExactly($nro_doc, $sexo, $pais)
+    {
+      $response_array = array();
+      $posibles = Tramites::where('nro_doc', $nro_doc)
+      ->where('sexo', $sexo)
+      ->where('pais', $pais)
+      ->where('estado', 8)
+      ->orderBy('tramite_id', 'desc')
+      ->get();
+      if ($posibles != null) {
+        array_push($response_array,true);
+        array_push($response_array,$posibles);
+      }
+      else {
+        array_push($response_array,false);
+      }
+      return $response_array;
+    }
+
 
     /**
      * Show the form for creating a new resource.
