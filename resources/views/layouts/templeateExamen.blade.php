@@ -41,7 +41,7 @@
             <div class=" contenedor-examen-panel panel panel-default">
               <div class="panel-body">
                 @yield('respuestas')
-              
+
               </div>
             </div>
           </div>
@@ -86,9 +86,15 @@
             <div class="panel panel-default  contenedor-examen-panel">
               <div class="panel-body text-center">
                 <legend>Acciones</legend>
-                  <p>
+                  <div class="div-boton-siguiente">
                     <button type="button" class="btn btn-primary btn-lg" id="botonPregunta">Siguiente</button>
-                  </p>
+                  </div>
+                  {{ Form::open(['route' => 'finalizar_examen', 'method' => 'POST', 'role' => 'form', 'files' => false]) }}
+                    <input type="hidden" name="examen_id" class = "examen_input" value="">
+
+                    <input  type="hidden" class="btn btn-primary btn-lg" id="botonFinalizar" value="Finalizar Examen" >
+
+                  {{ Form::close() }}
               </div>
             </div>
           </div>

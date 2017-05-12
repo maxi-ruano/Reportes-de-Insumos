@@ -1,7 +1,7 @@
 @extends('layouts.templeateExamen')
 
 @section('pregunta')
-  <row>
+  <div class="row">
       <div class="col-sm-8">
         <p class="textoPregunta"></p>
       </div>
@@ -17,19 +17,19 @@
           <div class="modal-content">
               <div class="modal-body">
                 <div class="text-center">
-                  <img src="" class="img-pregunta img-responsive">
+                  <img src="" class="img-pregunta img-responsive" style = "height: 50%;width: auto;">
                 </div>
               </div>
           </div>
         </div>
       </div>
-  </row>
+  </div>
 
 
 @endsection
 @section('persona')
   <h4>{!! $nombre !!}</h4>
-  <img src="{!! $fotografia !!}" alt="..." class=" img-thumbnail img-responsive img-persona" width="150" height="150">
+  <img src="{!! $fotografia !!}" alt="..." class=" img-thumbnail img-responsive img-persona" style = "height: 70%;width: auto;">
 @endsection
 
 @section('respuestas')
@@ -59,7 +59,7 @@
 
       $('.textoPregunta').html('<h2>'+preguntas[idSiguiente]['pregunta']+'</h2>');
       if(preguntas[idSiguiente]['imagen']){
-        $(".div-pregunta-img").html('<img src="" alt="..." class="img-pregunta img-thumbnail img-responsive" data-toggle="modal" data-target="#myModal" width="200" height="200">>')
+        $(".div-pregunta-img").html('<img src="" alt="..." class="img-pregunta img-thumbnail img-responsive" data-toggle="modal" data-target="#myModal" style = "height: 70%;width: auto;">')
         $(".img-pregunta").attr('src','http://192.168.76.200/etlnuevo/assets/images/' + preguntas[idSiguiente]['imagen']);
       }else
         $(".div-pregunta-img").empty();
@@ -74,7 +74,7 @@
 
         $('.option-respuestas').append(
           '<label class="btn btn-primary btn-responsive" style="white-space: normal;">'+
-            '<input type="radio" class="form-check-input" name="optionsRadios" value="'+respuestas[i]['id']+'" checked>'+
+            '<input type="radio" class="form-check-input" name="optionsRadios" value="'+respuestas[i]['id']+'">'+
             '<h3>'+respuestas[i]['respuesta']+'</h3>'+
           '</label><br>'
         );
@@ -89,13 +89,25 @@
 
     function actualizarBoton(){
       if(idSiguiente == 30){
-        $('#botonPregunta').text("Finalizar Examen");
-        $('#botonPregunta').attr("onclick","enviarRespuestas()");
+        $('#botonFinalizar').attr('type','submit');
+        $('.examen_input').attr('value', examen);
+        $('.div-boton-siguiente').empty();
       }
     }
 
     function enviarRespuestas(){
         $('.preguntaDiv').text('se envio');
+    }
+
+    function validaciones(){
+      var res = false;
+
+      if($('input[name=optionsRadios]:checked').val() != null)
+        res = true;
+      else
+        alert('Debe seleccionar una respuesta');
+
+      return res;
     }
     // Set the date we're counting down to
     var minutos = new Date();
@@ -119,7 +131,7 @@
         var seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
         // Output the result in an element with id="demo"
-        $('#regresion').html('<h1>'+hours + "h " + minutes + "m " + seconds + "s "+'</h1>');
+        $('#regresion').html('<h3>'+hours + "h " + minutes + "m " + seconds + "s "+'</h3>');
         $('.progress-tiempo').css('width', ((1-(minutes/45))*100 )+'%');
         //document.getElementById("regresion").innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
 
@@ -127,11 +139,13 @@
         if (distance < 0) {
             clearInterval(x);
             $('#regresion').html("EXPIRED");
+
         }
     }, 1000);
     cargarPregunta();
     //GUARDAR RESPUESTAS AJAX
       $('#botonPregunta').on('click', function (e) {
+        if(validaciones()){
           e.preventDefault();
           var examen_id = examen;
           var pregunta_id = pregunta;
@@ -155,6 +169,7 @@
                 console.log(err.Message);
               }
           });
+         }
         });
 
       // MOSTRAR IMAGEN PREGUNTA EN MODAL
