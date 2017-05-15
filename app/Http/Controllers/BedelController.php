@@ -8,6 +8,10 @@ use App\SysMultivalue;
 
 use App\Tramites;
 
+use App\TramitesFull;
+
+use App\EtlExamen;
+
 class BedelController extends Controller
 {
     /**
@@ -22,28 +26,57 @@ class BedelController extends Controller
       $sexo = SysMultivalue::where('type','SEXO')->orderBy('id', 'asc')->get();
     // /dd($request->doc.' '. $request->sexo.' '. $request->pais);
 
-      if (isset($request->doc) && $request->doc != '' && isset($request->sexo) && $request->sexo != '' && isset($request->pais) && $request->pais != '') {
+      if (isset($request->doc) && $request->doc != '' && isset($request->sexo) && $request->sexo != '' && isset($request->pais) && $request->pais != '' && isset($request->tipo_doc) && $request->tipo_doc != '') {
         //dd($request->doc.' '. $request->sexo.' '. $request->pais);
-        $peticion = $this->getTramiteExactly($request->doc, $request->sexo, $request->pais);
+        $get_posibles = $this->getTramiteExactly($request->doc, $request->tipo_doc,$request->sexo, $request->pais);
+        $row = array();
+        $lista = array();
 
-        dd($peticion);
+        foreach($get_posibles[1] as $id => $peticion)
+        {
+          $bool = $this->existe_valor($row, $peticion);
+          if (!$bool) {
+            if ($peticion->detenido == 0) {
+              $peticion->motivo_detencion_value = 'NO';
+            }
+            array_push($row, $peticion);
+          }
+
+          /*
+          if (!in_array($peticion->tramite_id,$lista)) {
+            $row['tramite_id'] = $peticion->tramite_id;
+            if($peticion->detenido == 0)
+                    $row['motivo_detencion_value'] = 'NO';
+            $rows[$row['tramite_id']] = $peticion;
+            array_push($lista, $peticion->tramite_id);
+          }*/
+        }
+
       }
       $peticion = $peticion ?? array(false);
-      return view('bedel.asignacion')->with('paises',$paises)->with('tipo_doc',$tdoc)->with('sexo',$sexo)->with('peticion',$peticion);
+      return view('bedel.asignacion')->with('paises',$paises)->with('tipo_doc',$tdoc)->with('sexo',$sexo)->with('peticion',$row);
+    }
+    public function existe_valor($array, $objeto)
+    {
+      foreach ($array as $key => $value)
+        if($value->tramite_id == $objeto->tramite_id)
+          return true;
+      return false;
     }
 
-
-    public function getTramiteExactly($nro_doc, $sexo, $pais)
+    public function getTramiteExactly($nro_doc, $tipo_doc, $sexo, $pais)
     {
       $response_array = array();
-      $posibles = Tramites::where('nro_doc', $nro_doc)
+      $posibles = TramitesFull::distinct()
+      ->where('nro_doc', $nro_doc)
+      ->where('tipo_doc', $tipo_doc)
       ->where('sexo', $sexo)
       ->where('pais', $pais)
-      ->where('estado', 8)
-      ->orderBy('tramite_id', 'desc')
-      ->toSql();
+//      ->where('estado', 8)
+      ->orderBy('tramite_id', 'asc')
+      ->get();
 
-      if ($posibles != null) {
+      if (count($posibles) > 0) {
         array_push($response_array,true);
         array_push($response_array,$posibles);
       }
@@ -53,70 +86,10 @@ class BedelController extends Controller
       return $response_array;
     }
 
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function getExamenByTramite($tramite_id)
     {
-        //
+      $response_array = array();
+      //$posibles = EtlExamen::where('tramite_id',$tramite_id)->where()
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
-    }
 }

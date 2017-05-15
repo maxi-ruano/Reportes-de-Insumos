@@ -24,6 +24,9 @@
 @section('scripts')
 <!-- validator -->
 <script src="{{ asset('vendors/validator/validator.js')}}"></script>
+<!-- iCheck -->
+<script src="{{ asset('vendors/iCheck/icheck.min.js')}}"></script>
+
 @include('includes.scriptForms')
 
 @endsection

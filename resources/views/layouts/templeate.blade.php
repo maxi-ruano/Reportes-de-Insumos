@@ -15,6 +15,8 @@
     <link href="{{ asset('vendors/font-awesome/css/font-awesome.min.css')}}" rel="stylesheet">
     <!-- NProgress -->
     <link href="{{ asset('vendors/nprogress/nprogress.css')}}" rel="stylesheet">
+    <!-- iCheck -->
+   <link href="{{ asset('vendors/iCheck/skins/flat/green.css')}}" rel="stylesheet">
     @yield('css')
     <!-- Custom Theme Style -->
     <link href="{{ asset('build/css/custom.min.css')}}" rel="stylesheet">
@@ -88,7 +90,8 @@
     <script src="{{ asset('vendors/fastclick/lib/fastclick.js')}}"></script>
     <!-- NProgress -->
     <script src="{{ asset('vendors/nprogress/nprogress.js')}}"></script>
-
+    <!-- iCheck -->
+    <script src="{{ asset('vendors/iCheck/icheck.min.js')}}"></script>
     @yield('scripts')
 
     <!-- Custom Theme Scripts -->

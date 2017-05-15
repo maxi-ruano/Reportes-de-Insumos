@@ -29,12 +29,13 @@
     });
 
   //END VALIDATION
-  
-  // SELECT2
 
+  // SELECT2
+/*
     $(".select2_single").select2({
       placeholder: "Select a state",
       allowClear: true
     });
+*/
   // END SELECT
 </script>
