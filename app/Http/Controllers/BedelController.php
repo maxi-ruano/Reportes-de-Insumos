@@ -12,6 +12,8 @@ use App\TramitesFull;
 
 use App\EtlExamen;
 
+use App\AnsvAmpliaciones;
+
 class BedelController extends Controller
 {
     /**
@@ -25,19 +27,25 @@ class BedelController extends Controller
       $tdoc = SysMultivalue::where('type','TDOC')->orderBy('id', 'asc')->get();
       $sexo = SysMultivalue::where('type','SEXO')->orderBy('id', 'asc')->get();
     // /dd($request->doc.' '. $request->sexo.' '. $request->pais);
-      $row = array();
+        $row = array();
       if (isset($request->doc) && $request->doc != '' && isset($request->sexo) && $request->sexo != '' && isset($request->pais) && $request->pais != '' && isset($request->tipo_doc) && $request->tipo_doc != '') {
         //dd($request->doc.' '. $request->sexo.' '. $request->pais);
         $get_posibles = $this->getTramiteExactly($request->doc, $request->tipo_doc,$request->sexo, $request->pais);
 
         $lista = array();
-
+//var_dump($get_posibles[1]);
         foreach($get_posibles[1] as $id => $peticion)
         {
           $bool = $this->existe_valor($row, $peticion);
           if (!$bool) {
             if ($peticion->detenido == 0) {
               $peticion->motivo_detencion_value = 'NO';
+              if ($peticion->clase_value == 'NADA' OR $peticion->clase_otorgada_value == 'NADA') {
+                $get_class = AnsvAmpliaciones::where('tramite_id', $peticion->tramite_id)
+                ->first();
+                $peticion->clase_value = $get_class->clases_dif;
+                $peticion->clase_otorgada_value = $get_class->clases_dif;
+              }
             }
             array_push($row, $peticion);
           }
@@ -67,8 +75,7 @@ class BedelController extends Controller
     public function getTramiteExactly($nro_doc, $tipo_doc, $sexo, $pais)
     {
       $response_array = array();
-      $posibles = TramitesFull::distinct()
-      ->where('nro_doc', $nro_doc)
+      $posibles = TramitesFull::where('nro_doc', $nro_doc)
       ->where('tipo_doc', $tipo_doc)
       ->where('sexo', $sexo)
       ->where('pais', $pais)
