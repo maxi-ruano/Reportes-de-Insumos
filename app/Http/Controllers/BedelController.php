@@ -25,11 +25,11 @@ class BedelController extends Controller
       $tdoc = SysMultivalue::where('type','TDOC')->orderBy('id', 'asc')->get();
       $sexo = SysMultivalue::where('type','SEXO')->orderBy('id', 'asc')->get();
     // /dd($request->doc.' '. $request->sexo.' '. $request->pais);
-
+      $row = array();
       if (isset($request->doc) && $request->doc != '' && isset($request->sexo) && $request->sexo != '' && isset($request->pais) && $request->pais != '' && isset($request->tipo_doc) && $request->tipo_doc != '') {
         //dd($request->doc.' '. $request->sexo.' '. $request->pais);
         $get_posibles = $this->getTramiteExactly($request->doc, $request->tipo_doc,$request->sexo, $request->pais);
-        $row = array();
+
         $lista = array();
 
         foreach($get_posibles[1] as $id => $peticion)

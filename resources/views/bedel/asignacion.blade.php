@@ -64,7 +64,7 @@
                     <!--</div>-->
                       </div>
                 {!! Form::close() !!}
-                @if($peticion[0] != false)
+                @if(!empty($peticion))
                 <div class="table-responsive">
                   <table class="table table-striped jambo_table bulk_action">
                     <thead>

@@ -15,14 +15,23 @@ Route::get('guardar_respuesta',['uses' => 'EtlExamenPreguntaController@guardarRe
 Route::post('finalizar_examen',['uses' => 'EtlExamenController@calcularYGuardarResultado','as' => 'finalizar_examen']);
 // Route::get('/address/{id}/destroy',['uses' => 'AddressesController@destroy','as' => 'sysfile.addresses.destroy']);
 Route::get('/', 'HomeController@index');
+Route::get('/asd/{juan}', function($juan){
+    echo $juan.'<br>'.hash('md5', $juan);
+    exit;
+    return hash('md5', $juan);
+});
+//Auth::routes();
+Route::auth();
 Route::group(['prefix' => 'admin'], function () {
+    //Auth::routes();
     //Route::auth();
     //Route::resource('','AdminController');
     Route::get('computadoras/active', 'TeoricoPcController@isActive');
     Route::resource('computadoras','TeoricoPcController');
+    Route::resource('bedel', 'BedelController');
 });
 // Route::get('rendir_examen','EtlExamenController@rendir_examen');
 Route::resource('examen', 'EtlExamenController');
 Route::resource('preguntas', 'EtlExamenPreguntaController');
-Route::resource('bedel', 'BedelController');
+
 ///var/www/html/deve_teorico/app/Http/Controllers/EtlExamenController.php
