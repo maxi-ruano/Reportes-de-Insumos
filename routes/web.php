@@ -15,14 +15,11 @@ Route::get('guardar_respuesta',['uses' => 'EtlExamenPreguntaController@guardarRe
 Route::post('finalizar_examen',['uses' => 'EtlExamenController@calcularYGuardarResultado','as' => 'finalizar_examen']);
 // Route::get('/address/{id}/destroy',['uses' => 'AddressesController@destroy','as' => 'sysfile.addresses.destroy']);
 Route::get('/', 'HomeController@index');
-Route::get('/asd/{juan}', function($juan){
-    echo $juan.'<br>'.hash('md5', $juan);
-    exit;
-    return hash('md5', $juan);
-});
+
 //Auth::routes();
-Route::auth();
-Route::group(['prefix' => 'admin'], function () {
+
+Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
+    Route::auth();
     //Auth::routes();
     //Route::auth();
     //Route::resource('','AdminController');

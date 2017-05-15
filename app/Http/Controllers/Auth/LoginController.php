@@ -48,7 +48,7 @@ class LoginController extends Controller
 
       $request->session()->regenerate();
 
-      return redirect('/admin/bedel');
+      return redirect('/admin/login');
     }
 
     public function login(Request $request)
@@ -84,5 +84,6 @@ class LoginController extends Controller
     {
         return 'username';
     }
+
 
 }
