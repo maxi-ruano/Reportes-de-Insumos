@@ -128,9 +128,9 @@
                   <div class="col-md-3 col-sm-3">
                     <select name ="categorias" class="form-control">
                       <option value="">Seleccione una cagoria</option>
-                      @if(!empty($peticion[1]->$categorias))
-                        @foreach($peticion[1]->$categorias as $cagoria)
-                        <option value="{{ $categoria->id }}">{{ $categoria->description }}</option>
+                      @if(!empty($peticion[1]->categorias))
+                        @foreach($peticion[1]->categorias as $categoria)
+                        <option value="{{ $categoria->id }}">{{ $categoria->clase }}</option>
                         @endforeach
                       @endif
                     </select>
@@ -138,9 +138,9 @@
                   <div class="col-md-3 col-sm-3">
                     <select name ="computadoras" class="form-control">
                       <option value="">Seleccione una computadora</option>
-                      @if(!empty($peticion[1]->$computadoras))
-                        @foreach($peticion[1]->$computadoras as $computadora)
-                        <option value="{{ $computadoras->id }}">{{ $computadora->description }}</option>
+                      @if(!empty($peticion[1]->computadoras))
+                        @foreach($peticion[1]->computadoras as $computadora)
+                        <option value="{{ $computadora->id }}">{{ $computadora->id }}</option>
                         @endforeach
                       @endif
                     </select>

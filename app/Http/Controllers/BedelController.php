@@ -56,13 +56,15 @@ class BedelController extends Controller
           }else{
             $peticion[1]->disponibilidad = $disponibilidad[0];
             $peticion[1]->computadoras = $this->getComputadoras();
-            $peticion[1]->categorias = $disponibilidad[1];
+            $peticion[1]->categorias = $disponibilidad[1]->tramite;
+            // dd($disponibilidad[1]);
           }
         }else{
           $mensajeError = "no existe usuario";
         }
 
         }
+        //dd($peticion[1]->computadoras);
       $peticion = $peticion ?? array(false);
       return view('bedel.asignacion')->with('paises',$paises)->with('tipo_doc',$tdoc)->with('sexo',$sexo)->with('peticion',$peticion)->with('mensajeError',$mensajeError);
 
