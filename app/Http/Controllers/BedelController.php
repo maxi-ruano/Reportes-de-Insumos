@@ -11,7 +11,7 @@ use App\Tramites;
 use App\TramitesFull;
 
 use App\EtlExamen;
-
+use App\TeoricoPc;
 use App\AnsvAmpliaciones;
 
 class BedelController extends Controller
@@ -47,10 +47,16 @@ class BedelController extends Controller
         $peticion[1]->computadoras = false;
         $peticion[1]->categorias = false;
 
-        if(!empty($disponibilidad)){
+        if($disponibilidad[0] == false){
           $peticion[1]->disponibilidad = $disponibilidad[0];
           $peticion[1]->disponibilidadMensaje = $disponibilidad[1];
+
+        }else{
+          $peticion[1]->disponibilidad = $disponibilidad[0];
+          $peticion[1]->computadoras = $this->getComputadoras();
+          $peticion[1]->categorias = $disponibilidad[1];
         }
+dd($peticion[1])
 
       }
 
@@ -108,5 +114,8 @@ class BedelController extends Controller
     $res = json_decode($output, false);
     return $res;
 }
-
+    public function getComputadoras()
+    {
+      return TeoricoPc::where('activo','true')->whereNull('examen_id')->get();
+    }
 }
