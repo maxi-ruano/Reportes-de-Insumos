@@ -23,6 +23,7 @@ class BedelController extends Controller
      */
     public function index(Request $request)
     {
+      $mensajeError = '';
       $paises = SysMultivalue::where('type','PAIS')->orderBy('description', 'asc')->get();
       $tdoc = SysMultivalue::where('type','TDOC')->orderBy('id', 'asc')->get();
       $sexo = SysMultivalue::where('type','SEXO')->orderBy('id', 'asc')->get();
@@ -30,32 +31,37 @@ class BedelController extends Controller
       if (isset($request->doc) && $request->doc != '' && isset($request->sexo) && $request->sexo != '' && isset($request->pais) && $request->pais != '' && isset($request->tipo_doc) && $request->tipo_doc != '') {
 
         $peticion = $this->getTramiteExactly($request->doc, $request->tipo_doc,$request->sexo, $request->pais);
+        
+        if($peticion[0]){
+          if ($peticion[1]->clase_value == 'NADA' OR $peticion[1]->clase_otorgada_value == 'NADA') {
+            $get_class = AnsvAmpliaciones::where('tramite_id', $peticion[1]->tramite_id)->first();
+            $peticion[1]->clase_value = $get_class->clases_dif;
+            $peticion[1]->clase_otorgada_value = $get_class->clases_dif;
+          }
 
-        if ($peticion[1]->clase_value == 'NADA' OR $peticion[1]->clase_otorgada_value == 'NADA') {
-          $get_class = AnsvAmpliaciones::where('tramite_id', $peticion[1]->tramite_id)->first();
-          $peticion[1]->clase_value = $get_class->clases_dif;
-          $peticion[1]->clase_otorgada_value = $get_class->clases_dif;
+          if ($peticion[1]->detenido == 0) {
+            $peticion[1]->motivo_detencion_value = 'NO';
+          }
+
+          $disponibilidad = $this->api_get('get', $peticion[1]->tipo_doc, $peticion[1]->nro_doc, $peticion[1]->sexo, $peticion[1]->pais);
+
+          $peticion[1]->disponibilidad = false;
+          $peticion[1]->computadoras = false;
+          $peticion[1]->categorias = false;
+
+          if(!empty($disponibilidad)){
+            $peticion[1]->disponibilidad = $disponibilidad[0];
+            $peticion[1]->disponibilidadMensaje = $disponibilidad[1];
+          }
+        }else{
+          $mensajeError = "no existe usuario";
         }
 
-        if ($peticion[1]->detenido == 0) {
-          $peticion[1]->motivo_detencion_value = 'NO';
-        }
-
-        $disponibilidad = $this->api_get('get', $peticion[1]->tipo_doc, $peticion[1]->nro_doc, $peticion[1]->sexo, $peticion[1]->pais);
-
-        $peticion[1]->disponibilidad = false;
-        $peticion[1]->computadoras = false;
-        $peticion[1]->categorias = false;
-
-        if(!empty($disponibilidad)){
-          $peticion[1]->disponibilidad = $disponibilidad[0];
-          $peticion[1]->disponibilidadMensaje = $disponibilidad[1];
-        }
 
       }
 
       $peticion = $peticion ?? array(false);
-      return view('bedel.asignacion')->with('paises',$paises)->with('tipo_doc',$tdoc)->with('sexo',$sexo)->with('peticion',$peticion);
+      return view('bedel.asignacion')->with('paises',$paises)->with('tipo_doc',$tdoc)->with('sexo',$sexo)->with('peticion',$peticion)->with('mensajeError',$mensajeError);
     }
 
 
