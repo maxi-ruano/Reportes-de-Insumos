@@ -11,7 +11,7 @@ use App\Tramites;
 use App\TramitesFull;
 
 use App\EtlExamen;
-
+use App\TeoricoPc;
 use App\AnsvAmpliaciones;
 
 class BedelController extends Controller
@@ -31,7 +31,7 @@ class BedelController extends Controller
       if (isset($request->doc) && $request->doc != '' && isset($request->sexo) && $request->sexo != '' && isset($request->pais) && $request->pais != '' && isset($request->tipo_doc) && $request->tipo_doc != '') {
 
         $peticion = $this->getTramiteExactly($request->doc, $request->tipo_doc,$request->sexo, $request->pais);
-        
+
         if($peticion[0]){
           if ($peticion[1]->clase_value == 'NADA' OR $peticion[1]->clase_otorgada_value == 'NADA') {
             $get_class = AnsvAmpliaciones::where('tramite_id', $peticion[1]->tramite_id)->first();
@@ -49,16 +49,19 @@ class BedelController extends Controller
           $peticion[1]->computadoras = false;
           $peticion[1]->categorias = false;
 
-          if(!empty($disponibilidad)){
+          if($disponibilidad[0] == false){
             $peticion[1]->disponibilidad = $disponibilidad[0];
             $peticion[1]->disponibilidadMensaje = $disponibilidad[1];
+
+          }else{
+            $peticion[1]->disponibilidad = $disponibilidad[0];
+            $peticion[1]->computadoras = $this->getComputadoras();
+            $peticion[1]->categorias = $disponibilidad[1];
           }
         }else{
           $mensajeError = "no existe usuario";
         }
 
-
-      }
 
       $peticion = $peticion ?? array(false);
       return view('bedel.asignacion')->with('paises',$paises)->with('tipo_doc',$tdoc)->with('sexo',$sexo)->with('peticion',$peticion)->with('mensajeError',$mensajeError);
@@ -114,5 +117,8 @@ class BedelController extends Controller
     $res = json_decode($output, false);
     return $res;
 }
-
+    public function getComputadoras()
+    {
+      return TeoricoPc::where('activo','true')->whereNull('examen_id')->get();
+    }
 }
