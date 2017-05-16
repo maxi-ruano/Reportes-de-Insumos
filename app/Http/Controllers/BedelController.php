@@ -26,52 +26,45 @@ class BedelController extends Controller
       $paises = SysMultivalue::where('type','PAIS')->orderBy('description', 'asc')->get();
       $tdoc = SysMultivalue::where('type','TDOC')->orderBy('id', 'asc')->get();
       $sexo = SysMultivalue::where('type','SEXO')->orderBy('id', 'asc')->get();
-    // /dd($request->doc.' '. $request->sexo.' '. $request->pais);
-        $row = array();
+
       if (isset($request->doc) && $request->doc != '' && isset($request->sexo) && $request->sexo != '' && isset($request->pais) && $request->pais != '' && isset($request->tipo_doc) && $request->tipo_doc != '') {
-        //dd($request->doc.' '. $request->sexo.' '. $request->pais);
-        $get_posibles = $this->getTramiteExactly($request->doc, $request->tipo_doc,$request->sexo, $request->pais);
 
-        $lista = array();
-//var_dump($get_posibles[1]);
-        foreach($get_posibles[1] as $id => $peticion)
-        {
-          $bool = $this->existe_valor($row, $peticion);
-          if (!$bool) {
-            if ($peticion->detenido == 0) {
-              $peticion->motivo_detencion_value = 'NO';
-              if ($peticion->clase_value == 'NADA' OR $peticion->clase_otorgada_value == 'NADA') {
-                $get_class = AnsvAmpliaciones::where('tramite_id', $peticion->tramite_id)
-                ->first();
-                $peticion->clase_value = $get_class->clases_dif;
-                $peticion->clase_otorgada_value = $get_class->clases_dif;
-              }
-            }
-            array_push($row, $peticion);
-          }
+        $peticion = $this->getTramiteExactly($request->doc, $request->tipo_doc,$request->sexo, $request->pais);
 
-          /*
-          if (!in_array($peticion->tramite_id,$lista)) {
-            $row['tramite_id'] = $peticion->tramite_id;
-            if($peticion->detenido == 0)
-                    $row['motivo_detencion_value'] = 'NO';
-            $rows[$row['tramite_id']] = $peticion;
-            array_push($lista, $peticion->tramite_id);
-          }*/
+        if ($peticion[1]->clase_value == 'NADA' OR $peticion[1]->clase_otorgada_value == 'NADA') {
+          $get_class = AnsvAmpliaciones::where('tramite_id', $peticion[1]->tramite_id)->first();
+          $peticion[1]->clase_value = $get_class->clases_dif;
+          $peticion[1]->clase_otorgada_value = $get_class->clases_dif;
+        }
+
+        if ($peticion[1]->detenido == 0) {
+          $peticion[1]->motivo_detencion_value = 'NO';
+        }
+
+        $disponibilidad = $this->habilitado();
+        
+        $peticion[1]->disponibilidad = false;
+        $peticion[1]->computadoras = false;
+        $peticion[1]->categorias = false;
+
+        if(!empty($disponibilidad)){
+          $peticion[1]->disponibilidad = $disponibilidad[0];
+          $peticion[1]->disponibilidadMensaje = $disponibilidad[1];
         }
 
       }
+
       $peticion = $peticion ?? array(false);
-      return view('bedel.asignacion')->with('paises',$paises)->with('tipo_doc',$tdoc)->with('sexo',$sexo)->with('peticion',$row);
-    }
-    public function existe_valor($array, $objeto)
-    {
-      foreach ($array as $key => $value)
-        if($value->tramite_id == $objeto->tramite_id)
-          return true;
-      return false;
+      return view('bedel.asignacion')->with('paises',$paises)->with('tipo_doc',$tdoc)->with('sexo',$sexo)->with('peticion',$peticion);
     }
 
+
+
+    public function habilitado(){
+      $res = $this->httpGet('http://192.168.76.233/api_dc.php?function=get&tipo_doc=1&nro_doc=12345&sexo=m&pais=1');
+      $res = json_decode($res, false);
+      return $res;
+    }
     public function getTramiteExactly($nro_doc, $tipo_doc, $sexo, $pais)
     {
       $response_array = array();
@@ -79,9 +72,9 @@ class BedelController extends Controller
       ->where('tipo_doc', $tipo_doc)
       ->where('sexo', $sexo)
       ->where('pais', $pais)
-//      ->where('estado', 8)
+      ->where('estado', 8)
       ->orderBy('tramite_id', 'asc')
-      ->get();
+      ->first();
 
       if (count($posibles) > 0) {
         array_push($response_array,true);
@@ -98,5 +91,19 @@ class BedelController extends Controller
       $response_array = array();
       //$posibles = EtlExamen::where('tramite_id',$tramite_id)->where()
     }
+
+    function httpGet($url)
+{
+    $ch = curl_init();
+
+    curl_setopt($ch,CURLOPT_URL,$url);
+    curl_setopt($ch,CURLOPT_RETURNTRANSFER,true);
+//  curl_setopt($ch,CURLOPT_HEADER, false);
+
+    $output=curl_exec($ch);
+
+    curl_close($ch);
+    return $output;
+}
 
 }
