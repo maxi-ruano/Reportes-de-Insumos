@@ -1,6 +1,6 @@
 <footer>
   <div class="pull-right">
-    River SRL <a href="#">JC Ideas</a>
+    Sistema de Licencias <a href="#"> Bedel</a>
   </div>
   <div class="clearfix"></div>
 </footer>
