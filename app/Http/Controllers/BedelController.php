@@ -62,11 +62,11 @@ class BedelController extends Controller
           $mensajeError = "no existe usuario";
         }
 
-
+        }
       $peticion = $peticion ?? array(false);
       return view('bedel.asignacion')->with('paises',$paises)->with('tipo_doc',$tdoc)->with('sexo',$sexo)->with('peticion',$peticion)->with('mensajeError',$mensajeError);
-    }
 
+    }
 
 
     public function habilitado(){
