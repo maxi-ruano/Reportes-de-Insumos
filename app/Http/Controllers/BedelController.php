@@ -41,8 +41,8 @@ class BedelController extends Controller
           $peticion[1]->motivo_detencion_value = 'NO';
         }
 
-        $disponibilidad = $this->habilitado();
-        
+        $disponibilidad = $this->api_get('get', $peticion[1]->tipo_doc, $peticion[1]->nro_doc, $peticion[1]->sexo, $peticion[1]->pais);
+
         $peticion[1]->disponibilidad = false;
         $peticion[1]->computadoras = false;
         $peticion[1]->categorias = false;
@@ -61,6 +61,7 @@ class BedelController extends Controller
 
 
     public function habilitado(){
+
       $res = $this->httpGet('http://192.168.76.233/api_dc.php?function=get&tipo_doc=1&nro_doc=12345&sexo=m&pais=1');
       $res = json_decode($res, false);
       return $res;
@@ -92,8 +93,9 @@ class BedelController extends Controller
       //$posibles = EtlExamen::where('tramite_id',$tramite_id)->where()
     }
 
-    function httpGet($url)
+    function api_get($function, $tipo_doc, $nro_doc, $sexo, $pais)
 {
+    $url = "http://192.168.76.233/api_dc.php?function=".$function."&tipo_doc=".$tipo_doc."&nro_doc=".$nro_doc."&sexo=".$sexo."&pais=".$pais;
     $ch = curl_init();
 
     curl_setopt($ch,CURLOPT_URL,$url);
@@ -103,7 +105,8 @@ class BedelController extends Controller
     $output=curl_exec($ch);
 
     curl_close($ch);
-    return $output;
+    $res = json_decode($output, false);
+    return $res;
 }
 
 }

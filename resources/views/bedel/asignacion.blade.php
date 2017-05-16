@@ -15,7 +15,7 @@
                 {!! Form::open(['route' => 'bedel.index', 'id'=>'formCategory', 'method' => 'GET', 'class' => 'form-horizontal', 'role' => 'form', 'files' => true ]) !!}
                 <div class="form-group">
                     <div class="col-md-3 col-sm-3">
-                      <select name="pais" class="form-control">
+                      <select name="pais" class="form-control" required>
                         @foreach($paises as $pais)
                         @if($pais->id == 1)
                         <option value="{{ $pais->id }}" selected>{{ $pais->description }}</option>
@@ -29,7 +29,7 @@
 
 
                       <div class="col-md-1 col-sm-1">
-                        <select name ="tipo_doc" class="form-control">
+                        <select name ="tipo_doc" class="form-control" required>
                           @foreach($tipo_doc as $tdoc)
                           @if($tdoc->id == 1)
                           <option value="{{ $tdoc->id }}" selected>{{ $tdoc->description }}</option>
@@ -41,14 +41,14 @@
                       </div>
 
                       <div class="col-md-5 col-sm-5">
-                        <input name="doc" type="text" class="form-control" placeholder="Documento">
+                        <input name="doc" type="text" class="form-control" placeholder="Documento" required>
                       </div>
 
                         <div class="col-md-1 col-sm-1">
-                          <select name="sexo" class="form-control">
+                          <select name="sexo" class="form-control" required>
                             @foreach($sexo as $sex)
                             @if($sex->id == 0)
-                            <option value="{{ strtolower($sex->description) }}" selected>{{ $sex->description }}</option>
+                            <option value="" selected>{{ $sex->description }}</option>
                             @else
                             <option value="{{ strtolower($sex->description) }}">{{ $sex->description }}</option>
                             @endif
