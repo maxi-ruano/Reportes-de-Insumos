@@ -154,7 +154,9 @@
                     </div>
                 </div>
                 @endif
-      </div>@endif
+                @endif
+      </div>
+      @include('bedel.monitoreo')
     </div>
   </div>
 </div>
