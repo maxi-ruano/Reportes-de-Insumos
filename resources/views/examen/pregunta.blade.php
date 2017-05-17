@@ -2,7 +2,7 @@
 
 @section('pregunta')
   <div class="row">
-      <div class="col-sm-8">
+      <div class="col-sm-8 div-pregunta">
         <p class="textoPregunta"></p>
       </div>
       <div class="col-sm-4 div-pregunta-img">
@@ -14,7 +14,11 @@
       </div>
       <div id="myModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog">
+
           <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
               <div class="modal-body">
                 <div class="text-center">
                   <img src="" class="img-pregunta img-responsive" style = "height: 50%;width: auto;">
@@ -59,10 +63,15 @@
 
       $('.textoPregunta').html('<h2>'+preguntas[idSiguiente]['pregunta']+'</h2>');
       if(preguntas[idSiguiente]['imagen']){
-        $(".div-pregunta-img").html('<img src="" alt="..." class="img-pregunta img-thumbnail img-responsive" data-toggle="modal" data-target="#myModal" style = "height: 70%;width: auto;">')
-        $(".img-pregunta").attr('src',{{ config('app.APP_FOTOS') }}+'etlnuevo/assets/images/' + preguntas[idSiguiente]['imagen']);
-      }else
+        $(".div-pregunta").removeClass('col-sm-12').addClass('col-sm-8');
+        $(".div-pregunta-img").html('<div class="thumbnail text-center"><img src="" alt="..." class="img-pregunta img-responsive" data-toggle="modal" data-target="#myModal" style = "height: 60%;width: auto;">'+'<div class="profile_info">hacer click para agrandar la foto</div></div>')
+        $(".img-pregunta").attr('src', '{{ config('global.IMAGENES_PREGUNTAS') }}' + preguntas[idSiguiente]['imagen']);
+
+      }else{
         $(".div-pregunta-img").empty();
+        $(".div-pregunta").removeClass('col-sm-8').addClass('col-sm-12');
+      }
+
 
       $('').html('<h2>'+preguntas[idSiguiente]['imagen']+'</h2>');
       pregunta = preguntas[idSiguiente]['id'];
@@ -135,7 +144,7 @@
         if (distance < 0) {
             clearInterval(x);
             $('#regresion').html("EXPIRED");
-            location.href = {{ config('app.APP_URL') }}+'/deve_teorico/public/';
+            location.href = '{{ config('app.APP_URL') }}'+'{{ config('global.URL_EXAMEN_TEORICO') }}';
           }
     }, 1000);
     cargarPregunta();
@@ -148,7 +157,7 @@
           var respuesta_id = $('input[name=optionsRadios]:checked').val();
           $.ajax({
               type: "GET",
-              url: {{ config('app.APP_URL') }}+'/deve_teorico/public/guardar_respuesta',
+              url: '{{ config('app.APP_URL') }}'+'{{ config('app.GUARDAR_RESPUESTA_EXAMEN') }}',
               data: {examen_id: examen_id, respuesta_id: respuesta_id, pregunta_id: pregunta_id},
               //async:false,
               beforeSend: function(){
