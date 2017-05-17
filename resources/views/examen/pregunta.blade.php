@@ -29,7 +29,7 @@
 @endsection
 @section('persona')
   <h4>{!! $nombre !!}</h4>
-  <img src="{!! $fotografia !!}" alt="..." class=" img-thumbnail img-responsive img-persona" style = "height: 70%;width: auto;">
+  <img src="{!! $fotografia !!}" onerror="this.src='{{ asset('production/images/user.png')}}'" alt="..." class=" img-thumbnail img-responsive img-persona" style = "height: 70%;width: auto;">
 @endsection
 
 @section('respuestas')
@@ -60,7 +60,7 @@
       $('.textoPregunta').html('<h2>'+preguntas[idSiguiente]['pregunta']+'</h2>');
       if(preguntas[idSiguiente]['imagen']){
         $(".div-pregunta-img").html('<img src="" alt="..." class="img-pregunta img-thumbnail img-responsive" data-toggle="modal" data-target="#myModal" style = "height: 70%;width: auto;">')
-        $(".img-pregunta").attr('src','http://192.168.76.200/etlnuevo/assets/images/' + preguntas[idSiguiente]['imagen']);
+        $(".img-pregunta").attr('src',{{ config('app.APP_FOTOS') }}+'etlnuevo/assets/images/' + preguntas[idSiguiente]['imagen']);
       }else
         $(".div-pregunta-img").empty();
 
@@ -111,7 +111,8 @@
     }
     // Set the date we're counting down to
     var minutos = new Date();
-    minutos.setMinutes(minutos.getMinutes() + 45);
+    var timeout = 45;
+    minutos.setMinutes(minutos.getMinutes() + timeout);
 
     var countDownDate = minutos.getTime();
 
@@ -121,26 +122,21 @@
         // Get todays date and time
         var now = new Date().getTime();
 
-        // Find the distance between now an the count down date
         var distance = countDownDate - now;
 
-        // Time calculations for days, hours, minutes and seconds
         var days = Math.floor(distance / (1000 * 60 * 60 * 24));
         var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
         var seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-        // Output the result in an element with id="demo"
         $('#regresion').html('<h3>'+hours + "h " + minutes + "m " + seconds + "s "+'</h3>');
-        $('.progress-tiempo').css('width', ((1-(minutes/45))*100 )+'%');
-        //document.getElementById("regresion").innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
+        $('.progress-tiempo').css('width', ((1-(minutes/timeout))*100 )+'%');
 
-        // If the count down is over, write some text
         if (distance < 0) {
             clearInterval(x);
             $('#regresion').html("EXPIRED");
-
-        }
+            location.href = {{ config('app.APP_URL') }}+'/deve_teorico/public/';
+          }
     }, 1000);
     cargarPregunta();
     //GUARDAR RESPUESTAS AJAX
@@ -152,7 +148,7 @@
           var respuesta_id = $('input[name=optionsRadios]:checked').val();
           $.ajax({
               type: "GET",
-              url: 'http://192.168.76.215/deve_teorico/public/guardar_respuesta',
+              url: {{ config('app.APP_URL') }}+'/deve_teorico/public/guardar_respuesta',
               data: {examen_id: examen_id, respuesta_id: respuesta_id, pregunta_id: pregunta_id},
               //async:false,
               beforeSend: function(){
@@ -161,12 +157,10 @@
               success: function( msg ) {
                 $('#botonPregunta').prop('disabled',false);
                 cargarPregunta();
-                console.log(msg)
               },
 
               error: function(xhr, status, error) {
                 var err = eval("(" + xhr.responseText + ")");
-                console.log(err.Message);
               }
           });
          }
