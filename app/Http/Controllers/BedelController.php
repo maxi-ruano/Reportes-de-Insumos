@@ -30,15 +30,16 @@ class BedelController extends Controller
       //Busqueda de tramite
       if ($request->op == 'find') {
         $peticion = $this->findTramite($request->doc, (int)$request->tipo_doc, strtolower($request->sexo), $request->pais);
-        if ($peticion):
+        if ($this->esValido($peticion)):
           $peticion = $this->validarEncontrados($peticion);
+          $categorias = $this->api_get('http://192.168.76.233/api_dc.php',array('function' => 'get','tipo_doc' => (int)$request->tipo_doc, 'nro_doc' => $request->doc, 'sexo' => strtolower($request->sexo), 'pais' => $request->pais));
         endif;
-        //$test = $this->api_get('http://192.168.76.233/api_dc.php',array('function' => 'get','tipo_doc' => (int)$request->tipo_doc, 'nro_doc' => $request->doc, 'sexo' => strtolower($request->sexo), 'pais' => $request->pais));
-        //dd($test);
       }
+      //dd($categorias[1]->tramite);
       // SI existe peticion fine, si no existe agregale false
       $peticion = $peticion ?? array(false);
-      return view('bedel.asignacion')->with('default',$default)->with('peticion',$peticion);
+      $categorias = $categorias ?? array(false);
+      return view('bedel.asignacion')->with('default',$default)->with('peticion',$peticion)->with('categorias',$categorias);
     }
     /**
      *
@@ -123,4 +124,32 @@ class BedelController extends Controller
           $res = json_decode($output, false);
           return $res;
        }
+       /**
+        * Funcion esValido - Verifica que un parametro exista, no este vacio
+        *
+        */
+        public function esValido($var){
+          if (!$var) {
+            return false;
+          }
+          elseif ($var == NULL) {
+            return false;
+          }
+          elseif ($var == '') {
+            return false;
+          }
+          if (is_array($var)){
+            if ($var[0] == false) {
+              return false;
+            }
+          }
+          return true;
+        }
+        /**
+         * Funcion asignar_examen - Crea un examen y lo asigna a una ip
+         *
+         */
+         public function asignar_examen(){
+
+         }
 }

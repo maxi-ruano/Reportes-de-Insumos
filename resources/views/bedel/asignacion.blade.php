@@ -123,14 +123,14 @@
                 </div>
 
 
-                @if($peticion[1]->disponibilidad)
+                @if($categorias[0] != false)
                 <div class="form-group">
                   <div class="col-md-3 col-sm-3">
-                    <select name ="categorias" class="form-control">
+                    <select name ="categorias" class="form-control" required>
                       <option value="">Seleccione una cagoria</option>
-                      @if(!empty($peticion[1]->categorias))
-                        @foreach($peticion[1]->categorias as $categoria)
-                        <option value="{{ $categoria->id }}">{{ $categoria->clase }}</option>
+                      @if(!empty($categorias[1]->tramite)):
+                        @foreach($categorias[1]->tramite as $categoria)
+                        <option value="{{ $categoria->clase }}">{{ $categoria->clase }}</option>
                         @endforeach
                       @endif
                     </select>
