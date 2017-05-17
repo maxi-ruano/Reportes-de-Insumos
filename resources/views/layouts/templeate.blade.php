@@ -20,6 +20,7 @@
     @yield('css')
     <!-- Custom Theme Style -->
     <link href="{{ asset('build/css/custom.min.css')}}" rel="stylesheet">
+    <link href="{{ asset('build/css/custom.da.css')}}" rel="stylesheet">
   </head>
 
   <body class="nav-md">
@@ -28,7 +29,7 @@
         <div class="col-md-3 left_col">
           <div class="left_col scroll-view">
             <div class="navbar nav_title" style="border: 0;">
-              <a href="index.html" class="site_title"><i class="fa fa-folder"></i> <span>Admin Bedel</span></a>
+              <a href="index.html" class="site_title"><i class="fa fa-folder"></i> <span class="appclr">Licta</span></a>
             </div>
             <div class="clearfix"></div>
             <!-- menu profile quick info -->
