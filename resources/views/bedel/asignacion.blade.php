@@ -2,7 +2,6 @@
 @section('titlePage', 'Teorico')
 @section('content')
 <!-- page content -->
-
 <div class="row">
   <div class="col-md-12 col-sm-12 col-xs-12">
     <div class="x_panel">
@@ -13,10 +12,11 @@
       </div>
       <div class="x_content">
                 {!! Form::open(['route' => 'bedel.index', 'id'=>'formCategory', 'method' => 'GET', 'class' => 'form-horizontal', 'role' => 'form', 'files' => true ]) !!}
+                <input type="text" name="op" id="op" value="find" class="hide">
                 <div class="form-group">
                     <div class="col-md-3 col-sm-3">
                       <select name="pais" class="form-control" required>
-                        @foreach($paises as $pais)
+                        @foreach($default['paises'] as $pais)
                         @if($pais->id == 1)
                         <option value="{{ $pais->id }}" selected>{{ $pais->description }}</option>
                         @else
@@ -30,7 +30,7 @@
 
                       <div class="col-md-1 col-sm-1">
                         <select name ="tipo_doc" class="form-control" required>
-                          @foreach($tipo_doc as $tdoc)
+                          @foreach($default['tdoc'] as $tdoc)
                           @if($tdoc->id == 1)
                           <option value="{{ $tdoc->id }}" selected>{{ $tdoc->description }}</option>
                           @else
@@ -46,7 +46,7 @@
 
                         <div class="col-md-1 col-sm-1">
                           <select name="sexo" class="form-control" required>
-                            @foreach($sexo as $sex)
+                            @foreach($default['sexo'] as $sex)
                             @if($sex->id == 0)
                             <option value="" selected>{{ $sex->description }}</option>
                             @else
@@ -65,16 +65,16 @@
                       </div>
 
                 {!! Form::close() !!}
-                @if(!empty($peticion[1]))
+                @if($peticion[0])
                 <div class="table-responsive">
-                  <table class="table table-striped jambo_table bulk_action">
+                  <table class="table table-striped jambo_table">
                     <thead>
                       <tr class="headings">
-                        <th>
+                        <!--<th>
                           <div class="icheckbox_flat-green" style="position: relative;"><input type="checkbox" id="check-all" class="flat" style="position: absolute; opacity: 0;"><ins class="iCheck-helper" style="position: absolute; top: 0%; left: 0%; display: block; width: 100%; height: 100%; margin: 0px; padding: 0px; background: rgb(255, 255, 255); border: 0px; opacity: 0;"></ins></div>
-                        </th>
+                        </th>-->
                         <th class="column-title">Tramite ID </th>
-                        <th class="column-title">Boton </th>
+                        <!--<th class="column-title">Boton </th>-->
                         <th class="column-title">Pedido </th>
                         <th class="column-title">Otorgado </th>
                         <th class="column-title">Tipo </th>
@@ -89,11 +89,11 @@
 
                     <tbody>
                       <tr class="even pointer">
-                        <td class="a-center ">
+                        <!--<td class="a-center ">
                           <div class="icheckbox_flat-green" style="position: relative;"><input type="checkbox" class="flat" name="table_records" style="position: absolute; opacity: 0;"><ins class="iCheck-helper" style="position: absolute; top: 0%; left: 0%; display: block; width: 100%; height: 100%; margin: 0px; padding: 0px; background: rgb(255, 255, 255); border: 0px; opacity: 0;"></ins></div>
-                        </td>
+                        </td>-->
                         <td class=" ">{{ $peticion[1]->tramite_id }}</td>
-                        <td>
+                        <!--<td>
                           <div class="text-center dropdown" id="user-header">
                               <button type="button" class="btn btn-sm btn-primary" aria-expanded="false"href="#" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
                                   <i class="glyphicon glyphicon-th-list">&nbsp;</i><span class="caret"></span>
@@ -110,7 +110,7 @@
                                 </li>
                               </ul>
                           </div>
-                        </td>
+                        </td>-->
                         <td class=" ">{{ $peticion[1]->clase_value }}</td>
                         <td class=" ">{{ $peticion[1]->clase_otorgada_value }}</td>
                         <td class=" ">{{ $peticion[1]->tipo_tramite_value }}</td>
