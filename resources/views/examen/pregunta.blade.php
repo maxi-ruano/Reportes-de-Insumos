@@ -84,7 +84,7 @@
         $('.option-respuestas').append(
           '<label class="btn btn-primary btn-responsive" style="white-space: normal;">'+
             '<input type="radio" class="form-check-input" name="optionsRadios" value="'+respuestas[i]['id']+'">'+
-            '<h3>'+respuestas[i]['respuesta']+'</h3>'+
+            '<h3 align="left">'+'{{ config('global.LETRAS') }}'.charAt(i)+'. '+respuestas[i]['respuesta']+'</h3>'+
           '</label><br>'
         );
       }
