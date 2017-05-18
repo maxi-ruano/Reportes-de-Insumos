@@ -63,19 +63,17 @@
                 @if($categorias[0] != false)
                   <div class="col-md-2 col-sm-2">
                     <select name ="categorias" class="form-control" required>
-                      <option value="">Categoria</option>
-                      @if(!empty($categorias[1]->tramite)):
-                        @foreach($categorias[1]->tramite as $categoria)
-                        <option value="{{ $categoria->clase }}">{{ $categoria->clase }}</option>
-                        @endforeach
-                      @endif
+                      <option value="" selected>Categoria</option>
+                      @foreach($categorias[1]->tramite as $cat)
+                      <option value="{{ $cat->clase }}">{{ $cat->clase }}</option>
+                      @endforeach
                     </select>
                   </div>
                   <div class="col-md-2 col-sm-2">
                     <select name ="computadoras" class="form-control">
-                      <option value="">Computadora</option>
-                      @if(!empty($peticion[1]->computadoras))
-                        @foreach($peticion[1]->computadoras as $computadora)
+                      <option value="" selected>Computadora</option>
+                      @if($computadoras[0] != false)
+                        @foreach($computadoras[1] as $computadora)
                         <option value="{{ $computadora->id }}">{{ $computadora->id }}</option>
                         @endforeach
                       @endif
@@ -84,13 +82,12 @@
                   <input id="send" type="submit" class="btn btn-success col-md-1 col-sm-1" value="Asignar">
                 </div>
                 @else
-                <div class="form-group">
-                  <div class="panel panel-default">
-                    <div class="panel-body"><h3>{{ $peticion[1]->disponibilidadMensaje }}</h3></div>
+                  <!--<div class="form-group">
+                    <div class="panel panel-default">
+                      <div class="panel-body"><h3> $peticion[1]->disponibilidadMensaje </h3></div>
                     </div>
-                </div>
+                  </div>-->
                 @endif
-
       </div>
       @include('bedel.monitoreo')
     </div>

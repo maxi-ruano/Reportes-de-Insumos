@@ -44,7 +44,7 @@ class BedelController extends Controller
       $peticion = $peticion ?? array(false);
       $categorias = $categorias ?? array(false);
       $computadoras = $computadoras ?? array(false);
-      return view('bedel.asignacion')->with('default',$default)->with('peticion',$peticion)->with('categorias',$categorias);
+      return view('bedel.asignacion')->with('default',$default)->with('peticion',$peticion)->with('categorias',$categorias)->with('computadoras', $computadoras);
     }
     /**
      *
