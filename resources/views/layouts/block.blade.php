@@ -18,6 +18,12 @@
 
     <!-- Custom Theme Style -->
     <link href="{{ asset('build/css/custom.min.css')}}" rel="stylesheet">
+
+    <style>
+            .fondo {
+          background-color: #D9DEE4;
+        }
+    </style>
   </head>
 
   <body class="nav-md">
@@ -26,11 +32,38 @@
         <!-- page content -->
         <div class="col-md-12">
           <div class="col-middle">
-            <div class="text-center">
-              <h1 class="error-number">Equipo Bloqueado</h1>
-              <h2></h2>
-              <p> Este equipo no se encuentra asignado a ningun a ningun examen
-              </p>
+            <div class="row text-center">
+              <div class="col-sm-3">
+              </div>
+              <div class="col-sm-6">
+                <div class="contenedor-examen-panel panel panel-default ">
+                  <div class="panel-body fondo">
+                    <h1><b>Usted ha finalizado su examen teórico.</b></h1>
+                    <br>
+                    <h2>En esta ocasión lo Reprobó con un  <b>61%.</b></h2>
+                    <br>
+                    <h2> Le quedan <b>2 (dos)</b> oportunidades más para rendir, debe esperar 5 dias habiles para poder rendir el proximo examen.</h2>
+                    <br>
+                    <h2>Si reprueba 3 veces deberá realizar nuevamente el trámite desde el inicio, tenga en cuenta que el curso tiene validez de un año.</h2>
+                    <br>
+                    <h2>El resultado de su examen quedará registrado y asentado en todos nuestros registros y sólo podrá rendir nuevamente dentro de <b>cinco días </b> corridos; a partir del día <b>24 de Mayo del 2017. </b></h2>
+                    <br>
+                    <h2> Recuerde que su trámite tiene una validez de  <b>90 días </b> corridos desde el día que lo inició: <b>14 de Marzo del 2017</b> y vence: <b>14 de Junio del 2017</b></h2>
+                    <br>
+                    <h2> <b>Si su trámite vence deberá iniciarlo nuevamente abonando todos los costos correspondientes.</b></h2>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                    <h2> <b>Por favor diríjase al frente del aula para ver cómo continuar su trámite con el Bedel del áula.</b></h2>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-3">
+              </div>
+
             </div>
           </div>
         </div>

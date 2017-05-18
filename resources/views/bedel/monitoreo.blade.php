@@ -1,72 +1,117 @@
 <div class="row">
 
-<legend><h2 class="text-center">Estados Computadoras</h2></legend>
+<h2 class="text-center">Estados Computadoras</h2>
 
-<div class="col-md-55">
-  <div class="thumbnail">
-    <div class="image view view-first">
-      <div class="thumbnail text-center">
-        <img alt="..." class="img-pregunta img-responsive" style = "height: 60%;width: auto;" src="http://192.168.76.215/deve_teorico/public/production/images/persona4.jpg">
+
+<div class="col-md-55" style="">
+  <div class="thumbnail fondo-pc-ocupado" style = "height: auto;">
+    <div class="row">
+      <div class="col-md-6">
+          <img  class="img-pregunta img-responsive"  style = "height: 100%; width: 100%;" src="http://192.168.76.200/data/fotos/001138031328M.JPG" alt="Generic placeholder thumbnail">
       </div>
-    </div>
-    <div class="caption text-center">
-      <p><b>Juan Ojeda</b> DNI: 92883274</p>
-      <h4><span class="label label-success"><span>PC: 1 </span> Disponible</span></h4>
+      <div class="col-md-6" style="color: #333; height: 40%; padding: 1px;">
+        <ul class="list-unstyled">
+          <li><b>PC: 1</b></li>
+          <li>DOC:95579680</li>
+          <li>Juan Carlos</li>
+          <li>Ojeda Gomez</li>
+          <li><b><span class="label label-success">REPROBADO </span></b></li>
+        </ul>
+      </div>
     </div>
   </div>
 </div>
-  <div class="col-md-55">
-    <div class="thumbnail">
-      <div class="image view view-first">
-        <div class="thumbnail text-center">
-          <img alt="..." class="img-pregunta img-responsive" style = "height: 60%;width: auto;" src="http://192.168.76.215/deve_teorico/public/production/images/persona3.jpg">
-        </div>
+<div class="col-md-55" style="">
+  <div class="thumbnail" style = "height: auto; background-color: #E6E6E6;">
+    <div class="row">
+      <div class="col-md-6">
+          <img  class="img-pregunta img-responsive"  style = "height: 100%; width: 100%;" src="http://192.168.76.200/data/fotos/001138031328M.JPG" alt="Generic placeholder thumbnail">
       </div>
-      <div class="caption text-center">
-        <p><b>Juan Perez</b> DNI: 92958921</p>
-        <h4><span class="label label-danger"><span>PC: 2 </span> Ocupado</span></h4>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-55">
-    <div class="thumbnail">
-      <div class="image view view-first">
-        <div class="thumbnail text-center">
-          <img alt="..." class="img-pregunta img-responsive" style = "height: 60%;width: auto;" src="http://192.168.76.215/deve_teorico/public/production/images/persona2.jpg">
-        </div>
-      </div>
-      <div class="caption text-center">
-        <p><b>Daniel Valdes</b> DNI: 93271366</p>
-        <h4><span class="label label-success"><span>PC: 3 </span> Disponible</span></h4>
+      <div class="col-md-6" style="color: #333; height: 40%; padding: 1px;">
+        <ul class="list-unstyled">
+          <li><b>PC: 1</b></li>
+          <li>DOC:95579680</li>
+          <li>Juan Carlos</li>
+          <li>Ojeda Gomez</li>
+          <li><b><span class="label label-danger">Reprobado </span></b></li>
+        </ul>
       </div>
     </div>
   </div>
-  <div class="col-md-55">
-    <div class="thumbnail">
-      <div class="image view view-first">
-        <div class="thumbnail text-center">
-          <img alt="..." class="img-pregunta img-responsive" style = "height: 60%;width: auto;" src="http://192.168.76.215/deve_teorico/public/production/images/persona1.jpg">
-        </div>
+</div>
+<div class="col-md-55" style="">
+  <div class="thumbnail" style = "height: auto; background-color: #F78181;">
+    <div class="row">
+      <div class="col-md-6">
+          <img  class="img-pregunta img-responsive"  style = "height: 100%; width: 100%;" src="http://192.168.76.200/data/fotos/001138031328M.JPG" alt="Generic placeholder thumbnail">
       </div>
-      <div class="caption text-center">
-        <p><b>Ernesto Diaz</b> DNI: 93320203</p>
-        <h4><span class="label label-success"><span>PC: 4 </span> Disponible</span></h4>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-55">
-    <div class="thumbnail">
-      <div class="image view view-first">
-        <div class="thumbnail text-center">
-          <img alt="..." class="img-pregunta img-responsive" style = "height: 60%;width: auto;" src="http://192.168.76.200/data/fotos/001138031328M.JPG">
-        </div>
-      </div>
-      <div class="caption text-center">
-        <p><b>Carlos Ortega</b> DNI: 10861570</p>
-        <h4><span class="label label-danger"><span>PC: 5 </span> Ocupado</span></h4>
+      <div class="col-md-6" style="color: #333; height: 40%; padding: 1px;">
+        <ul class="list-unstyled">
+          <li><b>PC: 1</b></li>
+          <li>DOC:95579680</li>
+          <li>Juan Carlos</li>
+          <li>Ojeda Gomez</li>
+          <li><b><span class="label label-danger">Reprobado </span></b></li>
+        </ul>
       </div>
     </div>
   </div>
+</div>
+<div class="col-md-55" style="">
+  <div class="thumbnail" style = "height: auto; background-color: #A9F5A9;">
+    <div class="row">
+      <div class="col-md-6">
+          <img  class="img-pregunta img-responsive"  style = "height: 100%; width: 100%;" src="http://192.168.76.200/data/fotos/001138031328M.JPG" alt="Generic placeholder thumbnail">
+      </div>
+      <div class="col-md-6" style="color: #333; height: 40%; padding: 1px;">
+        <ul class="list-unstyled">
+          <li><b>PC: 1</b></li>
+          <li>DOC:95579680</li>
+          <li>Juan Carlos</li>
+          <li>Ojeda Gomez</li>
+          <li><b><span class="label label-danger">Reprobado </span></b></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="col-md-55" style="">
+  <div class="thumbnail" style = "height: auto; background-color: #A9F5A9;">
+    <div class="row">
+      <div class="col-md-6">
+          <img  class="img-pregunta img-responsive"  style = "height: 100%; width: 100%;" src="http://192.168.76.200/data/fotos/001138031328M.JPG" alt="Generic placeholder thumbnail">
+      </div>
+      <div class="col-md-6" style="color: #333; height: 40%; padding: 1px;">
+        <ul class="list-unstyled">
+          <li><b>PC: 1</b></li>
+          <li>DOC:95579680</li>
+          <li>Juan Carlos</li>
+          <li>Ojeda Gomez</li>
+          <li><b><span class="label label-warning">EN CURSO </span></b></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="col-md-55" style="">
+  <div class="thumbnail fondo-pc-libre" style = "height: auto;">
+    <div class="row">
+      <div class="col-md-6">
+          <img  class="img-pregunta img-responsive"  style = "height: 100%; width: 100%;" src="http://192.168.76.200/data/fotos/001138031328M.JPG" alt="Generic placeholder thumbnail">
+      </div>
+      <div class="col-md-6" style="color: #333; height: 40%; padding: 1px;">
+        <ul class="list-unstyled">
+          <li><b>PC: 1</b></li>
+          <li>DOC:95579680</li>
+          <li>Juan Carlos</li>
+          <li>Ojeda Gomez</li>
+          <li><b><span class="label label-success">REPROBADO </span></b></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
 </div>
 
 @section('scripts')
@@ -97,4 +142,15 @@ function renderMonitorComputadoras(msg){
 }
 
 </script>
+@endsection
+@section('css')
+<style>
+    .fondo-pc-libre {
+      background-color: #A9F5A9;
+    }
+    -- rojo A9F5A9
+    .fondo-pc-ocupado {
+      background-color: #adadad;
+    }
+</style>
 @endsection
