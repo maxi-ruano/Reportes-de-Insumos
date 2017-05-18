@@ -133,5 +133,12 @@ class TeoricoPcController extends Controller
       }
     }
 
+    public function listarDisponibles($suc_id){
+      $teoricopc = TeoricoPc::where('sucursal_id', $suc_id)
+      ->where('activo', false)
+      ->get();
+      return $teoricopc;
+    }
+
 
 }

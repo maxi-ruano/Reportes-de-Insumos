@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\TeoricoPcController;
+
 use Illuminate\Http\Request;
 
 use App\SysMultivalue;
@@ -33,12 +35,15 @@ class BedelController extends Controller
         if ($this->esValido($peticion)):
           $peticion = $this->validarEncontrados($peticion);
           $categorias = $this->api_get('http://192.168.76.233/api_dc.php',array('function' => 'get','tipo_doc' => (int)$request->tipo_doc, 'nro_doc' => $request->doc, 'sexo' => strtolower($request->sexo), 'pais' => $request->pais));
+          $TeoricoPcController = new TeoricoPcController;
+          $computadoras = $TeoricoPcController->listarDisponibles($peticion[1]->sucursal);
         endif;
       }
       //dd($categorias[1]->tramite);
       // SI existe peticion fine, si no existe agregale false
       $peticion = $peticion ?? array(false);
       $categorias = $categorias ?? array(false);
+      $computadoras = $computadoras ?? array(false);
       return view('bedel.asignacion')->with('default',$default)->with('peticion',$peticion)->with('categorias',$categorias);
     }
     /**
