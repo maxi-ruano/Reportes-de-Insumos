@@ -41,3 +41,11 @@ table.jambo_table thead {
 .appclr {
     color: #333333;
 }
+
+.fondo-pc-libre {
+  background-color: #A9F5A9!important;
+}
+
+.fondo-pc-ocupado {
+  background-color: #E6E6E6!important;
+}
