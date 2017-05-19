@@ -38,7 +38,7 @@
               <div class="col-sm-6">
                 <div class="contenedor-examen-panel panel panel-default ">
                   <div class="panel-body fondo">
-                    @if($mensaje)
+                    @if(!empty($mensaje))
                     <h1><b>Usted ha finalizado su examen teórico.</b></h1>
                     <br>
                     <h2>{{ $mensaje }}  <b>{{ $porcentaje }} %.</b></h2>
