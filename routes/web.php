@@ -17,18 +17,21 @@ Route::post('finalizar_examen',['uses' => 'EtlExamenController@calcularYGuardarR
 Route::get('/', 'HomeController@index');
 
 //Auth::routes();
-
+Route::get('computadorasMonitor', 'TeoricoPcController@computadorasMonitor');
 Route::group(['prefix' => 'admin'], function () {
     Route::auth();
     //Auth::routes();
     //Route::auth();
     //Route::resource('','AdminController');
     Route::get('computadoras/active', 'TeoricoPcController@isActive');
+
     Route::resource('computadoras','TeoricoPcController');
     Route::resource('bedel', 'BedelController');
+
 });
 // Route::get('rendir_examen','EtlExamenController@rendir_examen');
 Route::resource('examen', 'EtlExamenController');
 Route::resource('preguntas', 'EtlExamenPreguntaController');
+
 
 ///var/www/html/deve_teorico/app/Http/Controllers/EtlExamenController.php

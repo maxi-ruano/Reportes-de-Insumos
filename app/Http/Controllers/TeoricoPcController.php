@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
+use App\DatosPersonales;
 use App\TeoricoPc;
+use App\EtlExamen;
 
 class TeoricoPcController extends Controller
 {
@@ -133,6 +134,10 @@ class TeoricoPcController extends Controller
       }
     }
 
+    public function estadoComputadoras(Request $request) {
+      return view('bedel.monitoreo');
+    }
+
     public function listarDisponibles($suc_id){
       $response = array();
       $teoricopc = TeoricoPc::where('sucursal_id', $suc_id)
@@ -145,5 +150,47 @@ class TeoricoPcController extends Controller
 
     }
 
+    public function computadorasMonitor(){
+      $computadoras = TeoricoPc::all();
+      foreach ($computadoras as $key => $computadora) {
+        $examen = EtlExamen::find($computadora->examen_id);
+        $nro_doc = $examen->tramite->nro_doc;
+        $tipo_doc = $examen->tramite->tipo_doc;
+        $pais = $examen->tramite->pais;
+        $sexo = $examen->tramite->sexo;
+        $sucursal = $examen->tramite->sucursal;
 
+        if($sucursal == 1 || $sucursal == 2)
+          $ip = "192.168.76.200";
+        else
+          $ip = $computadora->examen->tramite->SysRptServer->ip;
+
+        $computadora->pathFoto = "http://". $ip ."/data/fotos/" .
+                      str_pad($pais, 3, "0", STR_PAD_LEFT) .
+                      $tipo_doc .
+                      $nro_doc .
+                      strtoupper($sexo) .
+                      ".JPG";
+
+        $datosPersona = DatosPersonales::where('nro_doc', $nro_doc)
+                                 ->where('pais', $pais)
+                                 ->where('tipo_doc', $tipo_doc)->first();
+
+        $computadora->nro_doc = $nro_doc;
+        $computadora->nombre = $datosPersona->nombre;
+        $computadora->apellido = $datosPersona->apellido;
+        $computadora->estadoExamen = '<span class="label label-default">NO ASIGNADO';
+        if($examen->fecha_inicio){
+          $computadora->estadoExamen = '<span class="label label-warning">EN PROCESO';
+          if($examen->fecha_fin)
+            if($examen->aprobado)
+              $computadora->estadoExamen = '<span class="label label-success">APROBADO';
+            else
+              $computadora->estadoExamen = '<span class="label label-danger">REPROBADO';
+        }
+
+        }
+        return response()->json(['computadoras' => $computadoras]);
+
+  }
 }

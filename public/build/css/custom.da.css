@@ -47,5 +47,14 @@ table.jambo_table thead {
 }
 
 .fondo-pc-ocupado {
-  background-color: #E6E6E6!important;
+  background-color: #8e8e8e!important;
+}
+
+.pcs-monitor li{
+  font-weight: bold;
+}
+
+iframe {
+    max-width: 100%;
+    height: auto;
 }
