@@ -55,7 +55,7 @@
 </script>
 
 @section('scripts')
-  <script>
+  <script type="text/javascript">
     var examen = '{!! $examen !!}';
     var pregunta;
     var idSiguiente = 0;
@@ -144,12 +144,13 @@
         if (distance < 0) {
             clearInterval(x);
             $('#regresion').html("EXPIRED");
-            location.href = '{{ config('app.APP_URL') }}'+'{{ config('global.URL_EXAMEN_TEORICO') }}';
+            location.href = '{{ config('app.url') }}'+'{{ config('global.URL_EXAMEN_TEORICO') }}';
           }
     }, 1000);
     cargarPregunta();
     //GUARDAR RESPUESTAS AJAX
       $('#botonPregunta').on('click', function (e) {
+        console.log('{{ config('app.url') }}'+'{{ config('global.GUARDAR_RESPUESTA_EXAMEN') }}');
         if(validaciones()){
           e.preventDefault();
           var examen_id = examen;
@@ -157,23 +158,21 @@
           var respuesta_id = $('input[name=optionsRadios]:checked').val();
           $.ajax({
               type: "GET",
-              url: '{{ config('app.APP_URL') }}'+'{{ config('app.GUARDAR_RESPUESTA_EXAMEN') }}',
+              url: '{{ config('app.url') }}'+'{{ config('global.GUARDAR_RESPUESTA_EXAMEN') }}',
               data: {examen_id: examen_id, respuesta_id: respuesta_id, pregunta_id: pregunta_id},
               //async:false,
               beforeSend: function(){
                 $('#botonPregunta').attr('disabled','disabled');
               },
-              success: function( datos ) {
-                console.log(datos['res'])
-                console.log(datos)
-                //console.log(JSON.parse(datos))
-                $('#botonPregunta').prop('disabled',false);
-                cargarPregunta();
+              success: function( msg ) {
+                if(msg.res == 'success'){
+                  $('#botonPregunta').prop('disabled',false);
+                  cargarPregunta();
+                }
               },
 
               error: function(xhr, status, error) {
                 var err = eval("(" + xhr.responseText + ")");
-                console.log(err)
               }
           });
          }
