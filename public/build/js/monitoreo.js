@@ -1,7 +1,7 @@
 
 function actualizarMonitor(){
 
-  console.log( url );
+  console.log( 'Y' );
   $.ajax({
       type: "GET",
       url: url,

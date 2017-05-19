@@ -163,13 +163,17 @@
               beforeSend: function(){
                 $('#botonPregunta').attr('disabled','disabled');
               },
-              success: function( msg ) {
+              success: function( datos ) {
+                console.log(datos['res'])
+                console.log(datos)
+                //console.log(JSON.parse(datos))
                 $('#botonPregunta').prop('disabled',false);
                 cargarPregunta();
               },
 
               error: function(xhr, status, error) {
                 var err = eval("(" + xhr.responseText + ")");
+                console.log(err)
               }
           });
          }
