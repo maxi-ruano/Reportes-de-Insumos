@@ -15,4 +15,5 @@ class Tramites extends Model
       {
         return $this->belongsTo('App\SysRptServers', 'sucursal', 'sucursal_id');
       }
+
 }

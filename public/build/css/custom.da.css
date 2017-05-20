@@ -41,3 +41,20 @@ table.jambo_table thead {
 .appclr {
     color: #333333;
 }
+
+.fondo-pc-libre {
+  background-color: #A9F5A9!important;
+}
+
+.fondo-pc-ocupado {
+  background-color: #8e8e8e!important;
+}
+
+.pcs-monitor li{
+  font-weight: bold;
+}
+
+iframe {
+    max-width: 100%;
+    height: auto;
+}

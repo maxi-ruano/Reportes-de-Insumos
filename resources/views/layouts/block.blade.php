@@ -38,9 +38,10 @@
               <div class="col-sm-6">
                 <div class="contenedor-examen-panel panel panel-default ">
                   <div class="panel-body fondo">
+                    @if(!empty($mensaje))
                     <h1><b>Usted ha finalizado su examen teórico.</b></h1>
                     <br>
-                    <h2>En esta ocasión lo Reprobó con un  <b>61%.</b></h2>
+                    <h2>{{ $mensaje }}  <b>{{ $porcentaje }} %.</b></h2>
                     <br>
                     <h2> Le quedan <b>2 (dos)</b> oportunidades más para rendir, debe esperar 5 dias habiles para poder rendir el proximo examen.</h2>
                     <br>
@@ -58,6 +59,9 @@
                     <br>
                     <br>
                     <h2> <b>Por favor diríjase al frente del aula para ver cómo continuar su trámite con el Bedel del áula.</b></h2>
+                    @else
+                      <h1><b>Equipo bloqueado</b></h1>
+                    @endif
                   </div>
                 </div>
               </div>

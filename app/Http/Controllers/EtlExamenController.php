@@ -8,6 +8,7 @@ use App\EtlExamen;
 use App\EtlPreguntaRespuesta;
 use App\EtlExamenPregunta;
 use App\EtlParametro;
+use App\TeoricoPc;
 
 class EtlExamenController extends Controller
 {
@@ -130,10 +131,10 @@ class EtlExamenController extends Controller
       $porcentajeAprovacion = EtlParametro::find($ID_PORCENTAJE_APROBACION);
 
       $aprobado = 'false';
-      $mensaje = 'examen REPROBADO';
+      $mensaje = 'En esta ocasión lo Reprobó con un';
       if($porcentaje >= $porcentajeAprovacion->valor){
         $aprobado = 'true';
-        $mensaje = 'examen APROBADO';
+        $mensaje = 'Examen APROBADO con un';
       }
 
 
@@ -144,8 +145,11 @@ class EtlExamenController extends Controller
       $examen->ip = $request->ip;
       $examen->save();
 
-      return View('layouts.templatebasica')->with('porcentaje', $porcentaje)
+      $teoricoPc = TeoricoPc::where('examen_id',$request->examen_id)->first();
+      $teoricoPc->activo = false;
+      $teoricoPc->save();
+      return View('layouts.block')->with('porcentaje', $porcentaje)
                                            ->with('mensaje', $mensaje);
-      echo $porcentaje;
+      //echo $porcentaje;
     }
 }
