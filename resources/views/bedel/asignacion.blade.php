@@ -12,7 +12,7 @@
                 <div class="form-group">
                     <div class="col-md-1 col-sm-1">
                       <select name="pais" class="form-control" required place-holder="asd">
-                        <option value="" >Nac.</option>
+                        <option value="" disabled selected>Nac.</option>
                         @foreach($default['paises'] as $pais)
                         @if($pais->id == 1)
                         <option value="{{ $pais->id }}" >{{ $pais->description }}</option>
@@ -43,7 +43,7 @@
                       <select name="sexo" class="form-control" required>
                         @foreach($default['sexo'] as $sex)
                         @if($sex->id == 0)
-                        <option value="" selected>{{ $sex->description }}</option>
+                        <option value="" selected disabled>Sexo</option>
                         @else
                         <option value="{{ strtolower($sex->description) }}">{{ $sex->description }}</option>
                         @endif
