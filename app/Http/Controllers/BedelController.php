@@ -154,13 +154,7 @@ class BedelController extends Controller
          * Funcion asignar_examen - Crea un examen y lo asigna a una ip
          *
          */
-         public function asignar_examen(Request $request){
-           if (isset($request->tramite_id) && isset($request->clase_name) && $request->tramite_id != '' && $request->clase_name != '') {
-             $response = $this->api_get('http://192.168.76.233/api_dc.php',array('function' => 'create','tramite_id' => $request->tramite_id, 'idioma_id' => 1, 'clase_name' => $request->clase_name));
-             return $response;
-           }
-           else {
-             echo array(false,'No se han recibido los parametros esperados');
-           }
+         public function asignar_examen(){
+
          }
 }

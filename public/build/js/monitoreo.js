@@ -38,7 +38,7 @@ function gethtmlComputadora(computadora){
       '<div class="thumbnail '+estadoComputadora+'" style = "height: auto;">'+
         '<div class="row">'+
           '<div class="col-md-6">'+
-              '<img  class="img-pregunta img-responsive" onerror="this.src=\'http://192.168.76.215/deve_teorico/public/production/images/user.png\'"  style = "height: 100%; width: 100%;" src="'+computadora.pathFoto+'" alt="Generic placeholder thumbnail">'+
+              '<img  class="img-pregunta img-responsive" onerror="this.src=\'http://192.168.76.33/deve_teorico/public/production/images/user.png\'"  style = "height: 100%; width: 100%;" src="'+computadora.pathFoto+'" alt="Generic placeholder thumbnail">'+
           '</div>'+
           '<div class="col-md-6" style="color: #333; height: 40%; padding: 1px;">'+
             '<ul class=" pcs-monitor list-unstyled">'+
