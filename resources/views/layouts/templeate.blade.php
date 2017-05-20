@@ -23,7 +23,7 @@
     <link href="{{ asset('build/css/custom.da.css')}}" rel="stylesheet">
   </head>
 
-  <body class="nav-md">
+  <body class="nav-sm">
     <div class="container body">
       <div class="main_container">
         <div class="col-md-3 left_col">
