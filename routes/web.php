@@ -27,6 +27,7 @@ Route::group(['prefix' => 'admin'], function () {
 
     Route::resource('computadoras','TeoricoPcController');
     Route::resource('bedel', 'BedelController');
+    Route::get('asignar','BedelController@asignarExamen');
 
 });
 // Route::get('rendir_examen','EtlExamenController@rendir_examen');
@@ -34,4 +35,4 @@ Route::resource('examen', 'EtlExamenController');
 Route::resource('preguntas', 'EtlExamenPreguntaController');
 
 
-///var/www/html/deve_teorico/app/Http/Controllers/EtlExamenController.php
+///var/www/html/teorico/app/Http/Controllers/EtlExamenController.php

@@ -201,4 +201,10 @@ class TeoricoPcController extends Controller
     else
       return response()->json(['res' => 'true']);
   }
+
+  public function asignarPc($pc, $examen_id){
+    $teorico = TeoricoPc::where('id', $pc)
+    ->update(['examen_id' => $examen_id, 'activo' => true]);
+  }
+
 }

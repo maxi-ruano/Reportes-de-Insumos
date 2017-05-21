@@ -200,5 +200,17 @@ class BedelController extends Controller
             }
             return array(false);
           }
-
+          /**
+           * Funcion asignarExamen - Asigna un examen a una pc
+           *
+           */
+           public function asignarExamen(Request $request){
+             $examen_id = $this->crear_examen($request->tramite_id, $request->clase_name);
+             if ($examen_id != true) {
+               return redirect('admin/bedel')->with('msg', 'Error');
+             }
+             $TeoricoPcController = new TeoricoPcController;
+             $asignar = $TeoricoPcController->asignarPc($request->pc_id, $examen_id[1]);
+             return redirect('admin/bedel')->with('msg', 'Ok');
+           }
 }
