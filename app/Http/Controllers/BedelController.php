@@ -180,7 +180,13 @@ class BedelController extends Controller
                                      ->where('sexo', $sexo)
                                      ->first();
             if ($get != NULL) {
-              return array(true, $get);
+              $fotografia = "http://". $ip ."/data/fotos/" .
+                                  str_pad($get->pais, 3, "0", STR_PAD_LEFT) .
+                                  $get->tipo_doc .
+                                  $get->nro_doc .
+                                  strtoupper($get->sexo) .
+                                  ".JPG";
+              return array(true, $get,$fotografia);
             }
             return array(false);
           }
