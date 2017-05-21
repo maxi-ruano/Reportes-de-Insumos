@@ -77,6 +77,10 @@
                         <div class="profile_details">
                         <div class="well profile_view">
                           <div class="col-sm-12">
+                            <div class="right col-xs-5 text-center">
+                              <img  class="img-pregunta img-responsive" onerror="this.src=\'http://192.168.76.215/deve_teorico/public/production/images/user.png\'"  style = "height: 150px; width: auto;" src="{{ $datos[2] }}" alt="Generic placeholder thumbnail">
+
+                            </div>
                             <div class="left col-xs-7">
                               @if($categorias[0] != false)
                               <h2> Nombre:<strong>  {{ $datos[1]->nombre }} </strong></h2>
@@ -84,9 +88,7 @@
                               <h2><p>DNI: <strong> {{  $datos[1]->nro_doc }}</strong> </p></h2>
                               @endif
                             </div>
-                            <div class="right col-xs-5 text-center">
-                              <img src="{{ $datos[2] }}"  alt="" class="img-circle img-responsive">
-                            </div>
+
                           </div>
                         </div>
                         </div>

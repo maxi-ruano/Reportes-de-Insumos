@@ -184,7 +184,7 @@ class BedelController extends Controller
                                        ->first();
               if ($get != NULL) {
                 if($tramite->sucursal == 1 || $tramite->sucursal == 2){
-                  $ip = "192.168.76.233";
+                  $ip = "192.168.76.200";
                 }
                 else {
                   $ip = $tramite->SysRptServer->ip;
