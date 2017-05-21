@@ -193,4 +193,12 @@ class TeoricoPcController extends Controller
         return response()->json(['computadoras' => $computadoras]);
 
   }
+
+  public function verificarAsignacion(Request $request){
+    $teorico = TeoricoPc::find($request->computadora_id);
+    if($teorico->examen_id == $request->examen_id)
+      return response()->json(['res' => 'false']);
+    else
+      return response()->json(['res' => 'true']);
+  }
 }
