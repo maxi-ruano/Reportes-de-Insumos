@@ -40,8 +40,8 @@ class BedelController extends Controller
           if ($categorias[0] != false) {
             $TeoricoPcController = new TeoricoPcController;
             $computadoras = $TeoricoPcController->listarDisponibles($peticion[1]->sucursal);
-            $datos = $this->getDatosPersonales($request->doc, (int)$request->tipo_doc, strtolower($request->sexo), $request->pais);
-            dd($datos);
+            $datos = $this->getDatosPersonales($peticion[1]->tramite_id);
+
           }
         endif;
       }
@@ -184,7 +184,7 @@ class BedelController extends Controller
                                        ->first();
               if ($get != NULL) {
                 if($tramite->sucursal == 1 || $tramite->sucursal == 2){
-                  $ip = "192.168.76.200";
+                  $ip = "192.168.76.233";
                 }
                 else {
                   $ip = $tramite->SysRptServer->ip;
