@@ -18,6 +18,8 @@ use App\TeoricoPc;
 
 use App\AnsvAmpliaciones;
 
+use App\DatosPersonales;
+
 class BedelController extends Controller
 {
     /**
@@ -35,8 +37,11 @@ class BedelController extends Controller
         if ($this->esValido($peticion)):
           $peticion = $this->validarEncontrados($peticion);
           $categorias = $this->api_get('http://192.168.76.233/api_dc.php',array('function' => 'get','tipo_doc' => (int)$request->tipo_doc, 'nro_doc' => $request->doc, 'sexo' => strtolower($request->sexo), 'pais' => $request->pais));
-          $TeoricoPcController = new TeoricoPcController;
-          $computadoras = $TeoricoPcController->listarDisponibles($peticion[1]->sucursal);
+          if ($categorias[0] != false) {
+            $TeoricoPcController = new TeoricoPcController;
+            $computadoras = $TeoricoPcController->listarDisponibles($peticion[1]->sucursal);
+            $datos = $this->getDatosPersonales($request->doc, (int)$request->tipo_doc, strtolower($request->sexo), $request->pais);
+          }
         endif;
       }
       //dd($categorias[1]->tramite);
@@ -44,7 +49,8 @@ class BedelController extends Controller
       $peticion = $peticion ?? array(false);
       $categorias = $categorias ?? array(false);
       $computadoras = $computadoras ?? array(false);
-      return view('bedel.asignacion')->with('default',$default)->with('peticion',$peticion)->with('categorias',$categorias)->with('computadoras', $computadoras);
+      $datos = $datos ?? array(false);
+      return view('bedel.asignacion')->with('default',$default)->with('peticion',$peticion)->with('categorias',$categorias)->with('computadoras', $computadoras)->with('datos',$datos);
     }
     /**
      *
@@ -163,4 +169,20 @@ class BedelController extends Controller
              echo array(false,'No se han recibido los parametros esperados');
            }
          }
+         /**
+          * Funcion getDatosPersonales - trae datos personales
+          *
+          */
+          public function getDatosPersonales($nro_doc, $tipo_doc, $sexo, $pais){
+            $get = DatosPersonales::where('nro_doc', $nro_doc)
+                                     ->where('pais', $pais)
+                                     ->where('tipo_doc', $tipo_doc)
+                                     ->where('sexo', $sexo)
+                                     ->first();
+            if ($get != NULL) {
+              return array(true, $get);
+            }
+            return array(false);
+          }
+
 }
