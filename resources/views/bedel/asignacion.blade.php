@@ -62,7 +62,7 @@
 
                 {!! Form::close() !!}
                 @if( $categorias[0] != false )
-                <button  type="button" class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-lg">Large modal</button>
+                
 
                 <div id="modalCliente" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
                   <div class="modal-dialog modal-lg">
@@ -121,7 +121,7 @@
                                 </div>
                             </div>
                           </div>
-
+                          <input name="tramite_id" type="hidden" value="{{ $peticion[1]->tramite_id }}">
                         </div>
                         {!! Form::close() !!}
                         @else
