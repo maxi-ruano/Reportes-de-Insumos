@@ -41,6 +41,7 @@ class BedelController extends Controller
             $TeoricoPcController = new TeoricoPcController;
             $computadoras = $TeoricoPcController->listarDisponibles($peticion[1]->sucursal);
             $datos = $this->getDatosPersonales($request->doc, (int)$request->tipo_doc, strtolower($request->sexo), $request->pais);
+            dd($datos);
           }
         endif;
       }
@@ -173,20 +174,29 @@ class BedelController extends Controller
           * Funcion getDatosPersonales - trae datos personales
           *
           */
-          public function getDatosPersonales($nro_doc, $tipo_doc, $sexo, $pais){
-            $get = DatosPersonales::where('nro_doc', $nro_doc)
-                                     ->where('pais', $pais)
-                                     ->where('tipo_doc', $tipo_doc)
-                                     ->where('sexo', $sexo)
-                                     ->first();
-            if ($get != NULL) {
-              $fotografia = "http://". $ip ."/data/fotos/" .
-                                  str_pad($get->pais, 3, "0", STR_PAD_LEFT) .
-                                  $get->tipo_doc .
-                                  $get->nro_doc .
-                                  strtoupper($get->sexo) .
-                                  ".JPG";
-              return array(true, $get,$fotografia);
+          public function getDatosPersonales($tramite_id){
+            $tramite = Tramites::find($tramite_id);
+            if ($tramite != NULL) {
+              $get = DatosPersonales::where('nro_doc', $tramite->nro_doc)
+                                       ->where('pais', $tramite->pais)
+                                       ->where('tipo_doc', $tramite->tipo_doc)
+                                       ->where('sexo', $tramite->sexo)
+                                       ->first();
+              if ($get != NULL) {
+                if($tramite->sucursal == 1 || $tramite->sucursal == 2){
+                  $ip = "192.168.76.200";
+                }
+                else {
+                  $ip = $tramite->SysRptServer->ip;
+                }
+                $fotografia = "http://". $ip ."/data/fotos/" .
+                                    str_pad($get->pais, 3, "0", STR_PAD_LEFT) .
+                                    $get->tipo_doc .
+                                    $get->nro_doc .
+                                    strtoupper($get->sexo) .
+                                    ".JPG";
+                return array(true, $get,$fotografia);
+              }
             }
             return array(false);
           }
