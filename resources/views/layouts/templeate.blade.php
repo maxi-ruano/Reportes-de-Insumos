@@ -94,6 +94,7 @@
     <!-- iCheck -->
     <script src="{{ asset('vendors/iCheck/icheck.min.js')}}"></script>
     @yield('scripts')
+    @stack('scripts')
 
     <!-- Custom Theme Scripts -->
     <script src="{{ asset('build/js/custom.min.js')}}"></script>

@@ -7,6 +7,7 @@
     <div class="x_panel">
 
       <div class="x_content">
+        {{ dd($peticion) }}
                 {!! Form::open(['route' => 'bedel.index', 'id'=>'formCategory', 'method' => 'GET', 'class' => 'form-horizontal', 'role' => 'form', 'files' => true ]) !!}
                 <input type="text" name="op" id="op" value="find" class="hide">
                 <div class="form-group">
@@ -56,37 +57,64 @@
 
                     <!--<div class="col-md-2 col-sm-2">-->
                       <input id="send" type="submit" class="btn btn-success col-md-1 col-sm-1" value="Enviar">
-                    <!--</div>-->
+                    </div>
 
 
                 {!! Form::close() !!}
-                @if($categorias[0] != false)
-                  <div class="col-md-2 col-sm-2">
-                    <select name ="categorias" class="form-control" required>
-                      <option value="" selected>Categoria</option>
-                      @foreach($categorias[1]->tramite as $cat)
-                      <option value="{{ $cat->clase }}">{{ $cat->clase }}</option>
-                      @endforeach
-                    </select>
-                  </div>
-                  <div class="col-md-2 col-sm-2">
-                    <select name ="computadoras" class="form-control">
-                      <option value="" selected>Computadora</option>
-                      @if($computadoras[0] != false)
-                        @foreach($computadoras[1] as $computadora)
-                        <option value="{{ $computadora->id }}">{{ $computadora->id }}</option>
-                        @endforeach
-                      @endif
-                    </select>
-                  </div>
-                  <input id="send" type="submit" class="btn btn-success col-md-1 col-sm-1" value="Asignar">
-                </div>
-                @else
-                  <!--<div class="form-group">
-                    <div class="panel panel-default">
-                      <div class="panel-body"><h3> $peticion[1]->disponibilidadMensaje </h3></div>
+                @if( $categorias[0] != false )
+                <button  type="button" class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-lg">Large modal</button>
+
+                <div id="modalCliente" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
+                  <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span>
+                        </button>
+                        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+                      </div>
+                      <div class="modal-body">
+                        <h4>Text in a modal</h4>
+                        @if($categorias[0] != false)
+                        {!! Form::open(['route' => 'bedel.index', 'id'=>'formCategory', 'method' => 'GET', 'class' => 'form-horizontal', 'role' => 'form', 'files' => true ]) !!}
+                        <div class="form-group">
+                          <div class="col-md-2 col-sm-2">
+                            <select name ="categorias" class="form-control" required>
+                              <option value="" selected>Categoria</option>
+                              @foreach($categorias[1]->tramite as $cat)
+                              <option value="{{ $cat->clase }}">{{ $cat->clase }}</option>
+                              @endforeach
+                            </select>
+                          </div>
+                          <div class="col-md-2 col-sm-2">
+                            <select name ="computadoras" class="form-control">
+                              <option value="" selected>Computadora</option>
+                              @if($computadoras[0] != false)
+                                @foreach($computadoras[1] as $computadora)
+                                <option value="{{ $computadora->id }}">{{ $computadora->id }}</option>
+                                @endforeach
+                              @endif
+                            </select>
+                          </div>
+                          <input id="send" type="submit" class="btn btn-success col-md-1 col-sm-1" value="Asignar">
+
+                        </div>
+                        {!! Form::close() !!}
+                        @else
+                          <!--<div class="form-group">
+                            <div class="panel panel-default">
+                              <div class="panel-body"><h3> $peticion[1]->disponibilidadMensaje </h3></div>
+                            </div>
+                          </div>-->
+                        @endif
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                      </div>
+
                     </div>
-                  </div>-->
+                  </div>
+                </div>
                 @endif
       </div>
       @include('bedel.monitoreo')
@@ -94,11 +122,16 @@
   </div>
 </div>
 <!-- /page content -->
-@endsection
 
-@section('scripts')
-<!-- validator -->
-<script src="{{ asset('vendors/validator/validator.js')}}"></script>
-@include('includes.scriptForms')
+@endsection('content')
 
-@endsection
+@push('scripts')
+
+    <script>
+    $( document ).ready(function() {
+      if ('{{ !empty($peticion[1]->tramite_id) }}')
+        $('#modalCliente').modal('show');
+
+    });
+    </script>
+@endpush
