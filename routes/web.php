@@ -18,6 +18,7 @@ Route::get('/', 'HomeController@index');
 
 //Auth::routes();
 Route::get('computadorasMonitor', 'TeoricoPcController@computadorasMonitor');
+Route::get('verificarAsignacion', 'TeoricoPcController@verificarAsignacion');
 Route::group(['prefix' => 'admin'], function () {
     Route::auth();
     //Auth::routes();

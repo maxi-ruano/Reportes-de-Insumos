@@ -195,11 +195,12 @@ class TeoricoPcController extends Controller
   }
 
   public function verificarAsignacion(Request $request){
-    $teorico = TeoricoPc::find($request->computadora_id);
-    if($teorico->examen_id == $request->examen_id)
-      return response()->json(['res' => 'false']);
-    else
+
+    $teorico = TeoricoPc::where('ip', ip2long($request->ip()))->first();
+    if($teorico->activo)
       return response()->json(['res' => 'true']);
+    else
+      return response()->json(['res' => 'false']);
   }
 
   public function asignarPc($pc, $examen_id){

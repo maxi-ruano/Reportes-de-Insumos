@@ -3,12 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\DB;
 use App\EtlExamen;
 use App\EtlPreguntaRespuesta;
 use App\EtlExamenPregunta;
 use App\EtlParametro;
 use App\TeoricoPc;
+use App\Http\Controllers\Carbon\Carbon;
 
 class EtlExamenController extends Controller
 {
@@ -143,13 +144,16 @@ class EtlExamenController extends Controller
       $examen->aprobado = $aprobado;
       $examen->porcentaje = $porcentaje;
       $examen->ip = $request->ip;
+      $examen->fecha_fin = DB::raw('current_timestamp');
       $examen->save();
 
       $teoricoPc = TeoricoPc::where('examen_id',$request->examen_id)->first();
       $teoricoPc->activo = false;
       $teoricoPc->save();
-      return View('layouts.block')->with('porcentaje', $porcentaje)
-                                           ->with('mensaje', $mensaje);
+
+      $examen->mensaje = $mensaje;
+      $examen->computadora_id = $teoricoPc->id;
+      return View('layouts.block')->with('examen', $examen);
       //echo $porcentaje;
     }
 }

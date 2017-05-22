@@ -38,10 +38,12 @@
               <div class="col-sm-6">
                 <div class="contenedor-examen-panel panel panel-default ">
                   <div class="panel-body fondo">
-                    @if(!empty($mensaje))
+
+                    @if(!empty($examen))
+
                     <h1><b>Usted ha finalizado su examen teórico.</b></h1>
                     <br>
-                    <h2>{{ $mensaje }}  <b>{{ $porcentaje }} %.</b></h2>
+                    <h2>{{ $examen->mensaje }}  <b>{{ $examen->porcentaje }} %.</b></h2>
                     <br>
                     <h2> Le quedan <b>2 (dos)</b> oportunidades más para rendir, debe esperar 5 dias habiles para poder rendir el proximo examen.</h2>
                     <br>
@@ -60,6 +62,7 @@
                     <br>
                     <h2> <b>Por favor diríjase al frente del aula para ver cómo continuar su trámite con el Bedel del áula.</b></h2>
                     @else
+
                       <h1><b>Equipo bloqueado</b></h1>
                     @endif
                   </div>
@@ -86,12 +89,27 @@
 
     <!-- Custom Theme Scripts -->
     <script src="{{ asset('build/js/custom.min.js')}}"></script>
+    <script src="{{ asset('build/js/asignacion.js')}}"></script>
   </body>
 </html>
 
 <script type="text/javascript">
-  setTimeout(function () {
-    location.href = '{{ config('app.APP_URL') }}'+'/deve_teorico/public/';
-  }, {{ config('global.RELOAD_BLOQUEO_TEORICO') }}
+var url_reload_examen =  '{{ config('app.url') }}'+'/deve_teorico/public/';
+setInterval(function () {
+  location.href = url_reload_examen;
+}, {{ config('global.RELOAD_BLOQUEO_TEORICO') }}
+);
+</script>
+
+
+
+
+
+<script type="text/javascript">
+var url_reload =  '{{ config('app.url') }}'+'/deve_teorico/public/verificarAsignacion';
+  setInterval(function () {
+    console.log('intentando')
+    verificarAsignacion();
+  }, 3000
   );
 </script>
