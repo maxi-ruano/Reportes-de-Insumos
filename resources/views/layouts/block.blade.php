@@ -53,6 +53,21 @@
            @else
 
              <h1 style="color:#585757;"><b>Equipo bloqueado</b></h1>
+             
+             <br>
+             <br>
+             <br>
+             <br>
+             <br>
+             <br>
+             <br>
+             <br>
+             <br>
+             <br>
+             <br>
+             <br>
+             <br>
+             <br>
            @endif
 
             </div>
