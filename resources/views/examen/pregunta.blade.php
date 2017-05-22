@@ -82,7 +82,7 @@
       for (var i = 0; i < respuestas.length; i++) {
 
         $('.option-respuestas').append(
-          '<label class="btn btn-primary btn-responsive" style="white-space: normal;">'+
+          '<label class="botonRespuesta btn btn-primary btn-responsive" style="white-space: normal;">'+
             '<input type="radio" class="form-check-input" name="optionsRadios" value="'+respuestas[i]['id']+'">'+
             '<h3 align="left">'+'{{ config('global.LETRAS') }}'.charAt(i)+'. '+respuestas[i]['respuesta']+'</h3>'+
           '</label><br>'
@@ -163,10 +163,12 @@
               //async:false,
               beforeSend: function(){
                 $('#botonPregunta').attr('disabled','disabled');
+                $('.botonRespuesta').attr('disabled','disabled');
               },
               success: function( msg ) {
                 if(msg.res == 'success'){
                   $('#botonPregunta').prop('disabled',false);
+                  $('.botonRespuesta').attr('disabled','disabled');
                   cargarPregunta();
                 }
               },

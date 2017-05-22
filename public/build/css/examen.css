@@ -33,3 +33,7 @@ margin-bottom: 0px;
  }
  .row.content {height: auto;}
 }
+
+.btn-primary.active, .btn-primary:active, .open>.dropdown-toggle.btn-primary {
+  background-color: #173854!important;
+}

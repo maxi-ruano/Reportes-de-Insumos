@@ -18,7 +18,6 @@
     <!-- Custom Theme Style -->
     <script src="{{ asset('build/js/countdown.js')}}"></script>
     <link href="{{ asset('build/css/examen.css')}}" rel="stylesheet">
-
   </head>
 
   <body>
