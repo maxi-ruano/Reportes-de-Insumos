@@ -101,6 +101,8 @@
         $('#botonFinalizar').attr('type','submit');
         $('.examen_input').attr('value', examen);
         $('.div-boton-siguiente').empty();
+        $('#botonPregunta').attr('disabled','disabled');
+        $('.botonRespuesta').attr('disabled','disabled');
       }
     }
 
