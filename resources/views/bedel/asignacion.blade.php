@@ -76,7 +76,7 @@
                         <div class="well profile_view">
                           <div class="col-sm-12">
                             <div class="right col-xs-5 text-center">
-                              <img  class="img-pregunta img-responsive" onerror="this.src=\'http://192.168.76.33/teorico/public/production/images/user.png\'"  style = "height: 150px; width: auto;" src="{{ $datos[2] }}" alt="Generic placeholder thumbnail">
+                              <img  class="img-pregunta img-responsive" onerror="this.src=\'{{ config('app.url') }}{{ config('global.IMAGE_USER_DEFAULT') }}\'"  style = "height: 150px; width: auto;" src="{{ $datos[2] }}" alt="Generic placeholder thumbnail">
 
                             </div>
                             <div class="left col-xs-7">
