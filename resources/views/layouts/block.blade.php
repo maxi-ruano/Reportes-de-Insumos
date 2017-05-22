@@ -94,7 +94,8 @@
 </html>
 
 <script type="text/javascript">
-var url_reload_examen =  '{{ config('app.url') }}'+'/deve_teorico/public/';
+
+var url_reload_examen =  '{{ config('app.url') }}'+'/teorico/public/';
 setInterval(function () {
   location.href = url_reload_examen;
 }, {{ config('global.RELOAD_BLOQUEO_TEORICO') }}
@@ -106,7 +107,7 @@ setInterval(function () {
 
 
 <script type="text/javascript">
-var url_reload =  '{{ config('app.url') }}'+'/deve_teorico/public/verificarAsignacion';
+var url_reload =  '{{ config('app.url') }}'+'/teorico/public/verificarAsignacion';
   setInterval(function () {
     console.log('intentando')
     verificarAsignacion();

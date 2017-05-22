@@ -62,8 +62,6 @@
 
                 {!! Form::close() !!}
                 @if( $categorias[0] != false )
-                
-
                 <div id="modalCliente" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
                   <div class="modal-dialog modal-lg">
                     <div class="modal-content text-center">
@@ -78,7 +76,7 @@
                         <div class="well profile_view">
                           <div class="col-sm-12">
                             <div class="right col-xs-5 text-center">
-                              <img  class="img-pregunta img-responsive" onerror="this.src=\'http://192.168.76.215/deve_teorico/public/production/images/user.png\'"  style = "height: 150px; width: auto;" src="{{ $datos[2] }}" alt="Generic placeholder thumbnail">
+                              <img  class="img-pregunta img-responsive" onerror="this.src=\'http://192.168.76.33/teorico/public/production/images/user.png\'"  style = "height: 150px; width: auto;" src="{{ $datos[2] }}" alt="Generic placeholder thumbnail">
 
                             </div>
                             <div class="left col-xs-7">
@@ -92,13 +90,13 @@
                           </div>
                         </div>
                         </div>
-                        {!! Form::open(['route' => 'bedel.index', 'id'=>'formCategory', 'method' => 'GET', 'class' => 'form-horizontal', 'role' => 'form', 'files' => true ]) !!}
+                        {!! Form::open(['route' => 'asignarExamen', 'id'=>'formCategory', 'method' => 'GET', 'class' => 'form-horizontal', 'role' => 'form', 'files' => true ]) !!}
 
                         <div class="form-group">
                           <div class="row">
                               <div class="col-lg-6 col-lg-offset-3">
                                 <div class="col-md-4 col-sm-6">
-                                  <select name ="categorias" class="form-control" required>
+                                  <select name ="clase_name" class="form-control" required>
                                     <option value="" selected>Categoria</option>
                                     @foreach($categorias[1]->tramite as $cat)
                                     <option value="{{ $cat->clase }}">{{ $cat->clase }}</option>
@@ -106,7 +104,7 @@
                                   </select>
                                 </div>
                                 <div class="col-md-4 col-sm-6">
-                                  <select name ="computadoras" class="form-control">
+                                  <select name ="pc_id" class="form-control">
                                     <option value="" selected>Computadora</option>
                                     @if($computadoras[0] != false)
                                       @foreach($computadoras[1] as $computadora)
@@ -117,7 +115,7 @@
 
                                 </div>
                                 <div class="col-md-4 col-sm-6">
-                                  <button type="button" class="btn btn-primary">ASIGNAR</button>
+                                  <button type="submit" class="btn btn-primary">ASIGNAR</button>
                                 </div>
                             </div>
                           </div>
@@ -125,11 +123,6 @@
                         </div>
                         {!! Form::close() !!}
                         @else
-                          <!--<div class="form-group">
-                            <div class="panel panel-default">
-                              <div class="panel-body"><h3> $peticion[1]->disponibilidadMensaje </h3></div>
-                            </div>
-                          </div>-->
                         @endif
                       </div>
                       <div class="modal-footer">
@@ -144,6 +137,14 @@
                   </div>
                 </div>
                 @endif
+                @if($categorias[0] != true AND isset($categorias[1]) AND !is_array($categorias[1]))
+                <div class="form-group">
+                  <div class="panel panel-default">
+                    <div class="panel-body"><h5> {{ $categorias[1] }} </h5></div>
+                  </div>
+                </div>
+                @endif
+
       </div>
       @include('bedel.monitoreo')
     </div>

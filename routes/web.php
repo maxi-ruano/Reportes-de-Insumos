@@ -28,7 +28,7 @@ Route::group(['prefix' => 'admin'], function () {
 
     Route::resource('computadoras','TeoricoPcController');
     Route::resource('bedel', 'BedelController');
-    Route::get('asignar','BedelController@asignarExamen');
+    Route::get('asignar','BedelController@asignarExamen')->name('asignarExamen');
 
 });
 // Route::get('rendir_examen','EtlExamenController@rendir_examen');
