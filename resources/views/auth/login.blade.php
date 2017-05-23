@@ -1,17 +1,17 @@
-@extends('layouts.app')
+@extends('layouts.templateBuenosAires')
 
 @section('content')
 <div class="container">
     <div class="row">
-        <div class="col-md-8 col-md-offset-2">
+        <div class="col-md-8 col-md-offset-2" style="padding:5%">
             <div class="panel panel-default">
-                <div class="panel-heading">Login</div>
+                <div class="panel-heading">Login Bedel</div>
                 <div class="panel-body">
                     <form class="form-horizontal" role="form" method="POST" action="{{ route('login') }}">
                         {{ csrf_field() }}
 
                         <div class="form-group{{ $errors->has('username') ? ' has-error' : '' }}">
-                            <label for="username" class="col-md-4 control-label">Username</label>
+                            <label for="username" class="col-md-4 control-label">Usuario</label>
 
                             <div class="col-md-6">
                                 <input id="username" type="username" class="form-control" name="username" value="{{ old('username') }}" required autofocus>
@@ -65,4 +65,5 @@
         </div>
     </div>
 </div>
+
 @endsection
