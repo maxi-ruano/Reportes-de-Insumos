@@ -53,7 +53,7 @@
            @else
 
              <h1 style="color:#585757;"><b>Equipo bloqueado</b></h1>
-             
+
              <br>
              <br>
              <br>
@@ -92,3 +92,21 @@
     <script src="{{ asset('build/js/asignacion.js')}}"></script>
   </body>
 </html>
+
+<script type="text/javascript">
+
+var url_reload_examen =  '{{ config('app.url') }}'+'{{ config('global.URL_EXAMEN_TEORICO') }}';
+setInterval(function () {//URL_EXAMEN_TEORICO
+  location.href = url_reload_examen;
+}, {{ config('global.RELOAD_BLOQUEO_TEORICO') }}
+);
+</script>
+
+<script type="text/javascript">
+var url_reload =  '{{ config('app.url') }}'+'{{ config('global.URL_VERIFICACION_ASIGNACION') }}';
+  setInterval(function () {
+    console.log('intentando')
+    verificarAsignacion();
+  }, 3000
+  );
+</script>
