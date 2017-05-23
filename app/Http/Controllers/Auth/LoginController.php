@@ -28,8 +28,7 @@ class LoginController extends Controller
      * @var string
      */
     protected $username = 'username';
-    protected $redirectTo = '/asd';
-    protected $redirectAfterLogout = 'public/login';
+    //protected $redirectAfterLogout = 'public/login';
 
     /**
      * Create a new controller instance.
@@ -48,7 +47,7 @@ class LoginController extends Controller
 
       $request->session()->regenerate();
 
-      return redirect('/admin/login');
+      return redirect('/login');
     }
 
     public function login(Request $request)

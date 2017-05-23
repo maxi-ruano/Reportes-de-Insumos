@@ -19,18 +19,19 @@ Route::get('/', 'HomeController@index');
 //Auth::routes();
 Route::get('computadorasMonitor', 'TeoricoPcController@computadorasMonitor');
 Route::get('verificarAsignacion', 'TeoricoPcController@verificarAsignacion');
-Route::group(['prefix' => 'admin'], function () {
-    Route::auth();
-    //Auth::routes();
-    //Route::auth();
-    //Route::resource('','AdminController');
-    Route::get('computadoras/active', 'TeoricoPcController@isActive');
-
-    Route::resource('computadoras','TeoricoPcController');
-    Route::resource('bedel', 'BedelController');
-    Route::get('asignar','BedelController@asignarExamen')->name('asignarExamen');
-
-});
+//Route::group(['middleware' => 'web' ], function () {
+//Auth::routes();
+Route::auth();
+  Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
+      //Route::auth();
+      //Route::auth();
+      //Route::resource('','AdminController');
+      Route::get('computadoras/active', 'TeoricoPcController@isActive');
+      Route::resource('computadoras','TeoricoPcController');
+      Route::resource('bedel', 'BedelController');
+      Route::get('asignar','BedelController@asignarExamen')->name('asignarExamen');
+  });
+//});
 // Route::get('rendir_examen','EtlExamenController@rendir_examen');
 Route::resource('examen', 'EtlExamenController');
 Route::resource('preguntas', 'EtlExamenPreguntaController');
