@@ -11,28 +11,25 @@
                 {!! Form::open(['route' => 'bedel.index', 'id'=>'formCategory', 'method' => 'GET', 'class' => 'form-horizontal', 'role' => 'form', 'files' => true ]) !!}
                 <input type="text" name="op" id="op" value="find" class="hide">
                 <div class="form-group">
-                    <div class="col-md-1 col-sm-1">
-                      <select name="pais" class="form-control" required place-holder="asd">
-                        <option value="" disabled selected>Nac.</option>
+                    <div class="col-md-2 col-sm-2">
+                      <select name="pais" class="form-control select2 paises" required>
+                        <option value="" selected disabled>Nacinalidad</option>
+                        <script>var paises = new Array();
                         @foreach($default['paises'] as $pais)
-                        @if($pais->id == 1)
-                        <option value="{{ $pais->id }}" >{{ $pais->description }}</option>
-                        @else
-                        <option value="{{ $pais->id }}">{{ $pais->description }}</option>
-                        @endif
+                          paises.push({ id: {{ $pais->id }}, text: "{{ $pais->description }}" })
                         @endforeach
+                        </script>
                       </select>
                     </div>
 
                     <div class="col-md-1 col-sm-1">
-                      <select name ="tipo_doc" class="form-control" required>
-                        @foreach($default['tdoc'] as $tdoc)
-                        @if($tdoc->id == 1)
-                        <option value="{{ $tdoc->id }}" selected>{{ $tdoc->description }}</option>
-                        @else
-                        <option value="{{ $tdoc->id }}">{{ $tdoc->description }}</option>
-                        @endif
-                        @endforeach
+                      <select name ="tipo_doc" class="form-control select2 tdocs" required>
+                        <option value="" selected disabled>Doc</option>
+                        <script>var tdocs = new Array();
+                          @foreach($default['tdoc'] as $tdoc)
+                            tdocs.push({ id: {{ $tdoc->id }}, text: "{{ $tdoc->description }}" })
+                          @endforeach
+                        </script>
                       </select>
                     </div>
 
@@ -41,14 +38,13 @@
                     </div>
 
                     <div class="col-md-1 col-sm-1">
-                      <select name="sexo" class="form-control" required>
-                        @foreach($default['sexo'] as $sex)
-                        @if($sex->id == 0)
+                      <select name="sexo" class="form-control select2 sexos" required>
                         <option value="" selected disabled>Sexo</option>
-                        @else
-                        <option value="{{ strtolower($sex->description) }}">{{ $sex->description }}</option>
-                        @endif
-                        @endforeach
+                        <script>var sexos = new Array();
+                          @foreach($default['sexo'] as $sex)
+                            sexos.push({ id: "{{ $sex->description }}", text: "{{ $sex->description }}" })
+                          @endforeach
+                        </script>
                       </select>
                     </div>
 
@@ -160,7 +156,36 @@
     $( document ).ready(function() {
       if ('{{ !empty($peticion[1]->tramite_id) }}')
         $('#modalCliente').modal('show');
+        console.l
+      $(".select2").select2({
+        allowClear: true,
+        language: "es"
+      });
 
+      $(".paises").select2({
+        data: paises,
+        placeholder: "Nacionalidad"
+      });
+
+      $(".tdocs").select2({
+        data: tdocs,
+        placeholder: "Doc"
+      });
+
+      $(".sexos").select2({
+        data: sexos,
+        placeholder: "Sexo"
+      });
     });
+
+
+
     </script>
+    <script src="{{ asset('vendors/select2/dist/js/select2.full.min.js')}}"></script>
+    <script src="{{ asset('vendors/validator/validator.js')}}"></script>
 @endpush
+
+@section('css')
+<!-- Select2 -->
+    <link href="{{ asset('vendors/select2/dist/css/select2.min.css') }}" rel="stylesheet">
+@endsection
