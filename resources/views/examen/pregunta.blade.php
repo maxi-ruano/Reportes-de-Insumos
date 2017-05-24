@@ -3,7 +3,7 @@
 @section('pregunta')
   <div class="row">
       <div class="col-sm-8 div-pregunta" >
-        <textarea class="form-control textoPregunta" rows="6" style="font-size: 25px; white-space: normal; background-color: #fff;" disabled></textarea>
+        <textarea class="form-control textoPregunta" rows="5" style="font-size: 25px; white-space: normal; background-color: #fff;" disabled></textarea>
 
       </div>
       <div class="col-sm-4 div-pregunta-img">
