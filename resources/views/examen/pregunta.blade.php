@@ -66,7 +66,7 @@
       $('.textoPregunta').html(preguntas[idSiguiente]['pregunta']);
       if(preguntas[idSiguiente]['imagen']){
         $(".div-pregunta").removeClass('col-sm-12').addClass('col-sm-8');
-        $(".div-pregunta-img").html('<div class="thumbnail text-center"><img src="" alt="..." class="img-pregunta img-responsive" data-toggle="modal" data-target="#myModal" style = "height: 26%;width: auto;">'+'<div class="profile_info">hacer click para agrandar la foto</div></div>')
+        $(".div-pregunta-img").html('<div class="thumbnail text-center"><img src="" alt="..." class="img-pregunta img-responsive" data-toggle="modal" data-target="#myModal" style = "height: 21.5%;width: auto;">'+'<div class="profile_info">hacer click para agrandar la foto</div></div>')
         $(".img-pregunta").attr('src', '{{ config('global.IMAGENES_PREGUNTAS') }}' + preguntas[idSiguiente]['imagen']);
 
       }else{
