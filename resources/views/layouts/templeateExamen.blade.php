@@ -27,8 +27,8 @@
       <div class="row content">
         <div class="col-sm-9 sidenav">
 
-            <div class="pregunta">
-              <div class="contenedor-examen-panel panel panel-default ">
+            <div class="">
+              <div class="panel panel-default ">
                 <div class="panel-body">
                   <legend>Pregunta</legend>
                       @yield('pregunta')
@@ -36,8 +36,8 @@
               </div>
             </div>
 
-          <div class="respuestas">
-            <div class=" contenedor-examen-panel panel panel-default">
+          <div class="">
+            <div class=" panel panel-default">
               <div class="panel-body">
                 @yield('respuestas')
 

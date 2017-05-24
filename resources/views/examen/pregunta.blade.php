@@ -2,8 +2,9 @@
 
 @section('pregunta')
   <div class="row">
-      <div class="col-sm-8 div-pregunta">
-        <p class="textoPregunta"></p>
+      <div class="col-sm-8 div-pregunta" >
+        <textarea class="form-control textoPregunta" rows="6" style="font-size: 25px; white-space: normal; background-color: #fff;" disabled></textarea>
+
       </div>
       <div class="col-sm-4 div-pregunta-img">
 
@@ -59,12 +60,13 @@
     var examen = '{!! $examen !!}';
     var pregunta;
     var idSiguiente = 0;
-    function cargarPregunta(){
 
-      $('.textoPregunta').html('<h2>'+preguntas[idSiguiente]['pregunta']+'</h2>');
+
+    function cargarPregunta(){
+      $('.textoPregunta').html(preguntas[idSiguiente]['pregunta']);
       if(preguntas[idSiguiente]['imagen']){
         $(".div-pregunta").removeClass('col-sm-12').addClass('col-sm-8');
-        $(".div-pregunta-img").html('<div class="thumbnail text-center"><img src="" alt="..." class="img-pregunta img-responsive" data-toggle="modal" data-target="#myModal" style = "height: 60%;width: auto;">'+'<div class="profile_info">hacer click para agrandar la foto</div></div>')
+        $(".div-pregunta-img").html('<div class="thumbnail text-center"><img src="" alt="..." class="img-pregunta img-responsive" data-toggle="modal" data-target="#myModal" style = "height: 26%;width: auto;">'+'<div class="profile_info">hacer click para agrandar la foto</div></div>')
         $(".img-pregunta").attr('src', '{{ config('global.IMAGENES_PREGUNTAS') }}' + preguntas[idSiguiente]['imagen']);
 
       }else{
