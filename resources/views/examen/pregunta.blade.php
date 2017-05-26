@@ -196,6 +196,13 @@
       $(window).on("resize", function () {
         $('.modal:visible').each(centerModal);
       });
+
+      $(document).ready(function() {
+           function disableBack() { window.history.forward() }
+
+           window.onload = disableBack();
+           window.onpageshow = function(evt) { if (evt.persisted) disableBack() }
+       });
   </script>
 @endsection
 <script>
