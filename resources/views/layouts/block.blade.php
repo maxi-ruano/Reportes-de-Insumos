@@ -108,4 +108,5 @@ var url_reload =  '{{ config('app.url') }}'+'{{ config('global.URL_VERIFICACION_
     verificarAsignacion();
   }, 3000
   );
+  document.oncontextmenu = function(){return false;}
 </script>

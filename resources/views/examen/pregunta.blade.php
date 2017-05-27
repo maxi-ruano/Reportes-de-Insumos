@@ -205,6 +205,9 @@
            window.onload = disableBack();
            window.onpageshow = function(evt) { if (evt.persisted) disableBack() }
        });
+       
+       document.oncontextmenu = function(){return false;}
+
   </script>
 @endsection
 <script>
