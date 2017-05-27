@@ -1,3 +1,7 @@
+<?php
+$dias = array("Domingo","Lunes","Martes","Miercoles","Jueves","Viernes","Sábado");
+$meses = array("Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre");
+?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -23,7 +27,6 @@
     </header>
     <div class="heroImage">
      <div class="links">
-
          <div class="cuadrado">
            @if(!empty($examen))
 
@@ -42,9 +45,9 @@
 
            <h4>Si reprueba 3 veces deberá realizar nuevamente el trámite desde el inicio, tenga en cuenta que el curso tiene validez de un año.</h4>
 
-           <h4>El resultado de su examen quedará registrado y asentado en todos nuestros registros y sólo podrá rendir nuevamente dentro de <b>cinco días </b> corridos; a partir del día <b>24 de Mayo del 2017. </b></h4>
+           <h4>El resultado de su examen quedará registrado y asentado en todos nuestros registros y sólo podrá rendir nuevamente dentro de <b>cinco días </b> habiles; a partir del día <b>{{ $dias[date('w')]." ".date('d')." de ".$meses[date('n')-1]. " del ".date('Y') }}. </b></h4>
 
-           <h4> Recuerde que su trámite tiene una validez de  <b>90 días </b> corridos desde el día que lo inició: <b>14 de Marzo del 2017</b> y vence: <b>14 de Junio del 2017</b></h4>
+           <!--<h4> Recuerde que su trámite tiene una validez de  <b>90 días </b> corridos desde el día que lo inició: <b>14 de Marzo del 2017</b> y vence: <b>14 de Junio del 2017</b></h4>-->
 
            <h4> <b>Si su trámite vence deberá iniciarlo nuevamente abonando todos los costos correspondientes.</b></h4>
            <br>
