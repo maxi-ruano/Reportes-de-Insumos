@@ -10,6 +10,8 @@ use App\EtlExamenPregunta;
 use App\EtlParametro;
 use App\TeoricoPc;
 use App\Http\Controllers\Carbon\Carbon;
+use Cache;
+use App\Http\Controllers\BedelController;
 
 class EtlExamenController extends Controller
 {
@@ -131,11 +133,19 @@ class EtlExamenController extends Controller
       $ID_PORCENTAJE_APROBACION = 5;
       $porcentajeAprovacion = EtlParametro::find($ID_PORCENTAJE_APROBACION);
 
-      $aprobado = 'false';
-      $mensaje = 'En esta ocasión usted <span class="label label-danger"> REPROBO</span> con un';
+      $BedelController = new BedelController();
       if($porcentaje >= $porcentajeAprovacion->valor){
         $aprobado = 'true';
         $mensaje = 'Examen <span class="label label-success"> APROBADO </span> con un';
+        $categorias = $BedelController->api_get('http://192.168.76.233/api_dc.php',array(
+                    'function' => 'aprobar_examen',
+                    'examen_id' => (int)$request->examen_id));
+      }else{
+        $aprobado = 'false';
+        $mensaje = 'En esta ocasión usted <span class="label label-danger"> REPROBO</span> con un';
+        $categorias = $BedelController->api_get('http://192.168.76.233/api_dc.php',array(
+                    'function' => 'reprobar_examen',
+                    'examen_id' => (int)$request->examen_id));
       }
 
 

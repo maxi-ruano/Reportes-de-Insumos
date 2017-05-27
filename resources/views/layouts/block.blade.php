@@ -105,7 +105,6 @@ setInterval(function () {//URL_EXAMEN_TEORICO
 <script type="text/javascript">
 var url_reload =  '{{ config('app.url') }}'+'{{ config('global.URL_VERIFICACION_ASIGNACION') }}';
   setInterval(function () {
-    console.log('intentando')
     verificarAsignacion();
   }, 3000
   );

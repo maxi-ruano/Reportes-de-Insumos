@@ -23,9 +23,6 @@ Route::get('verificarAsignacion', 'TeoricoPcController@verificarAsignacion');
 //Auth::routes();
 Route::auth();
   Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
-      //Route::auth();
-      //Route::auth();
-      //Route::resource('','AdminController');
       Route::get('computadoras/active', 'TeoricoPcController@isActive');
       Route::resource('computadoras','TeoricoPcController');
       Route::resource('bedel', 'BedelController');
