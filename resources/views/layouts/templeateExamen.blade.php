@@ -91,7 +91,7 @@
                   {{ Form::open(['route' => 'finalizar_examen', 'method' => 'POST', 'role' => 'form', 'files' => false]) }}
                     <input type="hidden" name="examen_id" class = "examen_input" value="">
 
-                    <input  type="hidden" class="btn btn-primary btn-lg" id="botonFinalizar" value="Finalizar Examen" >
+                    <input  type="hidden" class="btn btn-primary btn-lg" onsubmit="bloquearBoton()" id="botonFinalizar" value="Finalizar Examen" >
 
                   {{ Form::close() }}
               </div>

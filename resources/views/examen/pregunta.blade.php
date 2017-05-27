@@ -3,7 +3,7 @@
 @section('pregunta')
   <div class="row">
       <div class="col-sm-8 div-pregunta" >
-        <textarea class="form-control textoPregunta" rows="5" style="font-size: 25px; white-space: normal; background-color: #fff;" disabled></textarea>
+        <textarea class="form-control textoPregunta" rows="5" style=" resize: none; border: none; font-size: 25px; white-space: normal; background-color: #fff;" disabled></textarea>
 
       </div>
       <div class="col-sm-4 div-pregunta-img">
@@ -103,11 +103,13 @@
         $('#botonFinalizar').attr('type','submit');
         $('.examen_input').attr('value', examen);
         $('.div-boton-siguiente').empty();
-        $('#botonPregunta').attr('disabled','disabled');
-        $('.botonRespuesta').attr('disabled','disabled');
+
       }
     }
-
+    function bloquearBoton(){
+      $('#botonPregunta').attr('disabled','disabled');
+      $('.botonRespuesta').attr('disabled','disabled');
+    }
     function enviarRespuestas(){
         $('.preguntaDiv').text('se envio');
     }
