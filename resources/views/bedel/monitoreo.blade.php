@@ -16,7 +16,7 @@ var url =  '{{ config('app.url') }}'+'{{ config('global.URL_COMPUTADORAS_MONITOR
 var imagenDefault = '{{ config('app.url') }}'+'{{ config('global.IMAGE_USER_DEFAULT') }}';
 actualizarMonitor();
 
-//setInterval(Function("actualizarMonitor();"), 5000);
+setInterval(Function("actualizarMonitor();"), 5000);
 </script>
 
 @endsection
