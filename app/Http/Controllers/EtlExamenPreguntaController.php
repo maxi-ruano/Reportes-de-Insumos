@@ -94,7 +94,11 @@ class EtlExamenPreguntaController extends Controller
     {
       $preguntas = EtlExamenPregunta::where('examen_id', $examen_id)->get();
       foreach ($preguntas as $key => $value) {
+	$value->etlPregunta->texto = str_replace(array("\r\n", "\n", "\r"), ' ', $value->etlPregunta->texto);
         $value['respuestas'] = EtlPreguntaRespuesta::where('pregunta_id', $value->pregunta_id)->get();
+        foreach ($value['respuestas'] as $key => $respuesta) {
+          $respuesta->EtlRespuesta->texto =  str_replace(array("\r\n", "\n", "\r"), ' ', $respuesta->EtlRespuesta->texto);
+        }
       }
       $examen = EtlExamen::find($examen_id);
 
@@ -112,9 +116,7 @@ class EtlExamenPreguntaController extends Controller
       $datosPersona = DatosPersonales::where('nro_doc', $examen->tramite->nro_doc)
                                ->where('pais', $examen->tramite->pais)
                                ->where('tipo_doc', $examen->tramite->tipo_doc)->first();
-
       $nombre = $datosPersona->nombre .' '. $datosPersona->apellido;
-
       return View('examen.pregunta')->with('preguntas', $preguntas)
                                     ->with('examen', $examen_id)
                                     ->with('nombre', $nombre)
