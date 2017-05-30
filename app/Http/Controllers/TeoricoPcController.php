@@ -152,9 +152,10 @@ class TeoricoPcController extends Controller
 
     public function computadorasMonitor(){
       $computadoras = TeoricoPc::all();
-      foreach ($computadoras as $key => $computadora) {
-        $examen = EtlExamen::find($computadora->examen_id);
-        $nro_doc = $examen->tramite->nro_doc;
+      foreach ($computadoras as $key => $computadora) {      
+      $examen = EtlExamen::find($computadora->examen_id);
+	if($examen != null):
+      $nro_doc = $examen->tramite->nro_doc;
         $tipo_doc = $examen->tramite->tipo_doc;
         $pais = $examen->tramite->pais;
         $sexo = $examen->tramite->sexo;
@@ -188,7 +189,7 @@ class TeoricoPcController extends Controller
             else
               $computadora->estadoExamen = '<span class="label label-danger">REPROBADO';
         }
-
+	endif;
         }
         return response()->json(['computadoras' => $computadoras]);
 
