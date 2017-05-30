@@ -36,7 +36,7 @@ class BedelController extends Controller
         $peticion = $this->findTramite($request->doc, (int)$request->tipo_doc, strtolower($request->sexo), $request->pais);
         if ($this->esValido($peticion)):
           $peticion = $this->validarEncontrados($peticion);
-          $categorias = $this->api_get('http://192.168.76.233/api_dc.php',array('function' => 'get','tipo_doc' => (int)$request->tipo_doc, 'nro_doc' => $request->doc, 'sexo' => strtolower($request->sexo), 'pais' => $request->pais));
+          $categorias = $this->api_get('http://192.168.76.200/api_dc.php',array('function' => 'get','tipo_doc' => (int)$request->tipo_doc, 'nro_doc' => $request->doc, 'sexo' => strtolower($request->sexo), 'pais' => $request->pais));
           if ($categorias[0] != false) {
             $TeoricoPcController = new TeoricoPcController;
             $computadoras = $TeoricoPcController->listarDisponibles($peticion[1]->sucursal);
@@ -163,7 +163,7 @@ class BedelController extends Controller
          */
          public function crear_examen($tramite_id, $clase_name){
            if (isset($tramite_id) && isset($clase_name) && $tramite_id != '' && $clase_name != '') {
-             $response = $this->api_get('http://192.168.76.233/api_dc.php',array('function' => 'create','tramite_id' => $tramite_id, 'idioma_id' => 1, 'clase_name' => $clase_name));
+             $response = $this->api_get('http://192.168.76.200/api_dc.php',array('function' => 'create','tramite_id' => $tramite_id, 'idioma_id' => 1, 'clase_name' => $clase_name));
              return $response;
            }
            else {

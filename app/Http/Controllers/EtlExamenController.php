@@ -134,7 +134,15 @@ class EtlExamenController extends Controller
       $porcentajeAprovacion = EtlParametro::find($ID_PORCENTAJE_APROBACION);
 
       $BedelController = new BedelController();
-      if($porcentaje >= $porcentajeAprovacion->valor){
+      //guardamos el resultado
+      $examen = EtlExamen::find($request->examen_id);
+      $examen->aprobado = $porcentaje >= $porcentajeAprovacion->valor;
+      $examen->porcentaje = $porcentaje;
+      $examen->ip = $request->ip;
+      $examen->fecha_fin = DB::raw('current_timestamp');
+      $examen->save();
+
+      if($examen->aprobado){
         $aprobado = 'true';
         $mensaje = 'Examen <span class="label label-success"> APROBADO </span> con un';
         $categorias = $BedelController->api_get('http://192.168.76.233/api_dc.php',array(
@@ -148,14 +156,6 @@ class EtlExamenController extends Controller
                     'examen_id' => (int)$request->examen_id));
       }
 
-
-      //guardamos el resultado
-      $examen = EtlExamen::find($request->examen_id);
-      $examen->aprobado = $aprobado;
-      $examen->porcentaje = $porcentaje;
-      $examen->ip = $request->ip;
-      $examen->fecha_fin = DB::raw('current_timestamp');
-      $examen->save();
 
       $teoricoPc = TeoricoPc::where('examen_id',$request->examen_id)->first();
       $teoricoPc->activo = false;
