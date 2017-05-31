@@ -13,9 +13,9 @@ class EtlPreguntaRespuestaController.php extends Controller
    */
   public function index()
   {
-      $preguntas = EtlExamenPregunta::find('13698247');
+      //$preguntas = EtlExamenPregunta::find('13698247');
       //$preguntas = 'hola este es el index';
-      dd($preguntas);
+      //dd($preguntas);
   }
 
   /**

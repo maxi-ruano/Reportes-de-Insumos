@@ -26,56 +26,32 @@ $meses = array("Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto"
     <a href="#" class="logo"></a>
     </header>
     <div class="heroImage">
-     <div class="links">
+      <div class="links">
          <div class="cuadrado">
            @if(!empty($examen))
-
            <h2 style="color:#585757;"><b>Usted ha finalizado su examen teórico.</b></h2>
-           @if($examen->aprobado)
-           <h4> {!! $examen->mensaje !!}
-             <b>{!! $examen->porcentaje !!} %.</b>
-           </h4>
+               @if($examen->aprobado)
+                    <h4>Recuerde que su trámite tiene una validez de <b>90 días</b> corridos desde el día que lo inició: <b>xx de xx del xx</b> y vence: <b>xx de xx del xxx</b></h4>
+                    <h4>Si su trámite vence, deberá iniciarlo nuevamente; abonando todos los costos correspondientes.</h4>
+                    <h4>Por favor diríjase al frente del aula para sellar su  trámite con el Bedel del aula , y luego se le indicarán los pasos a seguir.</h4>
+                    <h4> Felicidades, Aprobó con un <b>{!! $examen->porcentaje !!} %.</b></h4>
+                @else
+                    <h4>Le quedan <b>X (X) oportunidades</b> más para volver a rendir su examen teórico</h4>
+                    <h4>Deberá esperar <b>5 dias</b> habiles para poder rendir nuevamente.</h4>
+                    <h4>Si reprueba <b>3 veces</b> deberá realizar nuevamente el trámite desde el inicio, tenga en cuenta que el curso tiene validez de un año.</h4>
+                    <h4>No podrá rendir el exámen práctico hasta finalizar exitosamente el teórico.</h4>
+                    <h4>El resultado de su examen quedará registrado y asentado en todos nuestros registros y sólo podrá rendir, como se mencionó anteriormente, dentro de cinco días corridos: a partir del día <b>{{ $dias[date('w')]." ".date('d')." de ".$meses[date('n')-1]. " del ".date('Y') }}. </b></h4>
+                    <h4>Recuerde que su trámite tiene una validez de <b>90 días</b> corridos desde el día que lo inició: <b>XXX</b> y vence: <b>XXX</b></h4>
+                    <h4>Si su trámite vence deberá iniciarlo nuevamente abonando todos los costos correspondientes.</h4>
+                    <h4>Por favor diríjase al frente del aula para ver cómo continuar su trámite con el Bedel del áula.</h4>
+                    <h4>Lamentamos que haya reprobado con un <b>{!! $examen->porcentaje !!} %.</b></h4>
+                @endif
             @else
-            <h4> {!! $examen->mensaje !!}
-              <b>{!! $examen->porcentaje !!} %.</b>
-            </h4>
+                 <h1 style="color:#585757;"><b>Equipo bloqueado</b></h1>
+                 <br><br><br><br><br><br><br><br><br><br><br><br><br><br>
             @endif
-            <br>
-           <h4> Le quedan <b>2 (dos)</b> oportunidades más para rendir, debe esperar 5 dias habiles para poder rendir el proximo examen.</h4>
-
-           <h4>Si reprueba 3 veces deberá realizar nuevamente el trámite desde el inicio, tenga en cuenta que el curso tiene validez de un año.</h4>
-
-           <h4>El resultado de su examen quedará registrado y asentado en todos nuestros registros y sólo podrá rendir nuevamente dentro de <b>cinco días </b> habiles; a partir del día <b>{{ $dias[date('w')]." ".date('d')." de ".$meses[date('n')-1]. " del ".date('Y') }}. </b></h4>
-
-           <!--<h4> Recuerde que su trámite tiene una validez de  <b>90 días </b> corridos desde el día que lo inició: <b>14 de Marzo del 2017</b> y vence: <b>14 de Junio del 2017</b></h4>-->
-
-           <h4> <b>Si su trámite vence deberá iniciarlo nuevamente abonando todos los costos correspondientes.</b></h4>
-           <br>
-           <br>
-           <h4> <b>Por favor diríjase al frente del aula para ver cómo continuar su trámite con el Bedel del áula.</b></h4>
-           @else
-
-             <h1 style="color:#585757;"><b>Equipo bloqueado</b></h1>
-
-             <br>
-             <br>
-             <br>
-             <br>
-             <br>
-             <br>
-             <br>
-             <br>
-             <br>
-             <br>
-             <br>
-             <br>
-             <br>
-             <br>
-           @endif
-
-            </div>
-
         </div>
+      </div>
     </div>
     <footer id="footer">
     <a href="#" class="logoFooter"></a>
@@ -109,7 +85,7 @@ setInterval(function () {//URL_EXAMEN_TEORICO
 var url_reload =  '{{ config('app.url') }}'+'{{ config('global.URL_VERIFICACION_ASIGNACION') }}';
   setInterval(function () {
     verificarAsignacion();
-  }, 3000
+  }, 10000
   );
   document.oncontextmenu = function(){return false;}
 </script>

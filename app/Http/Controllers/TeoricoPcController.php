@@ -152,7 +152,7 @@ class TeoricoPcController extends Controller
 
     public function computadorasMonitor(){
       $computadoras = TeoricoPc::all();
-      foreach ($computadoras as $key => $computadora) {      
+      foreach ($computadoras as $key => $computadora) {
       $examen = EtlExamen::find($computadora->examen_id);
 	if($examen != null):
       $nro_doc = $examen->tramite->nro_doc;
@@ -162,9 +162,14 @@ class TeoricoPcController extends Controller
         $sucursal = $examen->tramite->sucursal;
 
         if($sucursal == 1 || $sucursal == 2)
-          $ip = "192.168.76.200";
-        else
-          $ip = $computadora->examen->tramite->SysRptServer->ip;
+          $ip = config('global.IP_SERVIDOR');
+        else{
+            if(!isset($computadora->examen->tramite->SysRptServer->ip))
+              $ip = '1';
+            else
+              $ip = $computadora->examen->tramite->SysRptServer->ip;
+        }
+
 
         $computadora->pathFoto = "http://". $ip ."/data/fotos/" .
                       str_pad($pais, 3, "0", STR_PAD_LEFT) .

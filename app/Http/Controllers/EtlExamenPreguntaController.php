@@ -103,7 +103,7 @@ class EtlExamenPreguntaController extends Controller
       $examen = EtlExamen::find($examen_id);
 
       if($examen->tramite->sucursal == 1 || $examen->tramite->sucursal == 2)
-        $ip = "192.168.76.200";
+        $ip = config('IP_SERVIDOR');
       else
         $ip = $examen->tramite->SysRptServer->ip;
 
