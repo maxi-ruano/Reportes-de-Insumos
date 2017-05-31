@@ -129,9 +129,8 @@ class EtlExamenController extends Controller
       //calculamos la nota
       $porcentaje = ($correctas/count($preguntasYRespuestas)) * 100;
       $porcentaje = round($porcentaje,2);
-      //COLOCAR COMO VARIABLE GLOBAL !!!
-      $ID_PORCENTAJE_APROBACION = 5;
-      $porcentajeAprovacion = EtlParametro::find($ID_PORCENTAJE_APROBACION);
+
+      $porcentajeAprovacion = EtlParametro::find(config('global.ID_PORCENTAJE_APROBACION'));
 
       $BedelController = new BedelController();
       //guardamos el resultado
@@ -145,13 +144,13 @@ class EtlExamenController extends Controller
       if($examen->aprobado){
         $aprobado = 'true';
         $mensaje = 'Examen <span class="label label-success"> APROBADO </span> con un';
-        $categorias = $BedelController->api_get('http://192.168.76.233/api_dc.php',array(
+        $categorias = $BedelController->api_get(config('global.API_SERVIDOR'),array(
                     'function' => 'aprobar_examen',
                     'examen_id' => (int)$request->examen_id));
       }else{
         $aprobado = 'false';
         $mensaje = 'En esta ocasión usted <span class="label label-danger"> REPROBO</span> con un';
-        $categorias = $BedelController->api_get('http://192.168.76.233/api_dc.php',array(
+        $categorias = $BedelController->api_get(config('global.API_SERVIDOR'),array(
                     'function' => 'reprobar_examen',
                     'examen_id' => (int)$request->examen_id));
       }
@@ -162,9 +161,19 @@ class EtlExamenController extends Controller
       $teoricoPc->save();
 
       $examen->mensaje = $mensaje;
+      $examen->cantidadOportunidadesExamen = config('global.CANT_MAX_EXAM_CAT') - $this->getCantidadExamenes($examen->tramite_id, $examen->clase_name);
       $examen->computadora_id = $teoricoPc->id;
       $examen->porcentajeAprovacion = $porcentajeAprovacion->valor;
       return View('layouts.block')->with('examen', $examen);
-      //echo $porcentaje;
+    }
+
+    public function getCantidadExamenes($tramite, $categoria){
+      $cantidad = EtlExamen::where('tramite_id', $tramite)
+                        ->where('clase_name', $categoria)
+                        ->where(function ($cantidad) {
+                          $cantidad->where('anulado', false)
+                                ->orWhereNull('anulado');
+                          })->get();
+      return count($cantidad);
     }
 }
