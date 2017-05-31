@@ -162,7 +162,7 @@ class TeoricoPcController extends Controller
         $sucursal = $examen->tramite->sucursal;
 
         if($sucursal == 1 || $sucursal == 2)
-          $ip = config('global.IP_SERVIDOR');
+          $ip = config('global.IP_SERVIDOR_FOTOS');
         else{
             if(!isset($computadora->examen->tramite->SysRptServer->ip))
               $ip = '1';
