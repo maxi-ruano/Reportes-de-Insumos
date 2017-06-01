@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\DatosPersonales;
 use App\TeoricoPc;
 use App\EtlExamen;
+use App\TramitesLog;
+use App\SysRptServers;
 
 class TeoricoPcController extends Controller
 {
@@ -154,8 +156,8 @@ class TeoricoPcController extends Controller
       $computadoras = TeoricoPc::all();
       foreach ($computadoras as $key => $computadora) {
       $examen = EtlExamen::find($computadora->examen_id);
-	if($examen != null):
-      $nro_doc = $examen->tramite->nro_doc;
+  	if($examen != null):
+        $nro_doc = $examen->tramite->nro_doc;
         $tipo_doc = $examen->tramite->tipo_doc;
         $pais = $examen->tramite->pais;
         $sexo = $examen->tramite->sexo;
@@ -164,9 +166,11 @@ class TeoricoPcController extends Controller
         if($sucursal == 1 || $sucursal == 2)
           $ip = config('global.IP_SERVIDOR_FOTOS');
         else{
-            if(!isset($computadora->examen->tramite->SysRptServer->ip))
-              $ip = '1';
-            else
+            if(!isset($computadora->examen->tramite->SysRptServer->ip)){
+              $tramiteLog = TramitesLog::where('tramite_id', $examen->tramite->tramite_id)->first();
+              $sysRptServer = SysRptServers::find($tramiteLog->sucursal);
+              $ip = $sysRptServer->ip;
+            }else
               $ip = $computadora->examen->tramite->SysRptServer->ip;
         }
 
