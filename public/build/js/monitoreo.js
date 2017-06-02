@@ -46,7 +46,7 @@ function gethtmlComputadora(computadora){
               '<li>Doc: '+computadora.nro_doc+'</li>'+
               '<li>'+computadora.nombre+'</li>'+
               '<li>'+computadora.apellido+'</li>'+
-              '<li><b>'+computadora.estadoExamen+'</span></b></li>'+
+              '<li>'+computadora.estadoExamen+'</li>'+
             '</ul>'+
           '</div>'+
         '</div>'+

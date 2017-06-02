@@ -189,14 +189,14 @@ class TeoricoPcController extends Controller
         $computadora->nro_doc = $nro_doc;
         $computadora->nombre = $datosPersona->nombre;
         $computadora->apellido = $datosPersona->apellido;
-        $computadora->estadoExamen = '<span class="label label-default">NO ASIGNADO';
+        $computadora->estadoExamen = '<label class="btn btn-default btn-xs ">NO ASIGNADO</label>';
         if($examen->fecha_inicio){
-          $computadora->estadoExamen = '<span class="label label-warning">EN PROCESO';
+          $computadora->estadoExamen = '<label class="btn btn-warning btn-xs ">EN PROCESO</label>';
           if($examen->fecha_fin)
             if($examen->aprobado)
-              $computadora->estadoExamen = '<span class="label label-success">APROBADO';
+              $computadora->estadoExamen = '<label class="btn btn-success btn-xs ">APROBADO <span class="badge">'.round($examen->porcentaje).'%</span></label>';
             else
-              $computadora->estadoExamen = '<span class="label label-danger">REPROBADO';
+              $computadora->estadoExamen = '<label class="btn btn-danger btn-xs ">REPROBADO <span class="badge">'.round($examen->porcentaje).'%</span></label>';
         }
 	endif;
         }
