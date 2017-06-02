@@ -11,7 +11,7 @@ return [
     'LETRAS' => env('LETRAS', 'ABCDEFGHYJKLMNÑOPQRSTUVWXYZ'),
     'NUMEROS' => env('NUMEROS', array('cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve')),
     'DIAS_PARA_EXAMEN' => env('DIAS_PARA_EXAMEN', '5'),
-    'DIAS_VALIDEZ_TRAMITE' => env('DIAS_VALIDEZ_TRAMITE', '5'),
+    'DIAS_VALIDEZ_TRAMITE' => env('DIAS_VALIDEZ_TRAMITE', '90'),
     //ajax
     'GUARDAR_RESPUESTA_EXAMEN' => env('GUARDAR_RESPUESTA_EXAMEN', '/deve_teorico/public/guardar_respuesta'),
     'URL_COMPUTADORAS_MONITOR' => env('URL_COMPUTADORAS_MONITOR', '/deve_teorico/public/computadorasMonitor'),
@@ -35,7 +35,7 @@ return [
     'LETRAS' => env('LETRAS', 'ABCDEFGHYJKLMNÑOPQRSTUVWXYZ'),
     'NUMEROS' => env('NUMEROS', array('cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve')),
     'DIAS_PARA_EXAMEN' => env('DIAS_PARA_EXAMEN', '5'),
-    'DIAS_VALIDEZ_TRAMITE' => env('DIAS_VALIDEZ_TRAMITE', '5'),
+    'DIAS_VALIDEZ_TRAMITE' => env('DIAS_VALIDEZ_TRAMITE', '90'),
     //ajax
     'GUARDAR_RESPUESTA_EXAMEN' => env('GUARDAR_RESPUESTA_EXAMEN', '/teorico/public/guardar_respuesta'),
     'URL_COMPUTADORAS_MONITOR' => env('URL_COMPUTADORAS_MONITOR', '/teorico/public/computadorasMonitor'),

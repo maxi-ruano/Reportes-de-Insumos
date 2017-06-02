@@ -31,20 +31,20 @@ $meses = array("Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto"
            @if(!empty($examen))
            <h2 style="color:#585757;"><b>Usted ha finalizado su examen teórico.</b></h2>
                @if($examen->aprobado)
-                    <h4>Recuerde que su trámite tiene una validez de <b>{{ config('global.DIAS_VALIDEZ_TRAMITE') }} días</b> corridos desde el día que lo inició: <b>xx de xx del xx</b> y vence: <b>xx de xx del xxx</b></h4>
+                    <h4>Recuerde que su trámite tiene una validez de <b>{{ config('global.DIAS_VALIDEZ_TRAMITE') }} días</b> corridos desde el día que lo inició: <b>{{ $examen->fec_emision_modificada }} </b> y vence: <b>{{ $examen->fec_vencimiento_modificada }} </b></h4>
                     <h4>Si su trámite vence, deberá iniciarlo nuevamente; abonando todos los costos correspondientes.</h4>
                     <h4>Por favor diríjase al frente del aula para sellar su  trámite con el Bedel del aula , y luego se le indicarán los pasos a seguir.</h4>
-                    <h4> Felicidades, Aprobó con un <b>{!! $examen->porcentaje !!} %.</b></h4>
+                    <h4> Felicidades, <span class='label label-success' >APROBO</span> con un <b>{!! $examen->porcentaje !!} %.</b></h4>
                 @else
                     <h4>Le quedan <b>{{ $examen->cantidadOportunidadesExamen }} ( {{ config('global.NUMEROS')[$examen->cantidadOportunidadesExamen] }}) oportunidades</b> más para volver a rendir su examen teórico</h4>
                     <h4>Deberá esperar <b>{{ config('global.DIAS_PARA_EXAMEN') }} dias</b> habiles para poder rendir nuevamente.</h4>
-                    <h4>Si reprueba <b>3 veces</b> deberá realizar nuevamente el trámite desde el inicio, tenga en cuenta que el curso tiene validez de un año.</h4>
+                    <h4>Si reprueba <b>{{ config('global.CANT_MAX_EXAM_CAT') }} veces</b> deberá realizar nuevamente el trámite desde el inicio, tenga en cuenta que el curso tiene validez de un año.</h4>
                     <h4>No podrá rendir el exámen práctico hasta finalizar exitosamente el teórico.</h4>
                     <h4>El resultado de su examen quedará registrado y asentado en todos nuestros registros y sólo podrá rendir, como se mencionó anteriormente, dentro de cinco días corridos: a partir del día <b>{{ $dias[date('w')]." ".date('d')." de ".$meses[date('n')-1]. " del ".date('Y') }}. </b></h4>
-                    <h4>Recuerde que su trámite tiene una validez de <b>{{ config('global.DIAS_VALIDEZ_TRAMITE') }} días</b> corridos desde el día que lo inició: <b>XXX</b> y vence: <b>XXX</b></h4>
+                    <h4>Recuerde que su trámite tiene una validez de <b>{{ config('global.DIAS_VALIDEZ_TRAMITE') }} días</b> corridos a partir del <b>{{ $examen->fec_emision_modificada }}</b> y vence: <b>{{ $examen->fec_vencimiento_modificada }}</b></h4>
                     <h4>Si su trámite vence deberá iniciarlo nuevamente abonando todos los costos correspondientes.</h4>
                     <h4>Por favor diríjase al frente del aula para ver cómo continuar su trámite con el Bedel del áula.</h4>
-                    <h4>Lamentamos que haya reprobado con un <b>{!! $examen->porcentaje !!} %.</b></h4>
+                    <h4>Lamentamos que haya <span class='label label-danger' >REPROBADO </span> con un <b>{!! $examen->porcentaje !!} %.</b></h4>
                 @endif
             @else
                  <h1 style="color:#585757;"><b>Equipo bloqueado</b></h1>
