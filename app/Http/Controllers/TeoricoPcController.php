@@ -161,19 +161,19 @@ class TeoricoPcController extends Controller
         $tipo_doc = $examen->tramite->tipo_doc;
         $pais = $examen->tramite->pais;
         $sexo = $examen->tramite->sexo;
-        $sucursal = $examen->tramite->sucursal;
 
+        if(isset($examen->tramite->sucursal)){
+          $sucursal = $examen->tramite->sucursal;
+        }else{
+            $tramiteLog = TramitesLog::where('tramite_id', $examen->tramite->tramite_id)->first();
+            $sucursal = $tramiteLog->sucursal;
+        }
         if($sucursal == 1 || $sucursal == 2)
           $ip = config('global.IP_SERVIDOR_FOTOS');
         else{
-            if(!isset($computadora->examen->tramite->SysRptServer->ip)){
-              $tramiteLog = TramitesLog::where('tramite_id', $examen->tramite->tramite_id)->first();
-              $sysRptServer = SysRptServers::find($tramiteLog->sucursal);
-              $ip = $sysRptServer->ip;
-            }else
-              $ip = $computadora->examen->tramite->SysRptServer->ip;
+          $sysRptServer = SysRptServers::find($sucursal);
+          $ip = $sysRptServer->ip;
         }
-
 
         $computadora->pathFoto = "http://". $ip ."/data/fotos/" .
                       str_pad($pais, 3, "0", STR_PAD_LEFT) .
