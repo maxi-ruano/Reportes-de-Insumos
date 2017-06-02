@@ -150,7 +150,8 @@
         if (distance < 0) {
             clearInterval(x);
             $('#regresion').html("EXPIRED");
-            location.href = '{{ config('app.url') }}'+'{{ config('global.URL_EXAMEN_TEORICO') }}';
+            $('.examen_input').attr('value', examen);
+            document.getElementById("finalizar_examen").submit();
           }
     }, 1000);
     cargarPregunta();
@@ -205,7 +206,7 @@
            window.onload = disableBack();
            window.onpageshow = function(evt) { if (evt.persisted) disableBack() }
        });
-       
+
        document.oncontextmenu = function(){return false;}
 
   </script>

@@ -6,6 +6,7 @@ return [
     'URL_FOTOS' => env('URL_FOTOS', '5000'),
     'IMAGENES_PREGUNTAS' => env('IMAGENES_PREGUNTAS', 'http://192.168.76.200/etlnuevo/assets/images/'),
     'URL_EXAMEN_TEORICO' => env('URL_EXAMEN_TEORICO', '/deve_teorico/public/'),
+    'FINALIZAR_EXAMEN' => env('FINALIZAR_EXAMEN', '/finalizar_examen'),
     'ID_PORCENTAJE_APROBACION' => env('ID_PORCENTAJE_APROBACION', '5'),
     'CANT_MAX_EXAM_CAT' => env('CANT_MAX_EXAM_CAT', '3'), //CANTIDAD MAXIMA DE EXAMENES POR CATEGORIA
     'LETRAS' => env('LETRAS', 'ABCDEFGHYJKLMNÑOPQRSTUVWXYZ'),
