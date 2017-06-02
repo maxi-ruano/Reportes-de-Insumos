@@ -205,13 +205,51 @@ class BedelController extends Controller
            *
            */
            public function asignarExamen(Request $request){
-             $examen_id = $this->crear_examen($request->tramite_id, $request->clase_name);
-             if ($examen_id != true) {
-               return redirect('bedel.index')->with('msg', 'Error');
+             if ($this->verificarFecha($request->tramite_id, $request->clase_name) == true) {
+               $examen_id = $this->crear_examen($request->tramite_id, $request->clase_name);
+               if ($examen_id != true) {
+                 return redirect('bedel.index')->with('msg', 'Error');
+               }
+               $TeoricoPcController = new TeoricoPcController;
+               $asignar = $TeoricoPcController->asignarPc($request->pc_id, $examen_id[1]);
+               return redirect('admin/bedel?msg=Examen asignado Correctamente');
+               //->with('msg', 'Ok');
              }
-             $TeoricoPcController = new TeoricoPcController;
-             $asignar = $TeoricoPcController->asignarPc($request->pc_id, $examen_id[1]);
-             return redirect('admin/bedel?msg=Examen asignado Correctamente');
-             //->with('msg', 'Ok');
+             else {
+               return redirect('admin/bedel?msg=La fecha no es la indicada para volver a rendir el examen.');
+             }
            }
+           /**
+            * Funcion verificarFecha - Verfica que la persona no presento esa categorias 5 dias antes
+            *
+            */
+            public function verificarFecha($tramite_id, $clase){
+              $examen = EtlExamen::where('tramite_id', $tramite_id)
+              ->where('clase_name', $clase)
+              ->whereNull('anulado')
+              ->OrderBy('etl_examen_id', 'desc')
+              ->first();
+              if ($examen == NULL) {
+                return true;
+              }
+              else {
+                //
+                $fecha = new \DateTime(substr($examen->fecha_inicio, 0, 10));
+                $actual = new \DateTime(date('Y-m-d'));
+                /*
+                //DEPURACION
+                var_dump($fecha);
+                echo "<br>";
+                var_dump($actual);
+                die();
+                */
+                $interval = date_diff($fecha, $actual);
+                if ($interval->invert == 0 AND $interval->d > 5) {
+                  return true;
+                }
+                else {
+                  return false;
+                }
+              }
+            }
 }

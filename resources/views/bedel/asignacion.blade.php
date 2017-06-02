@@ -57,6 +57,13 @@
 
 
                 {!! Form::close() !!}
+                @if(isset($_GET['msg']) AND $_GET['msg'] != '')
+                <div class="form-group">
+                  <div class="panel panel-default">
+                    <div class="panel-body"><h5> {{ $_GET['msg'] }} </h5></div>
+                  </div>
+                </div>
+                @endif
                 @if( $categorias[0] != false )
                 <div id="modalCliente" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-hidden="true">
                   <div class="modal-dialog modal-lg">
