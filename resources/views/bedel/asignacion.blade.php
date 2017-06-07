@@ -116,7 +116,7 @@
                                     <option value="" selected>Computadora</option>
                                     @if($computadoras[0] != false)
                                       @foreach($computadoras[1] as $computadora)
-                                      <option value="{{ $computadora->id }}">{{ $computadora->id }}</option>
+                                      <option value="{{ $computadora->id }}">{{ $computadora->name }}</option>
                                       @endforeach
                                     @endif
                                   </select>

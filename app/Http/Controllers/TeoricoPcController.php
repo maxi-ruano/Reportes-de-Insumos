@@ -144,7 +144,8 @@ class TeoricoPcController extends Controller
 	    $response = array();
 	    $teoricopc = TeoricoPc::where('sucursal_id', $suc_id)
 	      ->where('activo', false)
-	      //->orderBy('name', 'desc')
+        ->orderBy(\DB::raw('LENGTH(name) '), 'ASC')
+	      ->orderBy('name', 'ASC')
       ->get();
       if ($teoricopc != NULL) {
         return array(true, $teoricopc);
