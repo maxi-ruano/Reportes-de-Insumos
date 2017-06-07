@@ -13,28 +13,33 @@
                 <div class="form-group">
                     <div class="col-md-2 col-sm-2">
                       <select name="pais" class="form-control select2 paises" required>
-                        <option value="" selected disabled>Nacinalidad</option>
+                        <option value="1" selected>ARGENTINA</option>
                         <script>var paises = new Array();
-                        @foreach($default['paises'] as $pais)
-                          paises.push({ id: {{ $pais->id }}, text: "{{ $pais->description }}" })
-                        @endforeach
+			@foreach($default['paises'] as $pais)
+			@if((int)$pais->id != 1)
+				paises.push({ id: {{ $pais->id }}, text: "{{ $pais->description }}" })
+			@endif
+			@endforeach
                         </script>
                       </select>
                     </div>
 
                     <div class="col-md-1 col-sm-1">
                       <select name ="tipo_doc" class="form-control select2 tdocs" required>
-                        <option value="" selected disabled>Doc</option>
+			<option value="" selected disabled>Doc</option>
+			<option value="1" selected>DNI</option>
                         <script>var tdocs = new Array();
                           @foreach($default['tdoc'] as $tdoc)
-                            tdocs.push({ id: {{ $tdoc->id }}, text: "{{ $tdoc->description }}" })
+			  	@if((int)$tdoc->id != 1)
+					tdocs.push({ id: {{ $tdoc->id }}, text: "{{ $tdoc->description }}" })
+				@endif
                           @endforeach
                         </script>
                       </select>
                     </div>
 
                     <div class="col-md-2 col-sm-2">
-                      <input name="doc" type="text" class="form-control" placeholder="Documento" required>
+                      <input name="doc" type="text" autocomplete="off" class="form-control" placeholder="Documento" required>
                     </div>
 
                     <div class="col-md-1 col-sm-1">
@@ -107,7 +112,7 @@
                                   </select>
                                 </div>
                                 <div class="col-md-4 col-sm-6">
-                                  <select name ="pc_id" class="form-control">
+                                  <select name ="pc_id" class="form-control" required>
                                     <option value="" selected>Computadora</option>
                                     @if($computadoras[0] != false)
                                       @foreach($computadoras[1] as $computadora)

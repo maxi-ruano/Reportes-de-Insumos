@@ -94,10 +94,10 @@ class EtlExamenPreguntaController extends Controller
     {
       $preguntas = EtlExamenPregunta::where('examen_id', $examen_id)->get();
       foreach ($preguntas as $key => $value) {
-	$value->etlPregunta->texto = str_replace(array("\r\n", "\n", "\r"), ' ', $value->etlPregunta->texto);
+	$value->etlPregunta->texto = str_replace(array("\r\n", "\n", "\r", "'"), ' ', $value->etlPregunta->texto);
         $value['respuestas'] = EtlPreguntaRespuesta::where('pregunta_id', $value->pregunta_id)->get();
         foreach ($value['respuestas'] as $key => $respuesta) {
-          $respuesta->EtlRespuesta->texto =  str_replace(array("\r\n", "\n", "\r"), ' ', $respuesta->EtlRespuesta->texto);
+          $respuesta->EtlRespuesta->texto =  str_replace(array("\r\n", "\n", "\r", "'"), ' ', $respuesta->EtlRespuesta->texto);
         }
       }
       $examen = EtlExamen::find($examen_id);

@@ -141,9 +141,11 @@ class TeoricoPcController extends Controller
     }
 
     public function listarDisponibles($suc_id){
-      $response = array();
+	    $response = array();
+	    $suc_id = 1;
       $teoricopc = TeoricoPc::where('sucursal_id', $suc_id)
-      ->where('activo', false)
+	      ->where('activo', false)
+	      //->orderBy('name', 'desc')
       ->get();
       if ($teoricopc != NULL) {
         return array(true, $teoricopc);
@@ -153,7 +155,7 @@ class TeoricoPcController extends Controller
     }
 
     public function computadorasMonitor(){
-      $computadoras = TeoricoPc::all();
+      $computadoras = TeoricoPc::orderBy('id','asc')->get();
       foreach ($computadoras as $key => $computadora) {
       $examen = EtlExamen::find($computadora->examen_id);
   	if($examen != null):
@@ -189,14 +191,14 @@ class TeoricoPcController extends Controller
         $computadora->nro_doc = $nro_doc;
         $computadora->nombre = $datosPersona->nombre;
         $computadora->apellido = $datosPersona->apellido;
-        $computadora->estadoExamen = '<label class="btn btn-default btn-xs ">NO ASIGNADO</label>';
+        $computadora->estadoExamen = '<span class="label label-default">NO ASIGNADO';
         if($examen->fecha_inicio){
-          $computadora->estadoExamen = '<label class="btn btn-warning btn-xs ">EN PROCESO</label>';
+          $computadora->estadoExamen = '<span class="label label-warning">EN PROCESO';
           if($examen->fecha_fin)
             if($examen->aprobado)
-              $computadora->estadoExamen = '<label class="btn btn-success btn-xs ">APROBADO <span class="badge">'.round($examen->porcentaje).'%</span></label>';
+              $computadora->estadoExamen = '<span class="label label-success">APROBADO';
             else
-              $computadora->estadoExamen = '<label class="btn btn-danger btn-xs ">REPROBADO <span class="badge">'.round($examen->porcentaje).'%</span></label>';
+              $computadora->estadoExamen = '<span class="label label-danger">REPROBADO';
         }
 	endif;
         }

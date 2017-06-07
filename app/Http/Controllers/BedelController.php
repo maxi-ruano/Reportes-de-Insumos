@@ -39,7 +39,7 @@ class BedelController extends Controller
           $categorias = $this->api_get(config('global.API_SERVIDOR'),array('function' => 'get','tipo_doc' => (int)$request->tipo_doc, 'nro_doc' => $request->doc, 'sexo' => strtolower($request->sexo), 'pais' => $request->pais));
           if ($categorias[0] != false) {
             $TeoricoPcController = new TeoricoPcController;
-            $computadoras = $TeoricoPcController->listarDisponibles($request->session()->get('usuario_sucursal_id'));
+            $computadoras = $TeoricoPcController->listarDisponibles($peticion[1]->sucursal);
             $datos = $this->getDatosPersonales($peticion[1]->tramite_id);
 
           }
@@ -66,7 +66,7 @@ class BedelController extends Controller
         ->where('sexo', $sexo)
         ->where('pais', $pais)
         ->where('estado', 8)
-        ->orderBy('tramite_id', 'asc')
+        ->orderBy('tramite_id', 'desc')
         ->first();
 
         if (count($posibles) > 0) {
@@ -223,8 +223,12 @@ class BedelController extends Controller
             * Funcion verificarFecha - Verfica que la persona no presento esa categorias 5 dias antes
             *
             */
-            public function verificarFecha($tramite_id, $clase){
-              $examen = EtlExamen::where('tramite_id', $tramite_id)
+    public function verificarFecha($tramite_id, $clase){
+	return true;
+	    if($tramite_id == '6059244' OR $tramite_id == '6059357'){
+		    return true;
+		}
+	    $examen = EtlExamen::where('tramite_id', $tramite_id)
               ->where('clase_name', $clase)
               ->whereNull('anulado')
               ->OrderBy('etl_examen_id', 'desc')

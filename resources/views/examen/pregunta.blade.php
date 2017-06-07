@@ -150,7 +150,7 @@
         if (distance < 0) {
             clearInterval(x);
             $('#regresion').html("EXPIRED");
-            $('.examen_input').attr('value', examen);
+            $('.examen_input').attr('value', examen);	
             document.getElementById("finalizar_examen").submit();
           }
     }, 1000);
@@ -206,7 +206,7 @@
            window.onload = disableBack();
            window.onpageshow = function(evt) { if (evt.persisted) disableBack() }
        });
-
+       
        document.oncontextmenu = function(){return false;}
 
   </script>

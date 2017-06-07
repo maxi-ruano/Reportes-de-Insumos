@@ -85,7 +85,7 @@ setInterval(function () {//URL_EXAMEN_TEORICO
 var url_reload =  '{{ config('app.url') }}'+'{{ config('global.URL_VERIFICACION_ASIGNACION') }}';
   setInterval(function () {
     verificarAsignacion();
-  }, 10000
+  }, 15000
   );
   document.oncontextmenu = function(){return false;}
 </script>
