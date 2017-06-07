@@ -142,8 +142,7 @@ class TeoricoPcController extends Controller
 
     public function listarDisponibles($suc_id){
 	    $response = array();
-	    $suc_id = 1;
-      $teoricopc = TeoricoPc::where('sucursal_id', $suc_id)
+	    $teoricopc = TeoricoPc::where('sucursal_id', $suc_id)
 	      ->where('activo', false)
 	      //->orderBy('name', 'desc')
       ->get();

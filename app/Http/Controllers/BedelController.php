@@ -39,7 +39,7 @@ class BedelController extends Controller
           $categorias = $this->api_get(config('global.API_SERVIDOR'),array('function' => 'get','tipo_doc' => (int)$request->tipo_doc, 'nro_doc' => $request->doc, 'sexo' => strtolower($request->sexo), 'pais' => $request->pais));
           if ($categorias[0] != false) {
             $TeoricoPcController = new TeoricoPcController;
-            $computadoras = $TeoricoPcController->listarDisponibles($peticion[1]->sucursal);
+            $computadoras = $TeoricoPcController->listarDisponibles($request->session()->get('usuario_sucursal_id'));
             $datos = $this->getDatosPersonales($peticion[1]->tramite_id);
 
           }
