@@ -98,7 +98,7 @@
                           </div>
                         </div>
                         </div>
-                        {!! Form::open(['route' => 'asignarExamen', 'id'=>'formCategory', 'method' => 'GET', 'class' => 'form-horizontal', 'role' => 'form', 'files' => true ]) !!}
+                        {!! Form::open(['route' => 'asignarExamen', 'id'=>'formAsignar', 'method' => 'GET', 'class' => 'form-horizontal', 'role' => 'form', 'files' => true ]) !!}
 
                         <div class="form-group">
                           <div class="row">
@@ -189,8 +189,9 @@
         placeholder: "Sexo"
       });
     });
-
-
+    $('#formAsignar').submit(function() {
+      $(this).find("button[type='submit']").prop('disabled',true);
+    });
 
     </script>
     <script src="{{ asset('vendors/select2/dist/js/select2.full.min.js')}}"></script>
