@@ -60,8 +60,7 @@
     var examen = '{!! $examen !!}';
     var pregunta;
     var idSiguiente = 0;
-
-
+    var cantidadPreguntas = '{{ config('global.CANTIDAD_PREGUNTAS') }}';
     function cargarPregunta(){
       $('.textoPregunta').html(preguntas[idSiguiente]['pregunta']);
       if(preguntas[idSiguiente]['imagen']){
@@ -95,17 +94,8 @@
       $('.progress-preguntas').css('width', ((100/preguntas.length)*idSiguiente)+'%');
       $('.numerador-preguntas').text('Pregunta '+idSiguiente + ' de ' + preguntas.length)
 
-      //actualizarBoton();
     }
 
-    function actualizarBoton(){
-      if(idSiguiente == 30){
-        $('#botonFinalizar').attr('type','submit');
-        $('.examen_input').attr('value', examen);
-        $('.div-boton-siguiente').empty();
-
-      }
-    }
     function bloquearBoton(){
       $('#botonPregunta').attr('disabled','disabled');
       $('.botonRespuesta').attr('disabled','disabled');
@@ -176,10 +166,11 @@
                 if(msg.res == 'success'){
                   $('#botonPregunta').prop('disabled',false);
                   $('.botonRespuesta').attr('disabled','disabled');
-                  if(idSiguiente != 30){
+                  if(idSiguiente != cantidadPreguntas){
                     cargarPregunta();
+                    if(cantidadPreguntas == idSiguiente)
+                      $('#botonPregunta').text('Finalizar Examen');
                   }else{
-                    $('.botonPregunta').attr('value', 'Finalizar Examen');
                     $('.examen_input').attr('value', examen);
                     document.getElementById("finalizar_examen").submit();
                   }

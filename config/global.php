@@ -12,6 +12,7 @@ return [
     'LETRAS' => env('LETRAS', 'ABCDEFGHYJKLMNÑOPQRSTUVWXYZ'),
     'NUMEROS' => env('NUMEROS', array('cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve')),
     'DIAS_PARA_EXAMEN' => env('DIAS_PARA_EXAMEN', '5'),
+    'CANTIDAD_PREGUNTAS' => env('CANTIDAD_PREGUNTAS', '30'),
     'DIAS_VALIDEZ_TRAMITE' => env('DIAS_VALIDEZ_TRAMITE', '90'),
     //ajax
     'GUARDAR_RESPUESTA_EXAMEN' => env('GUARDAR_RESPUESTA_EXAMEN', '/teorico/public/guardar_respuesta'),
