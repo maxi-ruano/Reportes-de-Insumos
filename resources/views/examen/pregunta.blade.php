@@ -96,10 +96,6 @@
 
     }
 
-    function bloquearBoton(){
-      $('#botonPregunta').attr('disabled','disabled');
-      $('.botonRespuesta').attr('disabled','disabled');
-    }
     function enviarRespuestas(){
         $('.preguntaDiv').text('se envio');
     }
@@ -147,7 +143,6 @@
     cargarPregunta();
     //GUARDAR RESPUESTAS AJAX
       $('#botonPregunta').on('click', function (e) {
-        console.log('{{ config('app.url') }}'+'{{ config('global.GUARDAR_RESPUESTA_EXAMEN') }}');
         if(validaciones()){
           e.preventDefault();
           var examen_id = examen;
@@ -164,9 +159,9 @@
               },
               success: function( msg ) {
                 if(msg.res == 'success'){
-                  $('#botonPregunta').prop('disabled',false);
-                  $('.botonRespuesta').attr('disabled','disabled');
                   if(idSiguiente != cantidadPreguntas){
+                    $('#botonPregunta').prop('disabled',false);
+                    $('.botonRespuesta').attr('disabled','disabled');
                     cargarPregunta();
                     if(cantidadPreguntas == idSiguiente)
                       $('#botonPregunta').text('Finalizar Examen');

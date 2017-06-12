@@ -1,6 +1,5 @@
 
 function verificarAsignacion(){
-  console.log('verificarAsignacion(')
   $.ajax({
       type: "GET",
       url: url_reload,
@@ -19,7 +18,6 @@ function verificarAsignacion(){
 }
 
 function verificaReload(msg){
-  console.log(msg.res)
   if(msg.length != 0)
     if(msg.res == 'true')
       location.href = url_reload_examen;
