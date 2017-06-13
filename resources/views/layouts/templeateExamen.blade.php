@@ -108,7 +108,7 @@
     <script src="{{ asset('vendors/fastclick/lib/fastclick.js')}}"></script>
     <!-- NProgress -->
     <script src="{{ asset('vendors/nprogress/nprogress.js')}}"></script>
-
+    <script src="{{ asset('build/js/base64.js')}}"></script>
     @yield('scripts')
 
     <!-- Custom Theme Scripts

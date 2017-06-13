@@ -62,7 +62,7 @@
     var idSiguiente = 0;
     var cantidadPreguntas = '{{ config('global.CANTIDAD_PREGUNTAS') }}';
     function cargarPregunta(){
-      $('.textoPregunta').html(preguntas[idSiguiente]['pregunta']);
+      $('.textoPregunta').html(Base64.decode(preguntas[idSiguiente]['pregunta']));
       if(preguntas[idSiguiente]['imagen']){
         $(".div-pregunta").removeClass('col-sm-12').addClass('col-sm-8');
         $(".div-pregunta-img").html('<div class="thumbnail text-center"><img src="" alt="..." class="img-pregunta img-responsive" data-toggle="modal" data-target="#myModal" style = "height: 21.5%;width: auto;">'+'<div class="profile_info">hacer click para agrandar la foto</div></div>')
@@ -85,7 +85,7 @@
         $('.option-respuestas').append(
           '<label class="botonRespuesta btn btn-primary btn-responsive" style="white-space: normal;">'+
             '<input type="radio" class="form-check-input" name="optionsRadios" value="'+respuestas[i]['id']+'">'+
-            '<h3 align="left">'+'{{ config('global.LETRAS') }}'.charAt(i)+'. '+respuestas[i]['respuesta']+'</h3>'+
+            '<h3 align="left">'+'{{ config('global.LETRAS') }}'.charAt(i)+'. '+Base64.decode(respuestas[i]['respuesta'])+'</h3>'+
           '</label><br>'
         );
       }
@@ -212,12 +212,12 @@
   </script>
   @foreach($pregunta->respuestas as $respuesta)
     <script>
-      respuestas.push({respuesta:'{!! $respuesta->EtlRespuesta->texto !!}',
+      respuestas.push({respuesta:'{!! base64_encode($respuesta->EtlRespuesta->texto) !!}',
                        id:'{!! $respuesta->EtlRespuesta->etl_respuesta_id !!}'});
     </script>
   @endforeach
     <script>
-      var pregunta = {pregunta:'{!! $pregunta->etlPregunta->texto !!}',
+      var pregunta = {pregunta:'{!! base64_encode($pregunta->etlPregunta->texto) !!}',
                       id:'{!! $pregunta->etlPregunta->etl_pregunta_id !!}',
                       imagen:'{!! $pregunta->etlPregunta->imagen !!}',
                       respuestas:respuestas};
