@@ -14,9 +14,9 @@
 <script type="text/javascript">
 var url =  '{{ config('app.url') }}'+'{{ config('global.URL_COMPUTADORAS_MONITOR') }}';
 var imagenDefault = '{{ config('app.url') }}'+'{{ config('global.IMAGE_USER_DEFAULT') }}';
-actualizarMonitor();
-
-setInterval(Function("actualizarMonitor();"), 15000);
+var sucursal_id = "{{ session('usuario_sucursal_id') }}";
+actualizarMonitor(sucursal_id);
+setInterval(Function("actualizarMonitor("+sucursal_id+");"), 15000);
 </script>
 
 @endsection

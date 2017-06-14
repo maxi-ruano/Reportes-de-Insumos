@@ -1,11 +1,9 @@
 
-function actualizarMonitor(){
-
-  console.log( 'Y' );
+function actualizarMonitor(sucursal_id){
   $.ajax({
       type: "GET",
       url: url,
-      //data: {examen_id: examen_id, respuesta_id: respuesta_id, pregunta_id: pregunta_id},
+      data: {sucursal_id: sucursal_id},
       //async:false,
       beforeSend: function(){
 
@@ -24,13 +22,11 @@ function actualizarMonitor(){
 function renderMonitorComputadoras(msg){
   $('.computadoras').empty();
   for(var i = 0; i < msg['computadoras'].length; i++){
-    console.log('for '+i)
     $('.computadoras').append(gethtmlComputadora(msg['computadoras'][i]))
   }
 }
 
 function gethtmlComputadora(computadora){
-  console.log(computadora)
   var estadoComputadora = '';
   if(computadora.activo)
     estadoComputadora = 'fondo-pc-ocupado';

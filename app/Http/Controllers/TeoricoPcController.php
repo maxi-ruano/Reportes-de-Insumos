@@ -154,8 +154,8 @@ class TeoricoPcController extends Controller
 
     }
 
-    public function computadorasMonitor(){
-      $computadoras = TeoricoPc::orderBy('id','asc')->get();
+    public function computadorasMonitor(Request $request){
+      $computadoras = TeoricoPc::where('sucursal_id', $request->sucursal_id)->orderBy('id','asc')->get();
       foreach ($computadoras as $key => $computadora) {
       $examen = EtlExamen::find($computadora->examen_id);
   	if($examen != null):
