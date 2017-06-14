@@ -4,18 +4,12 @@
   <div class="row">
       <div class="col-sm-8 div-pregunta" >
         <textarea class="form-control textoPregunta" rows="5" style=" resize: none; border: none; font-size: 25px; white-space: normal; background-color: #fff;" disabled></textarea>
-
       </div>
       <div class="col-sm-4 div-pregunta-img">
-
-
         <!--<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">Popup image</button>-->
-
-
       </div>
       <div id="myModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog">
-
           <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
@@ -29,9 +23,8 @@
         </div>
       </div>
   </div>
-
-
 @endsection
+
 @section('persona')
   <h4>{!! $nombre !!}</h4>
   <img src="{!! $fotografia !!}" onerror="this.src='{{ asset('production/images/user.png')}}'" alt="..." class=" img-thumbnail img-responsive img-persona" style = "height: 70%;width: auto;">
@@ -41,18 +34,14 @@
   <fieldset class="form-group">
     <legend>Selecciones su respuesta:</legend>
     <div class="row">
-
-    <div class="col-sm-12 option-respuestas btn-group-vertical" data-toggle="buttons">
-
+      <div class="col-sm-12 option-respuestas btn-group-vertical" data-toggle="buttons">
     </div>
-
   </div >
   </fieldset>
 @endsection
 
 <script>
   var preguntas = new Array();
-
 </script>
 
 @section('scripts')
@@ -67,12 +56,10 @@
         $(".div-pregunta").removeClass('col-sm-12').addClass('col-sm-8');
         $(".div-pregunta-img").html('<div class="thumbnail text-center"><img src="" alt="..." class="img-pregunta img-responsive" data-toggle="modal" data-target="#myModal" style = "height: 21.5%;width: auto;">'+'<div class="profile_info">hacer click para agrandar la foto</div></div>')
         $(".img-pregunta").attr('src', '{{ config('global.IMAGENES_PREGUNTAS') }}' + preguntas[idSiguiente]['imagen']);
-
       }else{
         $(".div-pregunta-img").empty();
         $(".div-pregunta").removeClass('col-sm-8').addClass('col-sm-12');
       }
-
 
       $('').html('<h2>'+preguntas[idSiguiente]['imagen']+'</h2>');
       pregunta = preguntas[idSiguiente]['id'];
@@ -81,7 +68,6 @@
       $('.option-respuestas').empty();
 
       for (var i = 0; i < respuestas.length; i++) {
-
         $('.option-respuestas').append(
           '<label class="botonRespuesta btn btn-primary btn-responsive" style="white-space: normal;">'+
             '<input type="radio" class="form-check-input" name="optionsRadios" value="'+respuestas[i]['id']+'">'+
@@ -110,21 +96,13 @@
 
       return res;
     }
-    // Set the date we're counting down to
     var minutos = new Date();
     var timeout = 45;
     minutos.setMinutes(minutos.getMinutes() + timeout);
-
     var countDownDate = minutos.getTime();
-
-    // Update the count down every 1 second
     var x = setInterval(function() {
-
-        // Get todays date and time
         var now = new Date().getTime();
-
         var distance = countDownDate - now;
-
         var days = Math.floor(distance / (1000 * 60 * 60 * 24));
         var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
@@ -141,6 +119,7 @@
           }
     }, 1000);
     cargarPregunta();
+
     //GUARDAR RESPUESTAS AJAX
       $('#botonPregunta').on('click', function (e) {
         if(validaciones()){
@@ -171,7 +150,6 @@
                   }
                 }
               },
-
               error: function(xhr, status, error) {
                 var err = eval("(" + xhr.responseText + ")");
               }
@@ -191,21 +169,17 @@
       $(window).on("resize", function () {
         $('.modal:visible').each(centerModal);
       });
-
+      //SE DESHABILITA EL LA LLAMADA ATRAS Y EL CLICK DERECHO
       $(document).ready(function() {
            function disableBack() { window.history.forward() }
-
            window.onload = disableBack();
            window.onpageshow = function(evt) { if (evt.persisted) disableBack() }
        });
-
        document.oncontextmenu = function(){return false;}
-
   </script>
 @endsection
-<script>
 
-</script>
+//Se pasan las respuestas y preguntas a javascript
 @foreach($preguntas as $pregunta)
   <script>
     var respuestas = new Array();
