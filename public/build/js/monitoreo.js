@@ -38,7 +38,7 @@ function gethtmlComputadora(computadora){
           '</div>'+
           '<div class="col-md-6" style="color: #333; height: 40%; padding: 1px;">'+
             '<ul class=" pcs-monitor list-unstyled">'+
-              '<li><b>PC: '+computadora.id+'</b></li>'+
+              '<li><b>PC: '+computadora.name+'</b></li>'+
               '<li>Doc: '+computadora.nro_doc+'</li>'+
               '<li>'+computadora.nombre+'</li>'+
               '<li>'+computadora.apellido+'</li>'+
