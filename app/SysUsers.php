@@ -22,4 +22,19 @@ class SysUsers extends Authenticatable
   public function setPasswordAttribute($password){
     $this->attributes['password'] = md5($password);
   }
+
+  public function getRememberToken()
+  {
+    return $this->api_token;
+  }
+
+  public function setRememberToken($value)
+  {
+    $this->api_token = $value;
+  }
+
+  public function getRememberTokenName()
+  {
+    return 'api_token';
+  }
 }
