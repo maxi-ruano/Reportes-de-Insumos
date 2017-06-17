@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use App\SysUsers;
+use App\SysUserRole;
 use Auth;
 class LoginController extends Controller
 {
@@ -58,8 +59,13 @@ class LoginController extends Controller
                    ->where('password',md5($request->password))
                    ->first();
 
-      if(!empty($user)){
-        Auth::login($user, true);
+      if(isset($user)){
+        $role = SysUserRole::where('user_id', $user->id)
+                           ->whereIn('role_id', [7, 9])->first(); //Usuarios Bedel y Admin
+        if(isset($role)){
+          Auth::login($user, true);
+          $request->session()->put('usuario_sucursal_id', $user->sucursal);
+        }
         return redirect('/admin/bedel');
       }else{
         return $this->sendFailedLoginResponse($request);
