@@ -137,7 +137,7 @@ class EtlExamenController extends Controller
       $examen = EtlExamen::find($request->examen_id);
       $examen->aprobado = $porcentaje >= $porcentajeAprovacion->valor;
       $examen->porcentaje = $porcentaje;
-      $examen->ip = $request->ip;
+      $examen->ip = $request->ip();
       $examen->fecha_fin = DB::raw('current_timestamp');
       $examen->save();
 
