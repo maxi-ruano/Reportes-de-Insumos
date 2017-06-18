@@ -61,7 +61,7 @@ class LoginController extends Controller
 
       if(isset($user)){
         $role = SysUserRole::where('user_id', $user->id)
-                           ->whereIn('role_id', [7, 9])->first(); //Usuarios Bedel y Admin
+                           ->whereIn('role_id', [7, 9, 40])->first(); //Usuarios Bedel y Admin
         if(isset($role)){
           Auth::login($user, true);
           $request->session()->put('usuario_sucursal_id', $user->sucursal);
