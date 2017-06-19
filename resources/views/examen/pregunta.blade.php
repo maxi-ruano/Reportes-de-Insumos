@@ -48,7 +48,7 @@
   <script type="text/javascript">
     var examen = '{!! $examen !!}';
     var pregunta;
-    var idSiguiente = 0;
+    var idSiguiente = 0; var errorConexion = 0;
     var cantidadPreguntas = '{{ config('global.CANTIDAD_PREGUNTAS') }}';
     function cargarPregunta(){
       $('.textoPregunta').html(Base64.decode(preguntas[idSiguiente]['pregunta']));
@@ -96,28 +96,13 @@
 
       return res;
     }
-    var minutos = new Date();
-    var timeout = 45;
-    minutos.setMinutes(minutos.getMinutes() + timeout);
-    var countDownDate = minutos.getTime();
-    var x = setInterval(function() {
-        var now = new Date().getTime();
-        var distance = countDownDate - now;
-        var days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        var seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-        $('#regresion').html('<h3>'+hours + "h " + minutes + "m " + seconds + "s "+'</h3>');
-        $('.progress-tiempo').css('width', ((1-(minutes/timeout))*100 )+'%');
-
-        if (distance < 0) {
-            clearInterval(x);
-            $('#regresion').html("EXPIRED");
-            $('.examen_input').attr('value', examen);
-            document.getElementById("finalizar_examen").submit();
-          }
-    }, 1000);
+    function finalizarExamenLimiteSuperado(){
+      // se envia examen cuado se acaba el tiempo
+      $('.examen_input').attr('value', examen);
+      document.getElementById("finalizar_examen").submit();
+      // end se envia examen cuado se acaba el tiempo
+    }
     cargarPregunta();
 
     //GUARDAR RESPUESTAS AJAX
@@ -150,8 +135,15 @@
                 document.getElementById("finalizar_examen").submit();
               }
             }
+            if(errorConexion){
+              Example2.Timer.toggle();
+              errorConexion = 0;
+            }
+
           },
           error: function(xhr, status, error) {
+            errorConexion = 1;
+            Example2.resetCountdown();
             if (status == 'timeout' || xhr.readyState == 0) {
               setTimeout(function()
               {

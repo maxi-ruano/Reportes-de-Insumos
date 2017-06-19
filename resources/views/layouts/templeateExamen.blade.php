@@ -16,7 +16,6 @@
 
     <!-- Custom Theme Style -->
     <!-- Custom Theme Style -->
-    <script src="{{ asset('build/js/countdown.js')}}"></script>
     <link href="{{ asset('build/css/examen.css')}}" rel="stylesheet">
   </head>
 
@@ -76,7 +75,7 @@
                   </div>
                 </div>
                 <div id="regresion" class="text-center">
-
+                    <h2 id="countdown">45:00:00</h2>
                 </div>
               </div>
             </div>
@@ -110,6 +109,8 @@
     <script src="{{ asset('vendors/nprogress/nprogress.js')}}"></script>
     <script src="{{ asset('build/js/base64.js')}}"></script>
     <script src="{{ asset('build/js/notify.min.js') }}"></script>
+    <script src="{{ asset('build/js/jquery.timer.js') }}"></script>
+    <script src="{{ asset('build/js/examen.js') }}"></script>
     <script>
         $.notify.addStyle('reconectando', {
           html: "<div><h3><span class='glyphicon glyphicon-info-sign' aria-hidden='true'></span>  <span data-notify-text/></h3></div>",
