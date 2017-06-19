@@ -23,7 +23,7 @@
   <body>
 
 
-    <div class="container-fluid contenedor-full">
+    <div class="container-fluid contenedor-full happyblue">
       <div class="row content">
         <div class="col-sm-9 sidenav">
 
@@ -109,6 +109,27 @@
     <!-- NProgress -->
     <script src="{{ asset('vendors/nprogress/nprogress.js')}}"></script>
     <script src="{{ asset('build/js/base64.js')}}"></script>
+    <script src="{{ asset('build/js/notify.min.js') }}"></script>
+    <script>
+        $.notify.addStyle('reconectando', {
+          html: "<div><h3><span class='glyphicon glyphicon-info-sign' aria-hidden='true'></span>  <span data-notify-text/></h3></div>",
+          classes: {
+            base: {
+              "white-space": "nowrap",
+              "background-color": "lightblue",
+              "padding": "5px",
+              "border-radius": "5px",
+              "border-style": "solid",
+              "border-color": "#337ab7"
+            },
+            superblue: {
+              "color": "white",
+              "background-color": "blue"
+            }
+          }
+        });
+    </script>
+
     @yield('scripts')
 
     <!-- Custom Theme Scripts
