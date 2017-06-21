@@ -19,6 +19,8 @@
         @endif
                 <p>ip</p>
                 <input type="text" name="ip" value="{{ isset($teoricopc) ? $teoricopc->ip : null }}">
+                <p>nombre</p>
+                <input type="text" name="name" value="{{ isset($teoricopc) ? $teoricopc->name : null }}">
                 <p>sucursal_id</p>
                 <input type="text" name="sucursal_id" value="{{ isset($teoricopc) ? $teoricopc->sucursal_id : null }}">
                 <p>estado</p>
