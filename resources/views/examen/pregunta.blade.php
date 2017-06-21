@@ -145,9 +145,9 @@
             errorConexion = 1;
             Example2.resetCountdown();
             if (status == 'timeout' || xhr.readyState == 0) {
+              $.notify('Intentando reconectar con el servidor ...', {style: 'reconectando'});
               setTimeout(function()
               {
-                $.notify('Intentando reconectar con el servidor ...', {style: 'reconectando'});
                 enviarRespuesta();
               }, 10000);
                var err = eval("(" + xhr.responseText + ")");
