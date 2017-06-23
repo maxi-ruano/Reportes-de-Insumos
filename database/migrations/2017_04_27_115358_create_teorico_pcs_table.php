@@ -18,8 +18,9 @@ class CreateTeoricoPcsTable extends Migration
             $table->bigInteger('ip')->unsigned();
             $table->integer('sucursal_id')->unsigned();
             $table->integer('estado')->unsigned();
-            $table->boolean('activo');
-            $table->bigInteger('examen_id');
+            $table->boolean('activo')->default(true);
+            $table->bigInteger('examen_id')->default(0);
+            $table->string('name');
             $table->timestamps();
         });
     }
