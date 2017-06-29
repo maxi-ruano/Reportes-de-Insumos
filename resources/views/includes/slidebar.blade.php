@@ -9,11 +9,16 @@
           <li><a href="">Teorico</a></li>
         </ul>
       </li>
+      <li><a><i class="fa fa-file"></i> Disposiciones <span class="fa fa-chevron-down"></span></a>
+        <ul class="nav child_menu">
+          <li><a href="{{ route('disposiciones.index') }}">Lista Disposiciones</a></li>
+          <li><a href="{{ route('disposiciones.create') }}">Nueva Disposicion</a></li>
+        </ul>
+      </li>
     </ul>
   </div>
 
   </div>
-
 <!-- /menu footer buttons -->
 <div class="sidebar-footer hidden-small">
   <a data-toggle="tooltip" data-placement="top" title="Settings">

@@ -10,7 +10,7 @@ class SysUsers extends Authenticatable
 
   protected $table = 'sys_users';
   protected $remember_token = 'api_token';
-
+  protected $primaryKey = 'id';
   protected $fillable = [
       'username', 'password',
   ];
@@ -36,5 +36,10 @@ class SysUsers extends Authenticatable
   public function getRememberTokenName()
   {
     return 'api_token';
+  }
+
+  public function SysUserRol()
+  {
+    return $this->hasMany('App\SysUserRol', 'user_id', 'id');
   }
 }
