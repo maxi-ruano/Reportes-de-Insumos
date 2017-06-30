@@ -19,19 +19,3 @@
       <input id="send" type="submit" class="btn btn-success" value="Buscar">
     </div>
 {{ Form::close() }}
-@if(isset($datosPersonales) && !empty($datosPersonales))
-<div class="col-md-4 col-sm-4 col-xs-12 profile_details">
-  <div class="well profile_view">
-    <div class="col-sm-12">
-      <h4 class="brief"><i>Datos Contribuyente</i></h4>
-      <div class="left col-xs-7">
-        <h2>{{ $datosPersonales->nombre.' '.$datosPersonales->apellido }}</h2>
-        <p><strong>DOC: </strong> {{ $datosPersonales->nro_doc  }}</p>
-      </div>
-    </div>
-    <div class="col-xs-12 bottom text-center">
-
-    </div>
-  </div>
-</div>
-@endif

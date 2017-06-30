@@ -4,16 +4,15 @@
   <div class="menu_section">
     <h3>Clientes</h3>
     <ul class="nav side-menu">
-      <li><a><i class="fa fa-users"></i> Bedel <span class="fa fa-chevron-down"></span></a>
-        <ul class="nav child_menu">
-          <li><a href="">Teorico</a></li>
-        </ul>
+      <li><a href="{{ route('bedel.index') }}">
+        <i class="fa fa-users"></i> Bedel
+        <span class="fa fa-chevron-down"></span></a>
       </li>
-      <li><a><i class="fa fa-file"></i> Disposiciones <span class="fa fa-chevron-down"></span></a>
-        <ul class="nav child_menu">
-          <li><a href="{{ route('disposiciones.index') }}">Lista Disposiciones</a></li>
-          <li><a href="{{ route('disposiciones.create') }}">Nueva Disposicion</a></li>
-        </ul>
+      <li>
+        <a href="{{ route('disposiciones.index') }}">
+          <i class="fa fa-file"></i> Disposiciones
+          <span class="fa fa-chevron-down"></span>
+        </a>
       </li>
     </ul>
   </div>

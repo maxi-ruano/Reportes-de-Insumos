@@ -67,8 +67,9 @@ class DisposicionesController extends Controller
     public function store(Request $request)
     {
         $etlTramite = EtlTramite::find($request->tramite_id)->orderBy('tramite_id', 'desc')->first();
-        $nuevaFecha = strtotime ( '-30 day' , strtotime ( $etlTramite->fecha_desde ) );
+        $nuevaFecha = strtotime ( '-'.config('global.DIAS_RETROCESO_DISPOSICION').' day' , strtotime ( $etlTramite->fecha_desde ) );
         $etlTramite->fecha_desde =  date ( 'Y-m-j H:m:s' , $nuevaFecha );
+        $etlTramite->save();
         $disposicion = new Disposiciones($request->all());
         $disposicion->save();
         //Flash::info('El Departamento se ha creado correctamente');
