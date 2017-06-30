@@ -12,6 +12,7 @@ use App\TeoricoPc;
 use App\Http\Controllers\Carbon\Carbon;
 use Cache;
 use App\Http\Controllers\BedelController;
+use App\Http\Controllers\DisposicionesController;
 
 class EtlExamenController extends Controller
 {
@@ -167,6 +168,8 @@ class EtlExamenController extends Controller
       $date = strtotime($examen->tramite->fec_emision);
       $examen->fec_emision_modificada = date('d-M-Y', $date);
       $examen->fec_vencimiento_modificada = date('d-M-Y', strtotime($examen->tramite->fec_emision. ' + '.config('global.DIAS_VALIDEZ_TRAMITE').' days'));
+      $DisposicionesController = new DisposicionesController();
+      $DisposicionesController->modificarFechaParaDisposicion($examen->tramite_id, '+');
       return View('layouts.block')->with('examen', $examen);
     }
 

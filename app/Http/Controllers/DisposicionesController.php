@@ -66,10 +66,7 @@ class DisposicionesController extends Controller
      */
     public function store(Request $request)
     {
-        $etlTramite = EtlTramite::find($request->tramite_id)->orderBy('tramite_id', 'desc')->first();
-        $nuevaFecha = strtotime ( '-'.config('global.DIAS_RETROCESO_DISPOSICION').' day' , strtotime ( $etlTramite->fecha_desde ) );
-        $etlTramite->fecha_desde =  date ( 'Y-m-j H:m:s' , $nuevaFecha );
-        $etlTramite->save();
+        $this->modificarFechaParaDisposicion($request->tramite_id, '-');
         $disposicion = new Disposiciones($request->all());
         $disposicion->save();
         //Flash::info('El Departamento se ha creado correctamente');
@@ -120,5 +117,18 @@ class DisposicionesController extends Controller
     public function destroy(Disposiciones $disposiciones)
     {
         //
+    }
+
+    public function modificarFechaParaDisposicion($tramite_id, $accion)
+    {
+      if($accion == '+')
+          $disposicion = Disposiciones::where('tramite_id', $tramite_id);
+
+      if( isset($disposicion) || $accion == '-' ){
+        $etlTramite = EtlTramite::find($tramite_id)->orderBy('tramite_id', 'desc')->first();
+        $nuevaFecha = strtotime ( $accion.config('global.DIAS_RETROCESO_DISPOSICION').' day' , strtotime ( $etlTramite->fecha_desde ) );
+        $etlTramite->fecha_desde =  date ( 'Y-m-j H:m:s' , $nuevaFecha );
+        $etlTramite->save();
+      }
     }
 }

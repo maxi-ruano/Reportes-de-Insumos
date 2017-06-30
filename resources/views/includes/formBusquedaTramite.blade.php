@@ -1,4 +1,4 @@
-{{ Form::open(['route' => 'disposiciones.create', 'method' => 'GET', 'role' => 'form', 'files' => false, 'class' => 'form-horizontal form-label-left input_mask']) }}
+{{ Form::open(['route' => 'disposiciones.create', 'method' => 'GET', 'role' => 'form', 'files' => false, 'class' => 'form-horizontal  input_mask']) }}
     <div class="item form-group">
       <div class="col-md-2 col-sm-2">
         {!! Form::select('pais', $paises, 1, ['data-type'=>'text', 'class'=>'select2_single form-control', 'tabindex'=>'-1', 'data-placeholder'=>'Seleccionar Pais', 'required']) !!}
