@@ -4,16 +4,20 @@
   <div class="menu_section">
     <h3>Clientes</h3>
     <ul class="nav side-menu">
+      @if(session('usuario_rol_id') == '40' || session('usuario_rol') == 'ROL_ESCUELA' || session('usuario_rol') == 'ROL_ADMIN')
       <li><a href="{{ route('bedel.index') }}">
         <i class="fa fa-users"></i> Bedel
         <span class="fa fa-chevron-down"></span></a>
       </li>
+      @endif
+      @if( session('usuario_rol') == 'ROL_ADMIN' || session('usuario_rol') == 'ROL_DISPOSICIONES')
       <li>
         <a href="{{ route('disposiciones.index') }}">
           <i class="fa fa-file"></i> Disposiciones
           <span class="fa fa-chevron-down"></span>
         </a>
       </li>
+      @endif
     </ul>
   </div>
 

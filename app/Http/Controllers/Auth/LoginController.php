@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use App\SysUsers;
+use App\SysRoles;
 use App\SysUserRole;
 use Auth;
 class LoginController extends Controller
@@ -60,16 +61,20 @@ class LoginController extends Controller
                    ->first();
 
       if(isset($user)){
-        $role = SysUserRole::where('user_id', $user->id)
-                           ->whereIn('role_id', [7, 9, 40])->first(); //Usuarios Bedel y Admin
-        $role = SysUserRole::where('user_id', $user->id)->first();
-        if(isset($role)){
+        $userRole = SysUserRole::where('user_id', $user->id)
+                           ->whereIn('role_id', [7, 9, 40, 76])->first(); //Usuarios Bedel y Admin
+        if(isset($userRole)){
           Auth::login($user, true);
           $request->session()->put('usuario_nombre', $user->first_name);
           $request->session()->put('usuario_id', $user->id);
-          $request->session()->put('usuario_rol', $role->role_id);
+          $request->session()->put('usuario_rol_id', $userRole->role_id);
+          $role = SysRoles::where('role_id', $userRole->role_id)->first();
+          $request->session()->put('usuario_rol', $role->cte_php);
           $request->session()->put('usuario_sucursal_id', $user->sucursal);
+          if($role->cte_php == 'ROL_DISPOSICIONES')
+            return redirect('/admin/disposiciones');
         }
+
         return redirect('/admin/bedel');
       }else{
         return $this->sendFailedLoginResponse($request);

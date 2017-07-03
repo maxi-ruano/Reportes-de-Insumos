@@ -19,10 +19,10 @@ class DisposicionesController extends Controller
      */
     public function index()
     {
-      if( session('usuario_rol') == 9 )
+      if( session('usuario_rol_id') == 9 )
         $disposiciones = Disposiciones::orderBy('id', 'desc')->get();
       else
-        $disposiciones = Disposiciones::where('sys_user_id_solicitante', session('usuario_id'))->orderBy('id', 'desc')->all();
+        $disposiciones = Disposiciones::where('sys_user_id_otorgante', session('usuario_id'))->orderBy('id', 'desc')->get();
       return View('disposiciones.index')->with('disposiciones', $disposiciones);
     }
 
@@ -66,8 +66,8 @@ class DisposicionesController extends Controller
      */
     public function store(Request $request)
     {
-        $this->modificarFechaParaDisposicion($request->tramite_id, '-');
         $disposicion = new Disposiciones($request->all());
+        $this->modificarFechaParaDisposicion($disposicion->tramite_id, '-');
         $disposicion->save();
         //Flash::info('El Departamento se ha creado correctamente');
         return redirect('/admin/disposiciones');
@@ -123,9 +123,9 @@ class DisposicionesController extends Controller
     {
       if($accion == '+')
           $disposicion = Disposiciones::where('tramite_id', $tramite_id);
-
+          //dd($tramite_id);
       if( isset($disposicion) || $accion == '-' ){
-        $etlTramite = EtlTramite::find($tramite_id)->orderBy('tramite_id', 'desc')->first();
+        $etlTramite = EtlTramite::where('tramite_id',$tramite_id)->orderBy('tramite_id', 'desc')->first();
         $nuevaFecha = strtotime ( $accion.config('global.DIAS_RETROCESO_DISPOSICION').' day' , strtotime ( $etlTramite->fecha_desde ) );
         $etlTramite->fecha_desde =  date ( 'Y-m-j H:m:s' , $nuevaFecha );
         $etlTramite->save();
