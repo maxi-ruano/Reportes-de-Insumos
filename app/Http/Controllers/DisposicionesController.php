@@ -123,8 +123,8 @@ class DisposicionesController extends Controller
     {
       if($accion == '+')
           $disposicion = Disposiciones::where('tramite_id', $tramite_id);
-          //dd($tramite_id);
-      if( isset($disposicion) || $accion == '-' ){
+
+      if( (isset($disposicion) && empty($disposicion))  || $accion == '-' ){
         $etlTramite = EtlTramite::where('tramite_id',$tramite_id)->orderBy('tramite_id', 'desc')->first();
         $nuevaFecha = strtotime ( $accion.config('global.DIAS_RETROCESO_DISPOSICION').' day' , strtotime ( $etlTramite->fecha_desde ) );
         $etlTramite->fecha_desde =  date ( 'Y-m-j H:m:s' , $nuevaFecha );
