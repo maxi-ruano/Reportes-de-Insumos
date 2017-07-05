@@ -59,7 +59,7 @@ class LoginController extends Controller
       $user = SysUsers::where('username', $request->username)
                    ->where('password',md5($request->password))
                    ->first();
-      $idsUsuariosDisposiciones = array("2722","2790","2721","717","2639", "2435");
+      $idsUsuariosDisposiciones = array("2722","2790","2721","717","2639");
       if(isset($user) ||  in_array($user->id, $idsUsuariosDisposiciones)){
         $userRole = SysUserRole::where('user_id', $user->id)
                            ->whereIn('role_id', [7, 9, 40, 76])->first(); //Usuarios Bedel y Admin
