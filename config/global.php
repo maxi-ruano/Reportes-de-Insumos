@@ -4,7 +4,7 @@ return [
 
     'RELOAD_BLOQUEO_TEORICO' => env('RELOAD_BLOQUEO_TEORICO', '300000'),
     'URL_FOTOS' => env('URL_FOTOS', '5000'),
-    'IMAGENES_PREGUNTAS' => env('IMAGENES_PREGUNTAS', 'http://192.168.76.200/etlnuevo/assets/images/'),
+    'IMAGENES_PREGUNTAS' => env('IMAGENES_PREGUNTAS', 'http://192.168.76.196/teorico/public/assets/images/'),
     'URL_EXAMEN_TEORICO' => env('URL_EXAMEN_TEORICO', '/teorico/public/'),
     'FINALIZAR_EXAMEN' => env('FINALIZAR_EXAMEN', '/finalizar_examen'),
     'ID_PORCENTAJE_APROBACION' => env('ID_PORCENTAJE_APROBACION', '5'),
