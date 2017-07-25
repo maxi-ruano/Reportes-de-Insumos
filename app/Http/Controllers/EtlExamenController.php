@@ -165,9 +165,9 @@ class EtlExamenController extends Controller
       $examen->cantidadOportunidadesExamen = config('global.CANT_MAX_EXAM_CAT') - $this->getCantidadExamenes($examen->tramite_id, $examen->clase_name);
       $examen->computadora_id = $teoricoPc->id;
       $examen->porcentajeAprovacion = $porcentajeAprovacion->valor;
-      $date = strtotime($examen->tramite->fec_emision);
-      $examen->fec_emision_modificada = date('d-M-Y', $date);
-      $examen->fec_vencimiento_modificada = date('d-M-Y', strtotime($examen->tramite->fec_emision. ' + '.config('global.DIAS_VALIDEZ_TRAMITE').' days'));
+      $date = strtotime($examen->tramite->fec_inicio);
+      $examen->fec_inicio_modificada = date('d-M-Y', $date);
+      $examen->fec_vencimiento_modificada = date('d-M-Y', strtotime($examen->tramite->fec_inicio. ' + '.config('global.DIAS_VALIDEZ_TRAMITE').' days'));
       $DisposicionesController = new DisposicionesController();
       $DisposicionesController->modificarFechaParaDisposicion($examen->tramite_id, '+');
       return View('layouts.block')->with('examen', $examen);
