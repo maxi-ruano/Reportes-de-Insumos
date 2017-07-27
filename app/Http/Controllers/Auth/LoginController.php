@@ -57,9 +57,10 @@ class LoginController extends Controller
       $this->validateLogin($request);
 
       $user = SysUsers::where('username', $request->username)
-                   ->where('password',md5($request->password))
+	           ->where('password',md5($request->password))
+	           ->whereNull('end_date')
                    ->first();
-      $idsUsuariosDisposiciones = array("2722","2790","2721","717","2639","2828");
+      $idsUsuariosDisposiciones = array("2722","2790","2721","2832","2639","2828");
       if(isset($user)){
         $userRole = SysUserRole::where('user_id', $user->id)
                            ->whereIn('role_id', [7, 9, 40, 76])->first(); //Usuarios Bedel y Admin
@@ -67,16 +68,17 @@ class LoginController extends Controller
           Auth::login($user, true);
           $request->session()->put('usuario_nombre', $user->first_name);
           $request->session()->put('usuario_id', $user->id);
-          $role = SysRoles::where('role_id', $userRole->role_id)->first();
+          
           if(in_array($user->id, $idsUsuariosDisposiciones)){
             $request->session()->put('usuario_rol_id', 76);
             $request->session()->put('usuario_rol', 'ROL_DISPOSICIONES');
-          }else{
+	  }else{
+	    $role = SysRoles::where('role_id', $userRole->role_id)->first();  
             $request->session()->put('usuario_rol_id', $userRole->role_id);
             $request->session()->put('usuario_rol', $role->cte_php);
           }
           $request->session()->put('usuario_sucursal_id', $user->sucursal);
-          if(($role->cte_php == 'ROL_DISPOSICIONES') || in_array($user->id, $idsUsuariosDisposiciones))
+          if((session('usuario_rol') == 'ROL_DISPOSICIONES') || in_array($user->id, $idsUsuariosDisposiciones))
             return redirect('/admin/disposiciones');
         }
 

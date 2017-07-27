@@ -4,7 +4,8 @@
   <div class="menu_section">
     <h3>Clientes</h3>
     <ul class="nav side-menu">
-      @if(session('usuario_rol_id') == '40' || session('usuario_rol') == 'ROL_ESCUELA' || session('usuario_rol') == 'ROL_ADMIN')
+      @if(session('usuario_rol_id') == '40' || session('usuario_rol') == 'ROL_ESCUELA' || session('usuario_rol') == 'ROL_ADMIN'
+	|| session('usuario_id') == '2722' || session('usuario_id') == '2790' || session('usuario_id') == '2721')
       <li><a href="{{ route('bedel.index') }}">
         <i class="fa fa-users"></i> Bedel
         <span class="fa fa-chevron-down"></span></a>

@@ -19,6 +19,8 @@ class DisposicionesController extends Controller
      */
     public function index()
     {
+      if(session('usuario_rol') != 'ROL_DISPOSICIONES')
+        return redirect('admin/bedel');
       if( session('usuario_rol_id') == 9 )
         $disposiciones = Disposiciones::orderBy('id', 'desc')->get();
       else
