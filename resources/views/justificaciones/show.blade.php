@@ -66,7 +66,7 @@
             <div class="form-group">
               <label for="middle-name" class="control-label col-md-3 col-sm-3 col-xs-12">Narrativa Justicicion</label>
               <div class="col-md-6 col-sm-6 col-xs-12">
-                <input value='{{ $controlSecuenciaInsumos->justificacion }}' class="form-control col-md-7 col-xs-12" type="text" name="middle-name" disabled>
+                <textarea class="form-control col-md-7 col-xs-12" rows="3" disabled>{{  $controlSecuenciaInsumos->justificacion  }}</textarea>
               </div>
             </div>
             <div class="form-group">

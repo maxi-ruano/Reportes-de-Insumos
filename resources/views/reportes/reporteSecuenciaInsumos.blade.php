@@ -26,6 +26,20 @@
         <div class="clearfix"></div>
       </div>
       <div class="x_content">
+
+        <div class="form-group text-center">
+
+          <div class="col-md-12">
+            <div class="btn-group" data-toggle="buttons">
+              <label class="btn btn-default" data-toggle-class="btn-primary" data-toggle-passive-class="btn-default">
+                <input value="pausar" id="pausarReload" type="radio"> &nbsp; Pausar refresh &nbsp;
+              </label>
+              <label class="btn btn-primary" data-toggle-class="btn-primary" data-toggle-passive-class="btn-default">
+                <input value="start" id="startReload"  type="radio"> Activar refresh
+              </label>
+            </div>
+          </div>
+        </div>
         <table id="datatable-responsive" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
           <thead>
             <tr>
@@ -54,8 +68,12 @@
             </td>
             <td >{{ $item->created_at }}</td>
             <td class='text-center'>
-              <a href="{{ route('justificaciones.edit', $item->id)}}" type="button" class="btn btn-primary btn-sm" >Justificar</a>
-              <a href="{{ route('justificaciones.show', $item->id)}}" type="button" class="btn btn-primary btn-sm" >Ver</a>
+              @if( empty($item->justificado) )
+                <a href="{{ route('justificaciones.edit', $item->id)}}" type="button" class="btn btn-primary btn-sm">Justificar</a>
+              @else
+                <a href="#" type="button" class="btn btn-primary btn-sm" disabled>Justificar</a>
+              @endif
+              <a href="{{ route('justificaciones.show', $item->id)}}" type="button" class="btn btn-info btn-sm" >Ver</a>
             </td>
           </tr>
           @endforeach
@@ -90,9 +108,24 @@
 <script src="{{ asset('vendors/pdfmake/build/pdfmake.min.js')}}"></script>
 <script src="{{ asset('vendors/pdfmake/build/vfs_fonts.js')}}"></script>
 <script>
+var automatico = true;
+
+function reload(){
+  if(automatico)
+    window.location.reload(1);
+}
+
   $(document).ready(function() {
     $('#datatable-responsive').DataTable({order: [[0, "desc"]]});
 
+    $("#pausarReload, #startReload").change(function () {
+      if (this.value == 'pausar')
+        automatico = false;
+      if(this.value == 'start')
+        automatico = true;
+    });
+
+    window.setInterval(reload , 5000);
   });
 </script>
 @endsection

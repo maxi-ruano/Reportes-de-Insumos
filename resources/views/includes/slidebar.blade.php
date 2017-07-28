@@ -19,6 +19,20 @@
         </a>
       </li>
       @endif
+      @if( session('usuario_rol') == 'ROL_ADMIN')
+      <li>
+        <a href="{{ route('reporteSecuenciaInsumos') }}">
+          <i class="fa fa-file"></i> Reporte Secuencia
+          <span class="fa fa-chevron-down"></span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('reporteControlInsumos') }}">
+          <i class="fa fa-file"></i> Reporte Control Insumos
+          <span class="fa fa-chevron-down"></span>
+        </a>
+      </li>
+      @endif
     </ul>
   </div>
 
