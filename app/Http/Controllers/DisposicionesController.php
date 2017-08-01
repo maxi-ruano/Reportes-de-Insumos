@@ -41,7 +41,8 @@ class DisposicionesController extends Controller
         $tramite = Tramites::where('nro_doc',$request->nro_doc)
                             ->where('tipo_doc',$request->tipo_doc)
                             ->where('sexo',$request->sexo)
-                            ->where('pais',$request->pais)->first();
+                            ->where('pais',$request->pais)
+                            ->orderBy('tramite_id','desc')->first();
 
         $datosPersonales = DatosPersonales::where('nro_doc',$request->nro_doc)
                             ->where('tipo_doc',$request->tipo_doc)
