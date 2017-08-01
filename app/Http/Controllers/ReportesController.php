@@ -123,7 +123,9 @@ class ReportesController extends Controller
 
       }
 
-      return view('reportes.reporteSecuenciaInsumos')->with('items', $controlSecuenciaInsumos);
+      $noJustificados = ControlSecuenciaInsumos::where('justificado','false')->count();
+      return view('reportes.reporteSecuenciaInsumos')->with('items', $controlSecuenciaInsumos)
+                                                     ->with('noJustificados', $noJustificados);
     }
 
     function justificar(Request $request){

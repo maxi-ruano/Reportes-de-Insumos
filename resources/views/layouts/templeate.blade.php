@@ -21,6 +21,7 @@
     <!-- Custom Theme Style -->
     <link href="{{ asset('build/css/custom.min.css')}}" rel="stylesheet">
     <link href="{{ asset('build/css/custom.da.css')}}" rel="stylesheet">
+    @yield('favicon', '<link rel="icon" href="assets/images/ba.png">')
   </head>
 
   <body class="nav-sm">

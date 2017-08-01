@@ -1,4 +1,11 @@
 @extends('layouts.templeate')
+@section('favicon')
+  @if($noJustificados > 0)
+    <link rel="icon" href="{{ asset('assets/images/error.ico')}}">
+  @else
+    <link rel="icon" href="{{ asset('assets/images/success.png')}}">
+  @endif
+@endsection
 @section('titlePage', 'Control Secuencia Insumos')
 @section('content')
 <!-- page content -->
