@@ -61,28 +61,30 @@ class LoginController extends Controller
 	           ->whereNull('end_date')
                    ->first();
       $idsUsuariosDisposiciones = array("2722","2790","2721","2832","2639","2828");
-      if(isset($user)){
-        $userRole = SysUserRole::where('user_id', $user->id)
-                           ->whereIn('role_id', [7, 9, 40, 76])->first(); //Usuarios Bedel y Admin
-        if(isset($userRole) || in_array($user->id, $idsUsuariosDisposiciones)){
-          Auth::login($user, true);
-          $request->session()->put('usuario_nombre', $user->first_name);
-          $request->session()->put('usuario_id', $user->id);
-          
-          if(in_array($user->id, $idsUsuariosDisposiciones)){
-            $request->session()->put('usuario_rol_id', 76);
-            $request->session()->put('usuario_rol', 'ROL_DISPOSICIONES');
-	  }else{
-	    $role = SysRoles::where('role_id', $userRole->role_id)->first();  
-            $request->session()->put('usuario_rol_id', $userRole->role_id);
-            $request->session()->put('usuario_rol', $role->cte_php);
-          }
-          $request->session()->put('usuario_sucursal_id', $user->sucursal);
-          if((session('usuario_rol') == 'ROL_DISPOSICIONES') || in_array($user->id, $idsUsuariosDisposiciones))
-            return redirect('/admin/disposiciones');
+      $idsUsuariosControlInsumos = array("2430");
+
+      if(isset($user)){ //Si usuario exintente
+        $userRole = SysUserRole::where('user_id', $user->id)->whereIn('role_id', [7, 9, 40, 76])->first(); //Usuarios Bedel y Admin
+
+        if(isset($userRole)){ //Si Usuarios Bedel y Admin
+          $this->guardarDatosUsuariosSession($request, $user);
+          $role = SysRoles::where('role_id', $userRole->role_id)->first();
+          $this->guardarDatosRol($request, $userRole->role_id, $role->cte_php);
+          return redirect('/admin/bedel');
         }
 
-        return redirect('/admin/bedel');
+        if(in_array($user->id, $idsUsuariosDisposiciones)){ //Si Usuarios Disposiciones
+          $this->guardarDatosUsuariosSession($request, $user);
+          $this->guardarDatosRol($request, 76, 'ROL_DISPOSICIONES');
+          return redirect('/admin/disposiciones');
+        }
+
+        if(in_array($user->id, $idsUsuariosControlInsumos)){ //Si Usuarios Control Insumos
+          $this->guardarDatosUsuariosSession($request, $user);
+          $this->guardarDatosRol($request, 77, 'ROL_REPORTES_CONTROL_INSUMOS');
+          return redirect('/admin/reporteSecuenciaInsumos');
+        }
+        return redirect('/login');
       }else{
         return $this->sendFailedLoginResponse($request);
       }
@@ -95,6 +97,17 @@ class LoginController extends Controller
 */
 
       //return redirect('/admin/bedel');
+    }
+    public function guardarDatosUsuariosSession($request, $user){
+      Auth::login($user, true);
+      $request->session()->put('usuario_nombre', $user->first_name);
+      $request->session()->put('usuario_id', $user->id);
+      $request->session()->put('usuario_sucursal_id', $user->sucursal);
+    }
+
+    public function guardarDatosRol($request, $idRol, $textoRol){
+      $request->session()->put('usuario_rol_id', $idRol);
+      $request->session()->put('usuario_rol', $textoRol);
     }
 
     public function setPasswordAttribute($password){
