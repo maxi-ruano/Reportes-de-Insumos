@@ -60,23 +60,23 @@ class LoginController extends Controller
 	           ->where('password',md5($request->password))
 	           ->whereNull('end_date')
                    ->first();
-      $idsUsuariosDisposiciones = array("2722","2790","2721","2832","2639","2828");
+      $idsUsuariosDisposiciones = array("2722","2790","2721","2832","2639","2828", "2432");
       $idsUsuariosControlInsumos = array("2430");
 
       if(isset($user)){ //Si usuario exintente
         $userRole = SysUserRole::where('user_id', $user->id)->whereIn('role_id', [7, 9, 40, 76])->first(); //Usuarios Bedel y Admin
+
+        if(in_array($user->id, $idsUsuariosDisposiciones)){ //Si Usuarios Disposiciones
+          $this->guardarDatosUsuariosSession($request, $user);
+          $this->guardarDatosRol($request, 76, 'ROL_DISPOSICIONES');
+          return redirect('/admin/disposiciones');
+        }
 
         if(isset($userRole)){ //Si Usuarios Bedel y Admin
           $this->guardarDatosUsuariosSession($request, $user);
           $role = SysRoles::where('role_id', $userRole->role_id)->first();
           $this->guardarDatosRol($request, $userRole->role_id, $role->cte_php);
           return redirect('/admin/bedel');
-        }
-
-        if(in_array($user->id, $idsUsuariosDisposiciones)){ //Si Usuarios Disposiciones
-          $this->guardarDatosUsuariosSession($request, $user);
-          $this->guardarDatosRol($request, 76, 'ROL_DISPOSICIONES');
-          return redirect('/admin/disposiciones');
         }
 
         if(in_array($user->id, $idsUsuariosControlInsumos)){ //Si Usuarios Control Insumos

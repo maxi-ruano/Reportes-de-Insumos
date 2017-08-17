@@ -5,7 +5,7 @@
     <h3>Clientes</h3>
     <ul class="nav side-menu">
       @if(session('usuario_rol_id') == '40' || session('usuario_rol') == 'ROL_ESCUELA' || session('usuario_rol') == 'ROL_ADMIN'
-	|| session('usuario_id') == '2722' || session('usuario_id') == '2790' || session('usuario_id') == '2721')
+	|| session('usuario_id') == '2722' || session('usuario_id') == '2790' || session('usuario_id') == '2432')
       <li><a href="{{ route('bedel.index') }}">
         <i class="fa fa-users"></i> Bedel
         <span class="fa fa-chevron-down"></span></a>
@@ -15,20 +15,6 @@
       <li>
         <a href="{{ route('disposiciones.index') }}">
           <i class="fa fa-file"></i> Disposiciones
-          <span class="fa fa-chevron-down"></span>
-        </a>
-      </li>
-      @endif
-      @if( session('usuario_rol') == 'ROL_ADMIN')
-      <li>
-        <a href="{{ route('reporteSecuenciaInsumos') }}">
-          <i class="fa fa-file"></i> Reporte Secuencia
-          <span class="fa fa-chevron-down"></span>
-        </a>
-      </li>
-      <li>
-        <a href="{{ route('reporteControlInsumos') }}">
-          <i class="fa fa-file"></i> Reporte Control Insumos
           <span class="fa fa-chevron-down"></span>
         </a>
       </li>
