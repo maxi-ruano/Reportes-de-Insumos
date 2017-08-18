@@ -11,8 +11,9 @@ class SysUsers extends Authenticatable
   protected $table = 'sys_users';
   protected $remember_token = 'api_token';
   protected $primaryKey = 'id';
+  const UPDATED_AT = 'fecha_ultima_accion';
   protected $fillable = [
-      'username', 'password',
+      'username', 'password', 'last_log'
   ];
 
   protected $hidden = [

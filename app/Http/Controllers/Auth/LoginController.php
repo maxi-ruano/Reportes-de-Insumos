@@ -103,6 +103,8 @@ class LoginController extends Controller
       $request->session()->put('usuario_nombre', $user->first_name);
       $request->session()->put('usuario_id', $user->id);
       $request->session()->put('usuario_sucursal_id', $user->sucursal);
+      $user->last_log = date("Y-m-d H:i:s");
+      $user->save();
     }
 
     public function guardarDatosRol($request, $idRol, $textoRol){
