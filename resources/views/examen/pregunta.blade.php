@@ -45,11 +45,12 @@
 </script>
 
 @section('scripts')
+dd( count($preguntas));
   <script type="text/javascript">
     var examen = '{!! $examen !!}';
     var pregunta;
     var idSiguiente = 0; var errorConexion = 0;
-    var cantidadPreguntas = '{{ config('global.CANTIDAD_PREGUNTAS') }}';
+    var cantidadPreguntas = '{{ count($preguntas) }}';
     function cargarPregunta(){
       $('.textoPregunta').html(Base64.decode(preguntas[idSiguiente]['pregunta']));
       if(preguntas[idSiguiente]['imagen']){
@@ -103,7 +104,14 @@
       document.getElementById("finalizar_examen").submit();
       // end se envia examen cuado se acaba el tiempo
     }
-    cargarPregunta();
+    if(cantidadPreguntas > 0)
+        cargarPregunta();
+      else {
+        if (confirm('Todas las preguntas de este examen ya han sido respondidas, si es asi, seleccione "OK" para finalizar el examen. Si no es el caso por favor comuniquese con el encargado del aula, disculpe las molestias.')) {
+          $('.examen_input').attr('value', examen);
+          document.getElementById("finalizar_examen").submit();
+        }
+      }
 
     //GUARDAR RESPUESTAS AJAX
     function enviarRespuesta(){

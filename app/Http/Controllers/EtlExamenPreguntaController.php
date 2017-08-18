@@ -92,7 +92,7 @@ class EtlExamenPreguntaController extends Controller
 
     public function getPreguntasExamen($examen_id)
     {
-      $preguntas = EtlExamenPregunta::where('examen_id', $examen_id)->get();
+      $preguntas = EtlExamenPregunta::where('examen_id', $examen_id)->whereNull('respuesta_id')->get();
       foreach ($preguntas as $key => $value) {
 	$value->etlPregunta->texto = str_replace(array("\r\n", "\n", "\r", "'"), ' ', $value->etlPregunta->texto);
         $value['respuestas'] = EtlPreguntaRespuesta::where('pregunta_id', $value->pregunta_id)->get();
