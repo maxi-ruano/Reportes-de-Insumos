@@ -4,6 +4,7 @@ var Example2 = new (function() {
         $form, // Form used to change the countdown time
         incrementTime = 70,
         currentTime = 270000,
+        currentTimeProgress = 270000,
         updateTimer = function() {
             $countdown.html(formatTime(currentTime));
             if (currentTime == 0) {
@@ -13,6 +14,7 @@ var Example2 = new (function() {
             }
             currentTime -= incrementTime / 10;
             if (currentTime < 0) currentTime = 0;
+            $('.progress-tiempo').css('width', ((1-(currentTime/currentTimeProgress))*100 )+'%');
         },
         timerComplete = function() {
           finalizarExamenLimiteSuperado();
