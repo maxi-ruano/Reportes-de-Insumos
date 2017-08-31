@@ -15,7 +15,7 @@ Route::get('guardar_respuesta',['uses' => 'EtlExamenPreguntaController@guardarRe
 Route::post('finalizar_examen',['uses' => 'EtlExamenController@calcularYGuardarResultado','as' => 'finalizar_examen']);
 // Route::get('/address/{id}/destroy',['uses' => 'AddressesController@destroy','as' => 'sysfile.addresses.destroy']);
 Route::get('/', 'HomeController@index');
-
+Route::get('run', 'MicroservicioController@run');
 //Auth::routes();
 Route::get('computadorasMonitor', 'TeoricoPcController@computadorasMonitor');
 Route::get('verificarAsignacion', 'TeoricoPcController@verificarAsignacion');
