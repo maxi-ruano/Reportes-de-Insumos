@@ -10,7 +10,6 @@ use Log;
 class MicroservicioController extends Controller
 {
     public function run(){
-      Log::info('start run');
       echo '<br>run</br>' ;
       $tramitesAIniciar = TramitesAIniciar::where('estado', 'pendiente')->get();
       foreach ($tramitesAIniciar as $key => $value) {
@@ -20,7 +19,6 @@ class MicroservicioController extends Controller
 
     public function iniciarTramite($contribuyente){
       $tramite = null;
-
       if(!$this->existeTramite($contribuyente))
         //$tramite = $this->iniciarTramiteEnLicta();
         echo '<br>inicia tramite contribuyente: '.$contribuyente->id.'</br>' ;
@@ -29,14 +27,12 @@ class MicroservicioController extends Controller
                                      $contribuyente->sexo,
                                      $contribuyente->pais,
                                      $contribuyente->tipo_doc);
-
         if(!$this->tramiteEnviadoAAnsv($tramite))
           //$this->enviarTramiteAAnsv($tramite);
           echo '<br>inicia tramite en NACION contribuyente: '.$contribuyente->id.'</br>' ;
         else
           echo '<br>el tramite del contribuyente: '.$contribuyente->id. ' ya fue enviado a NACION</br>' ;
       }
-
     }
 
     // OJO con esta funcion !! falta validad si estado < 14 esta bien
@@ -64,6 +60,20 @@ class MicroservicioController extends Controller
           return true;
       }
       return false;
+    }
+
+    public function iniciar(){
+      $response = '';
+      $data = [
+          'CurrencyFrom' => 'USD',
+          'CurrencyTo'   => 'EUR',
+          'RateDate'     => '2014-06-05',
+          'Amount'       => '1000'
+      ];
+      SoapWrapper::service('currency',function($service) use ($data,&$response) {
+          $response = $service->call('GetConversionAmount',$data)->GetConversionAmountResult;
+      });
+      var_dump($response);
     }
 
     public function enviarTramiteAAnsv($tramite){
