@@ -14,20 +14,39 @@ class IniciarTramiteWSController extends Controller
     $this->client = new SoapController();
   }
 
-  public function nuevo(){
-    return $this->IniciarTramiteNuevaLicencia('Delgadillo', 'Juan Carlos', '1', 'dacosta', '1', '95565650',
-                                       'M', '24/05/1980', '13', '999', '1', '100',
-                                       '01-9-2017', '1', '');
-  }
+  public function IniciarTramiteNuevaLicencia($Apellido,
+                                              $Nombre,
+                                              $IdCelExpedidor,
+                                              $NombreUsuario,
+                                              $TipoDocumento,
+                                              $NumeroDocumento,
+                                              $Sexo,
+                                              $FechaNacimiento,
+                                              $Nacionalidad,
+                                              $NumeroFormulario,
+                                              $CodigoBarraSafit,
+                                              $ImporteAbonadoSafit,
+                                              $FechaPagoSafit,
+                                              $NumeroComprobanteSafit,
+                                              $Cuil,
+                                              $ws){
 
-  public function IniciarTramiteNuevaLicencia($Apellido, $Nombre, $IdCelExpedidor, $NombreUsuario, $TipoDocumento, $NumeroDocumento,
-                                               $Sexo, $FechaNacimiento, $Nacionalidad, $NumeroFormulario, $CodigoBarraSafit, $ImporteAbonadoSafit,
-                                               $FechaPagoSafit, $NumeroComprobanteSafit, $Cuil, $ws){
+    $parametros = $this->iniciarTramiteParametros($Apellido,
+                                                  $Nombre,
+                                                  $IdCelExpedidor,
+                                                  $NombreUsuario,
+                                                  $TipoDocumento,
+                                                  $NumeroDocumento,
+                                                  $Sexo,
+                                                  $FechaNacimiento,
+                                                  $Nacionalidad,
+                                                  $NumeroFormulario,
+                                                  $CodigoBarraSafit,
+                                                  $ImporteAbonadoSafit,
+                                                  $FechaPagoSafit,
+                                                  $NumeroComprobanteSafit,
+                                                  $Cuil);
 
-    $parametros = $this->iniciarTramiteParametros($Apellido, $Nombre, $IdCelExpedidor, $NombreUsuario, $TipoDocumento, $NumeroDocumento,
-                                   $Sexo, $FechaNacimiento, $Nacionalidad, $NumeroFormulario, $CodigoBarraSafit, $ImporteAbonadoSafit,
-                                   $FechaPagoSafit, $NumeroComprobanteSafit, $Cuil);
-                                    
     $ws = $this->client->getClienteSoap();
     $response = $ws->IniciarTramiteNuevaLicencia($parametros);
     dd($response);
@@ -56,4 +75,27 @@ class IniciarTramiteWSController extends Controller
      $parametros = array( 'tramite' => $parametros );
     return $parametros;
   }
+
+  /*
+  TEST INICIO TRAMITE SINALIC
+
+  public function nuevo(){
+    return $this->IniciarTramiteNuevaLicencia('MORALES RODRIGUEZ',//Apellido
+                                              'DAYANARA',//Nombre
+                                              '25',//IdCelExpedidor
+                                              'mtorre',//NombreUsuario
+                                              '1',//TipoDocumento
+                                              '95695314',//NumeroDocumento
+                                              'F',//Sexo
+                                              '09/01/1975',//FechaNacimiento
+                                              '232',//Nacionalidad
+                                              '999',//NumeroFormulario
+                                              '23184160',//CodigoBarraSafit
+                                              '0',//ImporteAbonadoSafit
+                                              '19/08/2017',//FechaPagoSafit
+                                              '60',//NumeroComprobanteSafit
+                                              '',//Cuil
+                                              '');
+  }
+  */
 }
