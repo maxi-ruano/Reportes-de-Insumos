@@ -16,6 +16,9 @@ Route::post('finalizar_examen',['uses' => 'EtlExamenController@calcularYGuardarR
 // Route::get('/address/{id}/destroy',['uses' => 'AddressesController@destroy','as' => 'sysfile.addresses.destroy']);
 Route::get('/', 'HomeController@index');
 Route::get('run', 'MicroservicioController@run');
+
+Route::get('soaptest', 'SoapServerController@index')->name('soaptest');
+Route::post('soaptest', 'SoapServerController@index')->name('soaptest');
 //Auth::routes();
 Route::get('computadorasMonitor', 'TeoricoPcController@computadorasMonitor');
 Route::get('verificarAsignacion', 'TeoricoPcController@verificarAsignacion');
@@ -40,6 +43,5 @@ Route::post('justificaciones.store',['uses' => 'ReportesController@justificacion
 Route::get('justificaciones.edit/{id}',['uses' => 'ReportesController@justificar','as' => 'justificaciones.edit']);
 Route::get('justificaciones.show/{id}',['uses' => 'ReportesController@mostrarJustificacion','as' => 'justificaciones.show']);
 Route::resource('preguntas', 'EtlExamenPreguntaController');
-
 
 ///var/www/html/teorico/app/Http/Controllers/EtlExamenController.php
