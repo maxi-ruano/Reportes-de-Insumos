@@ -17,7 +17,7 @@ class SoapServerController extends Controller
    *
    * @param SoapWrapper $soapWrapper
    */
-   public function __construct()
+  public function __construct()
   {
 	  ini_set("soap.wsdl_cache_enabled", "0"); // disabling WSDL cache
 	  ini_set('soap.wsdl_cache_ttl',0);
@@ -33,7 +33,7 @@ class SoapServerController extends Controller
 
 	  $params = array( 'uri' => url('soaptest') );
     $server = new \SoapServer( '../resources/wsdl/boletas_safit.wsdl', $params);
-	  $server->setClass( WsBoletasSafit::class );
+	  $server->setClass( WsBoletasSafitController::class );
 	  $response = new Response();
 	  $response->header("Content-Type","text/xml; charset=utf-8");
 	  ob_start();
