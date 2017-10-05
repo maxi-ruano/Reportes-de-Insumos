@@ -15,7 +15,7 @@ class WsBoletasSafitController extends Controller
 
     if(empty($res = $this->validarFormato($uswID, $password, $datosBoleta))){
       if($this->usuarioValido($uswID, $password)){
-        if($this->insertarDatosBoleta($datosBoleta))
+        if($this->guardarAvisoPago($datosBoleta))
           return $this->formatoRespuesta(1, "Insertado correctamente");
       }else{
         return $this->formatoRespuesta(1, "usuario no valido");
@@ -35,7 +35,7 @@ class WsBoletasSafitController extends Controller
     $boletaSafit->sexo = $datosBoleta->sexo;
     $boletaSafit->nombre = $datosBoleta->nombre;
     $boletaSafit->apellido = $datosBoleta->apellido;
-    $boletaSafit->save();
+    return $boletaSafit->save();
   }
 
   public function validarFormato($uswID, $password, $datosBoleta){
@@ -94,10 +94,6 @@ class WsBoletasSafitController extends Controller
    ];
    $validator = Validator::make($datosBoleta , $rules, $messages);
    return $validator->errors()->messages();
-  }
-
-  public function insertarDatosBoleta($datosBoleta){
-    return true;
   }
 
   public function formatearJson($errores){
