@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\BoletaSafit;
+use App\BoletasSafitLog;
 use Validator;
 
 class WsBoletasSafitController extends Controller
@@ -12,17 +13,19 @@ class WsBoletasSafitController extends Controller
   private $PASSWORD = 'test';
 
   function aviso_pago($uswID, $password, $datosBoleta ){
-
     if(empty($res = $this->validarFormato($uswID, $password, $datosBoleta))){
       if($this->usuarioValido($uswID, $password)){
         if($this->guardarAvisoPago($datosBoleta))
-          return $this->formatoRespuesta(1, "Insertado correctamente");
+          $response = $this->formatoRespuesta(1, "Insertado correctamente");
       }else{
-        return $this->formatoRespuesta(1, "usuario no valido");
+        $response = $this->formatoRespuesta(0, "usuario no valido");
+        $this->guardarLog(json_encode($datosBoleta), json_encode($response));
       }
     }else{
       $response = $this->formatoRespuesta(0, $this->formatearJson($res));
+      $this->guardarLog(json_encode($datosBoleta), json_encode($response));
     }
+
     return $response;
   }
 
@@ -74,7 +77,7 @@ class WsBoletasSafitController extends Controller
       'bopCodigo' => 'required|numeric',
       'nroDoc' => 'required|numeric',
       'tdcID' => 'required|numeric',
-      'sexo' => 'required',
+      'sexo' => 'required|in:M,F,m,f',
       'nombre' => 'required',
       'apellido' => 'required'
     ];
@@ -89,6 +92,7 @@ class WsBoletasSafitController extends Controller
       'nroDoc.numeric' => 'El campo :attribute no es numerico, debe ingresar un dato numerico',
       'tdcID.numeric' => 'El campo :attribute no es numerico, debe ingresar un dato numerico',
       'sexo.required' => 'El :attribute es un dato obligatorio',
+      'sexo.in' => 'El campo :attribute deberia ser F o M',
       'nombre.required' => 'El :attribute es un dato obligatorio',
       'apellido.required' => 'El :attribute es un dato obligatorio'
    ];
@@ -114,5 +118,13 @@ class WsBoletasSafitController extends Controller
       'rspID' => $rspID,
       'rspDescrip' => $rspDescrip,
     ];
+  }
+
+  public function guardarLog($datosBoleta, $mensaje)
+  {
+    $boletaSafitLog = new BoletasSafitLog();
+    $boletaSafitLog->mensaje_respuesta = $mensaje;
+    $boletaSafitLog->datos_recibidos = $datosBoleta;
+    return $boletaSafitLog->save();
   }
 }
