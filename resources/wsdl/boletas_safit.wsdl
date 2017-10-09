@@ -70,7 +70,7 @@
 
 <service name='BoletasSafitService'>
   <port name='BoletasSafitPort' binding='BoletasSafitBinding'>
-    <soap:address location='http://192.168.76.215/deve_teorico/public/soaptest'/>
+    <soap:address location='http://192.168.76.215/deve_teorico/public/api/aviso_pago'/>
   </port>
 </service>
 </definitions>

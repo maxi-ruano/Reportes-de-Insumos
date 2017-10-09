@@ -17,8 +17,6 @@ Route::post('finalizar_examen',['uses' => 'EtlExamenController@calcularYGuardarR
 Route::get('/', 'HomeController@index');
 Route::get('run', 'MicroservicioController@run');
 
-Route::get('soaptest', 'SoapServerController@index')->name('soaptest');
-Route::post('soaptest', 'SoapServerController@index')->name('soaptest');
 //Auth::routes();
 Route::get('computadorasMonitor', 'TeoricoPcController@computadorasMonitor');
 Route::get('verificarAsignacion', 'TeoricoPcController@verificarAsignacion');
@@ -45,3 +43,8 @@ Route::get('justificaciones.show/{id}',['uses' => 'ReportesController@mostrarJus
 Route::resource('preguntas', 'EtlExamenPreguntaController');
 
 ///var/www/html/teorico/app/Http/Controllers/EtlExamenController.php
+
+Route::group(['prefix' => 'api'], function () {
+  Route::get('aviso_pago', 'SoapServerController@index')->name('aviso_pago');
+  Route::post('aviso_pago', 'SoapServerController@index')->name('aviso_pago');
+});

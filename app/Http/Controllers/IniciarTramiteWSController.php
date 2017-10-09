@@ -14,6 +14,10 @@ class IniciarTramiteWSController extends Controller
     $this->client = new SoapController();
   }
 
+  public function nuevo(Request $request){
+    dd($request->all());
+  }
+
   public function IniciarTramiteNuevaLicencia($Apellido,
                                               $Nombre,
                                               $IdCelExpedidor,
@@ -77,6 +81,8 @@ class IniciarTramiteWSController extends Controller
   }
 
   /*
+munID ID de la municipalidad asociada al centro de emisión.
+cemID ID de centro de emisión.
   TEST INICIO TRAMITE SINALIC
 
   public function nuevo(){
@@ -97,5 +103,33 @@ class IniciarTramiteWSController extends Controller
                                               '',//Cuil
                                               '');
   }
+  "{"FechaNacimiento":"19\/09\/1980",
+  "nacionalidad":"Argentina",
+  "Domicilio":"BARTOLOME MITRE 4154",
+  "CodigoPostal":"1201",
+  "operadora":"",
+  "Numero de Documento":"28453640"}"
+
+"a:1:{s:7:"tramite";
+a:10:{s:6:"Nombre";
+s:6:"PRUEBA";
+s:8:"Apellido";
+s:6:"PREUBA";
+s:15:"FechaNacimiento";
+s:10:"12/11/1980";
+s:12:"Nacionalidad";
+s:2:"13";
+s:4:"Sexo";
+s:1:"F";
+s:13:"TipoDocumento";
+s:1:"1";
+s:15:"NumeroDocumento";
+s:8:"12121212";
+s:16:"NumeroFormulario";
+s:6:"148501";
+s:14:"IdCelExpedidor";
+s:2:"25";
+s:13:"NombreUsuario";
+s:6:"miquel";}}"
   */
 }

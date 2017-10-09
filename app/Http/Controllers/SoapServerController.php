@@ -29,9 +29,9 @@ class SoapServerController extends Controller
   public function index(Request $request)
   {
 	  if ($_SERVER['REQUEST_METHOD'] == 'GET' && !isset($_GET['WSDL']) && !isset($_GET['wsdl']) )
-		    dd($_GET);
+		   return "";
 
-	  $params = array( 'uri' => url('soaptest') );
+	  $params = array( 'uri' => url('api/aviso_pago') );
     $server = new \SoapServer( '../resources/wsdl/boletas_safit.wsdl', $params);
 	  $server->setClass( WsBoletasSafitController::class );
 	  $response = new Response();
