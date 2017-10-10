@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<definitions name='BoletasSafit'
+  targetNamespace='urn:BoletasSafit'
+  xmlns:tns='urn:BoletasSafit'
+  xmlns:soap='http://schemas.xmlsoap.org/wsdl/soap/'
+  xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+  xmlns:soapenc='http://schemas.xmlsoap.org/soap/encoding/'
+  xmlns:wsdl='http://schemas.xmlsoap.org/wsdl/'
+  xmlns='http://schemas.xmlsoap.org/wsdl/'>
+  <types>
+    <xsd:schema targetNamespace="urn:BoletasSafit">
+      <xsd:import namespace="http://schemas.xmlsoap.org/soap/encoding/"/>
+      <xsd:import namespace="http://schemas.xmlsoap.org/wsdl/"/>
+      <xsd:complexType name="safDatosBoletaPago">
+        <xsd:all>
+          <xsd:element name="bopID" type="xsd:unsignedLong"/>
+          <xsd:element name="bopCodigo" type="xsd:unsignedLong"/>
+          <xsd:element name="nroDoc" type="xsd:unsignedLong"/>
+          <xsd:element name="tdcID" type="xsd:unsignedLong"/>
+          <xsd:element name="sexo" type="xsd:titularSexo"/>
+          <xsd:element name="nombre" type="xsd:string"/>
+          <xsd:element name="apellido" type="xsd:string"/>
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:complexType name="safRtaBoleta">
+        <xsd:all>
+        <xsd:element name="rspID" type="xsd:int"/>
+        <xsd:element name="rspDescrip" type="xsd:string"/>
+        </xsd:all>
+      </xsd:complexType>
+      <xsd:simpleType name="titularSexo">
+        <xsd:restriction base="xsd:string">
+        <xsd:enumeration value="M"/>
+        <xsd:enumeration value="F"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:schema>
+  </types>
+<message name='aviso_pagoRequest'>
+  <part name='uswID' type='xsd:string'/>
+  <part name='password' type='xsd:string'/>
+  <part name='datosBoleta' type='tns:safDatosBoletaPago'/>
+</message>
+<message name='aviso_pagoResponse'>
+  <part name="return" type="tns:safRtaBoleta"/>
+</message>
+
+<portType name='BoletasSafitPortType'>
+  <operation name='aviso_pago'>
+    <input message='tns:aviso_pagoRequest'/>
+    <output message='tns:aviso_pagoResponse'/>
+  </operation>
+</portType>
+
+<binding name='BoletasSafitBinding' type='tns:BoletasSafitPortType'>
+  <soap:binding style='rpc'
+    transport='http://schemas.xmlsoap.org/soap/http'/>
+  <operation name='aviso_pago'>
+    <soap:operation soapAction='urn:xmethods-delayed-quotes#aviso_pago'/>
+    <input>
+      <soap:body use='encoded' namespace='urn:xmethods-delayed-quotes'
+        encodingStyle='http://schemas.xmlsoap.org/soap/encoding/'/>
+    </input>
+    <output>
+      <soap:body use='encoded' namespace='urn:xmethods-delayed-quotes'
+        encodingStyle='http://schemas.xmlsoap.org/soap/encoding/'/>
+    </output>
+  </operation>
+</binding>
+
+<service name='BoletasSafitService'>
+  <port name='BoletasSafitPort' binding='BoletasSafitBinding'>
+    <soap:address location='http://192.168.76.215/deve_teorico/public/api/aviso_pago'/>
+  </port>
+</service>
+</definitions>
