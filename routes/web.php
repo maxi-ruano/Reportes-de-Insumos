@@ -29,14 +29,14 @@ Route::auth();
       Route::resource('disposiciones', 'DisposicionesController');
       Route::get('asignar','BedelController@asignarExamen')->name('asignarExamen');
       Route::post('buscarTramite',['uses' => 'TramitesController@buscarTramite','as' => 'buscarTramite']);
-/*
+
       Route::get('reporteSecuenciaInsumos',['uses' => 'ReportesController@reporteSecuenciaInsumos','as' => 'reporteSecuenciaInsumos']);
       Route::get('reporteControlInsumos',['uses' => 'ReportesController@reporteControlInsumos','as' => 'reporteControlInsumos']);
       Route::get('justificar',['uses' => 'ReportesController@justificar','as' => 'justificar']);
       Route::post('justificaciones.store',['uses' => 'ReportesController@justificacionStore','as' => 'justificaciones.store']);
       Route::get('justificaciones.edit/{id}',['uses' => 'ReportesController@justificar','as' => 'justificaciones.edit']);
       Route::get('justificaciones.show/{id}',['uses' => 'ReportesController@mostrarJustificacion','as' => 'justificaciones.show']);
-*/
+
   });
 //});
 // Route::get('rendir_examen','EtlExamenController@rendir_examen');

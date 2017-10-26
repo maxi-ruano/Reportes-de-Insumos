@@ -13,8 +13,8 @@ use App\ControlSecuenciaInsumos;
 class ReportesController extends Controller
 {
     function reporteControlInsumos(){
-      $fecha_ini = '2017-07-27';
-      $fecha_fin = '2017-07-28';
+      $fecha_ini = '2015-01-27';
+      $fecha_fin = '2015-07-28';
       $sucursales = SysMultivalue::where('type', 'SUCU')->get();
       $res = array();
       foreach ($sucursales as $key => $sucursal) {
@@ -55,7 +55,7 @@ class ReportesController extends Controller
               "asignados" => count($asignados),
           );
           array_push($res, (object)$subRes);
-        }
+        } break;
       }
 
       return View('reportes.reporteControlInsumos')->with('lotes', (object)$res);
