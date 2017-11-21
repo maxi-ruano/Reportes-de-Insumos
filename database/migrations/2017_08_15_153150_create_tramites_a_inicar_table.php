@@ -25,6 +25,8 @@ class CreateTramitesAInicarTable extends Migration
             $table->string('bop_monto')->nullable();
             $table->string('bop_fec_pag')->nullable();
             $table->string('bop_id')->nullable();
+            $table->string('cem_id')->nullable();
+            $table->date('fecha_nacimiento')->nullable();
             $table->string('estado')->default(1); // 1 = pendiente - 2 = completado, listo para enviar - 3 enviado todo ok - 4 enviado errores
             $table->timestamps();
         });

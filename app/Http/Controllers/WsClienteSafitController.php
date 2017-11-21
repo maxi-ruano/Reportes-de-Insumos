@@ -33,7 +33,6 @@ class WsClienteSafitController extends Controller
     $parametros['uswID'] = $uswID;
     $parametros['uswPassword'] = $uswPassword;
     $parametros['uswHash'] = $uswHash;
-
   }
 
   public function getBoletas($persona){
@@ -78,5 +77,32 @@ class WsClienteSafitController extends Controller
       catch(Exception $e) {
           echo $e->getMessage();
       }
+  }
+
+  public function emitirBoletaVirtualPago($tramiteAIniciar){
+    $datosComprobante = array("nroDoc" => $tramiteAIniciar->nro_doc,
+                              "tdcID" => $tramiteAIniciar->tipo_doc,
+                              "sexo" => $tramiteAIniciar->sexo,
+                              "nombre" => $tramiteAIniciar->nombre,
+                              "apellido" => $tramiteAIniciar->apellido,
+                              "fechaNac" => $tramiteAIniciar->fecha_nacimiento,
+                              "nacionalidad" => $tramiteAIniciar->nacionalidad,// revisar se le esta mandando texto y deberia se
+                              "nombre_materno" => "",
+                              "apellido_materno" => "",
+                              "nombre_paterno" => "",
+                              "apellido_paterno" => "");
+
+      $datosPago = array("codigo" => $tramiteAIniciar->bop_cb,
+                         "importe" => $tramiteAIniciar->bop_monto,
+                         "fechaPago" => $tramiteAIniciar->bop_fec_pag,
+                         "codigoComprobante" => $tramiteAIniciar->bop_id);
+
+    $res = $this->cliente->obtener_certificado_virtual_pago($this->uswID,
+                                                            $this->ingID,
+                                                            $this->munID,
+                                                            $tramiteAIniciar->cem_id,
+                                                            $datosComprobante,
+                                                            $datosPago);
+    return $res;
   }
 }

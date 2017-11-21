@@ -7,6 +7,8 @@ use App\Sigeci;
 use App\TramitesAIniciar;
 use App\Http\Controllers\SoapController;
 use App\Http\Controllers\WsClienteSafitController;
+use App\AnsvPaises;
+use App\SysMultivalue;
 
 class TramitesAInicarController extends Controller
 {
@@ -14,7 +16,7 @@ class TramitesAInicarController extends Controller
   private $munID = 1;
   private $estID = "A";
   private $estadoBoletaNoUtilizada = "N";
-  public $wsSafit;
+  public $wsSafit = null;
 
   public function __contruct(){
     $this->wsSafit = new WsClienteSafitController();
@@ -29,24 +31,26 @@ class TramitesAInicarController extends Controller
   }
 
   public function completarBoletasEnTramitesAIniciar(){
-    $this->temporalConstructor();
+    /****** ELIMINAR ANTES DE PRODUCCION ******/
+    if(is_null($this->wsSafit))
+      $this->temporalConstructor();
+    /*****/
     $personas = TramitesAIniciar::where('estado', 1)->get();
     foreach ($personas as $key => $persona) {
       $boleta = $this->getBoleta($persona);
       $this->guardarDatosBoleta($persona, $boleta);
-
     }
     return "listo";//$personas = Sigeci::where('');
   }
 
   public function guardarDatosBoleta($persona, $boleta){
     $persona->bop_cb = $boleta->bopCB;
-    $persona->bop_monto = $boleta->bopCB;
+    $persona->bop_monto = $boleta->bopMonto;
     $persona->bop_fec_pag = $boleta->bopFecPag;
     $persona->bop_id = $boleta->bopID;
+    $persona->cem_id = $boleta->cemID;
     $persona->estado = 2;
     $persona->save();
-    dd($persona);
   }
 
   public function comletarTurnosEnTramitesAIniciar(){
@@ -72,7 +76,8 @@ class TramitesAInicarController extends Controller
     $tramiteAIniciar->nombre = $turno->nombre;
     $tramiteAIniciar->tipo_doc = $turno->idtipodoc;
     $tramiteAIniciar->nro_doc = $turno->numdoc;
-    $tramiteAIniciar->nacionalidad = $turno->nacionalidad();
+    $tramiteAIniciar->nacionalidad = $this->getIdPais($turno->nacionalidad());
+    $tramiteAIniciar->fecha_nacimiento = $turno->fechaNacimiento();
     $tramiteAIniciar->save();
     return $tramiteAIniciar;
   }
@@ -83,7 +88,7 @@ class TramitesAInicarController extends Controller
     foreach ($boletas->datosBoletaPago->datosBoletaPagoParaPersona as $key => $boletaI) {
       if($this->esBoletaValida($boletaI)){
         if(!is_null($boleta)){
-          if( date($boletaI->bopFecPag) > date($boleta->bopFecPag)) // para obtener la boleta mas reciente
+          if( date($boletaI->bopFecPag) >= date($boleta->bopFecPag)) // para obtener la boleta mas reciente
             $boleta = $boletaI;
         }else
           $boleta = $boletaI;
@@ -110,5 +115,29 @@ class TramitesAInicarController extends Controller
     $parametros['tipoDocumento'] = $tipoDocumento;
     $parametros['Sexo'] = $sexo;
     return $parametros;
+  }
+
+  public function emitirBoletaVirtualPago(){
+    if(is_null($this->wsSafit))
+      $this->temporalConstructor();
+    $tramitesAIniciar = TramitesAIniciar::where('estado', 2)->get();
+    foreach ($tramitesAIniciar as $key => $tramiteAIniciar) {
+      $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);
+      dd($res);
+    }
+  }
+
+  public function getIdPais($pais){
+    /*$paises = SysMultivalue::where('type', 'PAIS')->get();
+    $res = null;
+    //dd($paises);
+    foreach ($paises as $key => $value){
+      //echo similar_text($pais, $value->description).'<br>';
+      similar_text(strtolower($value->description), strtolower($pais), $percent);
+      if($percent > 50)
+      echo strtolower($pais)." ".strtolower($value->description)." ".$percent. "<br>";
+        //$res = AnsvPaises::where('id_dgevyl', $value->id)->first();
+    }*/
+    return 1;
   }
 }
