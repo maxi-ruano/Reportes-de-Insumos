@@ -4,17 +4,24 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\TramitesAIniciar;
+use App\Http\Controllers\TramitesAIniciarController;
 use App\Tramites;
 use Log;
 
 class MicroservicioController extends Controller
 {
     public function run(){
-      echo '<br>run</br>' ;
+      $tramitesAIniciar = new TramitesAInicarController();
+      //$tramitesAIniciar->comletarTurnosEnTramitesAIniciar();// pasa de estado 1 a 2 los tramites
+      //$tramitesAIniciar->completarBoletasEnTramitesAIniciar();// pasa de estado 2 a 3 los tramites
+      //$tramitesAIniciar->emitirBoletasVirtualPago(); // pasa de estado 3 a 4 los tramites
+      //$tramitesAIniciar->verificarLibreDeuda(); // pasa de estado 4 a 5 los tramites
+      $tramitesAIniciar->enviarTramitesASinalic();// pasa de estado 5 a 6 los tramites
+      /*echo '<br>run</br>' ;
       $tramitesAIniciar = TramitesAIniciar::where('estado', 'pendiente')->get();
       foreach ($tramitesAIniciar as $key => $value) {
         $this->iniciarTramite($value);
-      }
+      }*/
     }
 
     public function iniciarTramite($contribuyente){
@@ -88,4 +95,6 @@ class MicroservicioController extends Controller
                           ->orderBy('tramite_id','desc')->first();
       return $tramite;
     }
+
+
 }

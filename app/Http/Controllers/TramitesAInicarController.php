@@ -7,6 +7,7 @@ use App\Sigeci;
 use App\TramitesAIniciar;
 use App\Http\Controllers\SoapController;
 use App\Http\Controllers\WsClienteSafitController;
+use App\Http\Controllers\WsClienteSinalicController;
 use App\AnsvPaises;
 use App\SysMultivalue;
 
@@ -20,6 +21,11 @@ class TramitesAInicarController extends Controller
 
   public function __contruct(){
     $this->wsSafit = new WsClienteSafitController();
+    $this->wsSafit->createClienteSoap();
+    $this->wsSafit->iniciarSesion();
+
+    //WS SINALIC
+    $this->wsSafit = new WsClienteSinalicController();
     $this->wsSafit->createClienteSoap();
     $this->wsSafit->iniciarSesion();
   }
@@ -117,7 +123,7 @@ class TramitesAInicarController extends Controller
     return $parametros;
   }
 
-  public function emitirBoletaVirtualPago(){
+  public function emitirBoletasVirtualPago(){
     if(is_null($this->wsSafit))
       $this->temporalConstructor();
     $tramitesAIniciar = TramitesAIniciar::where('estado', 2)->get();
@@ -139,5 +145,18 @@ class TramitesAInicarController extends Controller
         //$res = AnsvPaises::where('id_dgevyl', $value->id)->first();
     }*/
     return 1;
+  }
+
+  public function enviarTramitesASinalic(){
+    /*$tramites = TramitesAIniciar::where('estado', 5)->get();
+    foreach ($tramites as $key => $tramite) {
+      $this->inicarTramiteEnSinalic($tramite);
+    }*/
+    $clienteSinalic = new WsClienteSinalicController();
+    $clienteSinalic->enviarTramitesASinalic();
+  }
+
+  public function inicarTramiteEnSinalic($tramite){
+
   }
 }
