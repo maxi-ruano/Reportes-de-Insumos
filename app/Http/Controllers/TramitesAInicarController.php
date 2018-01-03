@@ -148,12 +148,12 @@ class TramitesAInicarController extends Controller
   }
 
   public function enviarTramitesASinalic(){
-    /*$tramites = TramitesAIniciar::where('estado', 5)->get();
+    $tramites = TramitesAIniciar::where('estado', 5)->get();
     foreach ($tramites as $key => $tramite) {
-      $this->inicarTramiteEnSinalic($tramite);
-    }*/
-    $clienteSinalic = new WsClienteSinalicController();
-    $clienteSinalic->enviarTramitesASinalic();
+      //dd('hola');
+      $clienteSinalic = new WsClienteSinalicController();
+      $clienteSinalic->iniciarTramiteNuevaLicencia($tramite);
+    }
   }
 
   public function inicarTramiteEnSinalic($tramite){

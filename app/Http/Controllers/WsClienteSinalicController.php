@@ -40,23 +40,26 @@ class WsClienteSinalicController extends Controller
   }
 
   public function iniciarTramiteNuevaLicencia($tramiteAInicar){
-     $datos = array();
-     $datos['Apellido'] = $tramiteAInicar->apellido;
-     $datos['Nombre'] = $tramiteAInicar->nombre;
-     $datos['IdCelExpedidor'] = AnsvCelExpedidor::where('sucursal_id', )->get();//$tramiteAInicar->getAnsvCelExpedidor();
-     $datos['NombreUsuario'] = $this->nombreUsuario;
-     $datos['TipoDocumento'] = $tramiteAInicar->tipo_doc;
-     $datos['NumeroDocumento'] = $tramiteAInicar->nro_doc;
-     $datos['Sexo'] = $tramiteAInicar->sexo;
-     $datos['FechaNacimiento'] = $tramiteAInicar->fecha_nacimiento;
-     $datos['Nacionalidad'] = $tramiteAInicar->nacionalidad;
-     $datos['NumeroFormulario'] = $this->numeroFormulario;
-     $datos['CodigoBarraSafit'] = $tramiteAInicar->bop_cb;
-     $datos['ImporteAbonadoSafit'] = $tramiteAInicar->importe;
-     $datos['FechaPagoSafit'] = $tramiteAInicar->bop_fec_pag;
-     $datos['NumeroComprobanteSafit'] = $tramiteAInicar->bop_id;
-     $datos['Cuil'] = '';
-     $res = $this->cliente->IniciarTramiteNuevaLicencia();
-     //dd($res);
+     $datos = array("tramite"=>
+        array(
+         "Apellido" => "$tramiteAInicar->apellido",
+         "Nombre" => $tramiteAInicar->nombre,
+         "IdCelExpedidor" => AnsvCelExpedidor::where('safit_cem_id', $tramiteAInicar->cem_id)->first()->id_cel_expedidor,//$tramiteAInicar->getAnsvCelExpedidor(),
+         "NombreUsuario" => $this->nombreUsuario,
+         "TipoDocumento" => $tramiteAInicar->tipo_doc,
+         "NumeroDocumento" => $tramiteAInicar->nro_doc,
+         "Sexo" => $tramiteAInicar->sexo,
+         "FechaNacimiento" => $tramiteAInicar->fecha_nacimiento,
+         "Nacionalidad" => $tramiteAInicar->nacionalidad,
+         "NumeroFormulario" => $this->numeroFormulario,
+         "CodigoBarraSafit" => $tramiteAInicar->bop_cb,
+         "ImporteAbonadoSafit" => $tramiteAInicar->bop_monto,
+         "FechaPagoSafit" => $tramiteAInicar->bop_fec_pag,
+         "NumeroComprobanteSafit" => $tramiteAInicar->bop_id,
+         "Cuil" => ''
+       )
+     );
+     $res = $this->cliente->IniciarTramiteNuevaLicencia($datos);
+     dd($res);
   }
 }
