@@ -10,6 +10,7 @@ use App\Http\Controllers\WsClienteSafitController;
 use App\Http\Controllers\WsClienteSinalicController;
 use App\AnsvPaises;
 use App\SysMultivalue;
+use App\SigeciPaises;
 
 class TramitesAInicarController extends Controller
 {
@@ -134,17 +135,8 @@ class TramitesAInicarController extends Controller
   }
 
   public function getIdPais($pais){
-    /*$paises = SysMultivalue::where('type', 'PAIS')->get();
-    $res = null;
-    //dd($paises);
-    foreach ($paises as $key => $value){
-      //echo similar_text($pais, $value->description).'<br>';
-      similar_text(strtolower($value->description), strtolower($pais), $percent);
-      if($percent > 50)
-      echo strtolower($pais)." ".strtolower($value->description)." ".$percent. "<br>";
-        //$res = AnsvPaises::where('id_dgevyl', $value->id)->first();
-    }*/
-    return 1;
+    $pais = SigeciPaises::where('pais', $pais)->first();
+    return $pais->paisAnsv->id_ansv;
   }
 
   public function enviarTramitesASinalic(){
