@@ -11,6 +11,7 @@ use App\Http\Controllers\WsClienteSinalicController;
 use App\AnsvPaises;
 use App\SysMultivalue;
 use App\SigeciPaises;
+use App\TramitesAIniciarErrores;
 
 class TramitesAInicarController extends Controller
 {
@@ -45,7 +46,8 @@ class TramitesAInicarController extends Controller
     $personas = TramitesAIniciar::where('estado', 1)->get();
     foreach ($personas as $key => $persona) {
       $boleta = $this->getBoleta($persona);
-      $this->guardarDatosBoleta($persona, $boleta);
+      if(!is_null($boleta))
+        $this->guardarDatosBoleta($persona, $boleta);
     }
     return "listo";//$personas = Sigeci::where('');
   }
@@ -92,14 +94,22 @@ class TramitesAInicarController extends Controller
   public function getBoleta($persona){
     $boletas = $this->wsSafit->getBoletas($persona);
     $boleta = null;
-    foreach ($boletas->datosBoletaPago->datosBoletaPagoParaPersona as $key => $boletaI) {
-      if($this->esBoletaValida($boletaI)){
-        if(!is_null($boleta)){
-          if( date($boletaI->bopFecPag) >= date($boleta->bopFecPag)) // para obtener la boleta mas reciente
+    if(!empty($boletas->datosBoletaPago))
+      foreach ($boletas->datosBoletaPago->datosBoletaPagoParaPersona as $key => $boletaI) {
+        if($this->esBoletaValida($boletaI)){
+          if(!is_null($boleta)){
+            if( date($boletaI->bopFecPag) >= date($boleta->bopFecPag)) // para obtener la boleta mas reciente
+              $boleta = $boletaI;
+          }else
             $boleta = $boletaI;
-        }else
-          $boleta = $boletaI;
+        }else{
+          TramitesAIniciarErrores::create(['description' => "No existe ninguna boleta valida para esta persona",
+                                           'tramites_a_inicar_id' => $persona->id]);
+        }
       }
+    else {
+      TramitesAIniciarErrores::create(['description' => 'No existen Boletas para el tramite '.$persona->nro_doc,
+                                       'tramites_a_inicar_id' => $persona->id]);
     }
 
     if(!is_null($boleta))
@@ -130,7 +140,13 @@ class TramitesAInicarController extends Controller
     $tramitesAIniciar = TramitesAIniciar::where('estado', 2)->get();
     foreach ($tramitesAIniciar as $key => $tramiteAIniciar) {
       $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);
-      dd($res);
+      if($res->rspID == 1){
+        $tramiteAIniciar->estado=3;
+        $tramiteAIniciar->save();
+      }else{
+        TramitesAIniciarErrores::create(['description' => "rspID: ".$res->rspID." rspDescrip: ".$res->rspDescrip,
+                                         'tramites_a_inicar_id' => $tramiteAIniciar->id]);
+      }
     }
   }
 
