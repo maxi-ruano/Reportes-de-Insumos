@@ -12,6 +12,8 @@ use App\AnsvPaises;
 use App\SysMultivalue;
 use App\SigeciPaises;
 use App\TramitesAIniciarErrores;
+use App\LibreDeudaLns;
+use App\LibreDeudaHdr;
 
 class TramitesAInicarController extends Controller
 {
@@ -20,6 +22,10 @@ class TramitesAInicarController extends Controller
   private $estID = "A";
   private $estadoBoletaNoUtilizada = "N";
   public $wsSafit = null;
+
+  //LIBRE deuda
+  private $userLibreDeuda = "LICENCIAS01";
+  private $passwordLibreDeuda = "TEST1234";
 
   public function __contruct(){
     $this->wsSafit = new WsClienteSafitController();
@@ -156,15 +162,122 @@ class TramitesAInicarController extends Controller
   }
 
   public function enviarTramitesASinalic(){
-    $tramites = TramitesAIniciar::where('estado', 5)->get();
+    $tramites = TramitesAIniciar::where('estado', 3)->get();
     foreach ($tramites as $key => $tramite) {
-      //dd('hola');
+
       $clienteSinalic = new WsClienteSinalicController();
-      $clienteSinalic->iniciarTramiteNuevaLicencia($tramite);
+      $res = $clienteSinalic->iniciarTramiteNuevaLicencia($tramite);
+      if( $res->IniciarTramiteNuevaLicenciaResult->CantidadErrores > 0 )
+        TramitesAIniciarErrores::create(['description' => "error al mandar a sinalic",
+                                       'tramites_a_inicar_id' => $tramite->id]);
     }
   }
 
-  public function inicarTramiteEnSinalic($tramite){
-
+  public function verificarLibreDeudaDeTramites(){
+    $tramites = TramitesAIniciar::where('estado', 3)->get();
+    foreach ($tramites as $key => $tramite) {
+      $res = $this->verificarLibreDeuda($tramite);
+      if( $res !== true){
+        TramitesAIniciarErrores::create(['description' => "error libre deuda: ".$res,
+                                       'tramites_a_inicar_id' => $tramite->id]);
+      }
+      break;
+    }
   }
+
+  public function validarInhabilitacion($res){
+    return "validarInhabilitacion";
+  }
+
+  public function verificarLibreDeuda($tramite){
+    $res = null;
+    $url = "http://192.168.110.245/LicenciaWS/LicenciaWS?";
+    $datos = "method=getLibreDeuda".
+             "&tipoDoc=DNI".//$tramite->tipo_doc.
+             "&numeroDoc=".$tramite->nro_doc.
+             "&userName=".$this->userLibreDeuda.
+             "&userPass=".$this->passwordLibreDeuda;
+    $wsresult = file_get_contents($url.$datos, false);
+
+    if ($wsresult == FALSE){
+      $res = "Error con el Ws Libre Deuda";
+    }else{
+      $p = xml_parser_create();
+      xml_parse_into_struct($p, $wsresult, $vals, $index);
+      xml_parser_free($p);
+      $json = json_encode($vals);
+      $array = json_decode($json,TRUE);
+      //print_r($json);
+      $persona = null;
+      $libreDeuda = null;
+      foreach ($array as $key => $value) {
+        if($value['tag'] == 'ERROR' )
+          $res = $value['value'];
+        else{
+          if($value['tag'] == 'PERSONA' )
+            $persona = $value['attributes'];
+          if($value['tag'] == 'LIBREDEUDA' )
+            $libreDeuda = $value['attributes'];
+        }
+      }
+      if(is_null($res)){
+        $libreDeudaHdr = $this->guardarDatosPersonaLibreDeuda($persona, $tramite);
+        $this->guardarDatosLibreDeuda($libreDeuda, $libreDeudaHdr);
+        $res = true;
+      }
+    }
+    return $res;
+  }
+
+  public function guardarDatosPersonaLibreDeuda($datos, $tramite){
+    $libreDeudaHdr = LibreDeudaHdr::where('tipo_doc', $tramite->tipo_doc)
+                                  ->where('sexo', $tramite->sexo)
+                                  ->where('pais', $tramite->nacionalidad)
+                                  ->first();
+    if(!$libreDeudaHdr)
+      $libreDeudaHdr = new libreDeudaHdr();
+    $libreDeudaHdr->nro_doc = $datos['DOCUMENTO'];
+    $libreDeudaHdr->tipo_doc = $tramite->tipo_doc;
+    $libreDeudaHdr->sexo = $tramite->sexo;
+    $libreDeudaHdr->pais = $tramite->nacionalidad;
+    $libreDeudaHdr->nombre = $datos['NOMBRE'];
+    $libreDeudaHdr->apellido = $datos['APELLIDO'];
+    $libreDeudaHdr->tipo_doc_text = $datos['TIPODOC'];
+    $libreDeudaHdr->calle = $datos['CALLE'];
+    $libreDeudaHdr->numero = $datos['NUMERO'];
+    $libreDeudaHdr->piso = $datos['PISO'];
+    $libreDeudaHdr->depto = $datos['DEPTO'];
+    $libreDeudaHdr->telefono = $datos['TELEFONO'];
+    $libreDeudaHdr->localidad = $datos['LOCALIDAD'];
+    $libreDeudaHdr->provincia = $datos['PROVINCIA'];
+    $libreDeudaHdr->provincia_text = $datos['DESCPROVINCIA'];
+    $libreDeudaHdr->codigo_postal = $datos['CODIGOPOSTAL'];
+    $libreDeudaHdr->saldopuntos = $datos['SALDOPUNTOS'];
+    $libreDeudaHdr->cantidadvecesllegoa0 = $datos['CANTIDADVECESLLEGOA0'];
+    $libreDeudaHdr->save();
+    return $libreDeudaHdr;
+  }
+
+  public function guardarDatosLibreDeuda($datos, $libreDeudaHdr){
+    $LibreDeudaLns = LibreDeudaLns::where('libredeuda_hdr_id', $libreDeudaHdr->libredeuda_hdr_id)->first();
+    if(!$LibreDeudaLns)
+      $LibreDeudaLns = new LibreDeudaLns();
+    $LibreDeudaLns->libredeuda_hdr_id = $libreDeudaHdr->libredeuda_hdr_id;
+    $LibreDeudaLns->numero_completo = $datos['NUMEROCOMPLETO'];
+    $LibreDeudaLns->numero_id = $datos['NUMEROLD'];
+    $LibreDeudaLns->digito = $datos['DIGITO'];
+    $LibreDeudaLns->codigo_barras = $datos['CODIGOBARRAS'];
+    $LibreDeudaLns->codigo_barras_encriptado = $datos['CODIGOBARRASENCRIPTADO'];
+    $LibreDeudaLns->username = $datos['USERNAME'];
+    $LibreDeudaLns->importe = $datos['IMPORTE'];
+    $LibreDeudaLns->clavesb = $datos['CLAVESB'];
+    $LibreDeudaLns->fecha_emision_completa = $datos['FECHAEMISIONCOMPLETA'];
+    $LibreDeudaLns->hora_emision = $datos['HORAEMISION'];
+    $LibreDeudaLns->fecha_emision = $datos['FECHAEMISION'];
+    $LibreDeudaLns->fecha_vencimiento_completa = $datos['FECHAVENCIMIENTOCOMPLETA'];
+    $LibreDeudaLns->fecha_vencimiento = $datos['FECHAVENCIMIENTO'];
+    $LibreDeudaLns->save();
+  }
+
+
 }
