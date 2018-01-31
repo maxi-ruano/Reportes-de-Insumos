@@ -27,6 +27,9 @@ class TramitesAInicarController extends Controller
   private $userLibreDeuda = "LICENCIAS01";
   private $passwordLibreDeuda = "TEST1234";
 
+  private $userBui = "licenciasws";
+  private $passwordBui = "lic189";
+
   public function __contruct(){
     $this->wsSafit = new WsClienteSafitController();
     $this->wsSafit->createClienteSoap();
@@ -279,5 +282,71 @@ class TramitesAInicarController extends Controller
     $LibreDeudaLns->save();
   }
 
+  public function verificarBuiTramites(){
+    $tramites = TramitesAIniciar::where('estado', 3)->get();
+    foreach ($tramites as $key => $tramite) {
+      $res = $this->verificarBui($tramite);
+      if( $res !== true){
+        TramitesAIniciarErrores::create(['description' => "error en Bui: ".$res,
+                                       'tramites_a_inicar_id' => $tramite->id]);
+      }else {
+        $tramite->estado = 5;
+        $tramite->save();
+      }
+      break;
+    }
+    return true;
+  }
 
+  public function verificarBui($tramite){
+    $url = 'http://10.73.100.42:6748/service/api/BUI/GetResumenBoletasPagas';
+    $data = array("TipoDocumento" => "DNI",
+                  "NroDocumento" => $tramite->nro_doc, //"24571740",
+                  "ListaConceptos" => ["07.02.28"],
+                  "Ultima" => "true");
+
+    $res = $this->peticionCurl($data, $url, "POST", $this->userBui, $this->passwordBui);
+    if(empty($res->boletas))
+      $res = "No dispone de ninguna boleta";
+    else {
+      if($this->existeBoletaHabilitada($res->boletas))
+        $res = true;
+      else
+        $res = "No dispone de ninguna boleta habilitada";
+    }
+    return $res;
+  }
+
+  public function peticionCurl($data, $url, $metodo, $user, $password){
+    $data_string = json_encode($data);
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_USERPWD, "$user:$password");
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $metodo);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($data_string))
+    );
+
+    $result = curl_exec($ch);
+    curl_close($ch);
+    $result = (object)json_decode($result, true);
+    return $result;
+  }
+
+  public function existeBoletaHabilitada($boletas){
+    $res = false;
+    foreach ($boletas as $key => $boleta) {
+      $boleta = (object)$boleta;
+      $vto = substr($boleta->FechaPago,1,10);
+      $nuevaFecha = strtotime ( '+1 year' , strtotime ( $vto ) ) ;
+      if (date('Y-m-d') < date('Y-m-d',$nuevaFecha)){
+        $res = true;
+        break;
+      }
+    }
+    return $res;
+  }
 }
