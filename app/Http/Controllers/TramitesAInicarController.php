@@ -14,6 +14,7 @@ use App\SigeciPaises;
 use App\TramitesAIniciarErrores;
 use App\LibreDeudaLns;
 use App\LibreDeudaHdr;
+use App\BoletaBui;
 
 class TramitesAInicarController extends Controller
 {
@@ -301,7 +302,7 @@ class TramitesAInicarController extends Controller
   public function verificarBui($tramite){
     $url = 'http://10.73.100.42:6748/service/api/BUI/GetResumenBoletasPagas';
     $data = array("TipoDocumento" => "DNI",
-                  "NroDocumento" => $tramite->nro_doc, //"24571740",
+                  "NroDocumento" => "24571740",//$tramite->nro_doc, //"24571740",
                   "ListaConceptos" => ["07.02.28"],
                   "Ultima" => "true");
 
@@ -309,8 +310,20 @@ class TramitesAInicarController extends Controller
     if(empty($res->boletas))
       $res = "No dispone de ninguna boleta";
     else {
-      if($this->existeBoletaHabilitada($res->boletas))
+      if($boleta = $this->existeBoletaHabilitada($res->boletas)){
+        if(!$this->boletaUtilizada($boleta)){
+          $boletaBui = BoletaBui::create(array(
+          'id_boleta'=>$boleta->IDBoleta,
+          'nro_boleta'=>$boleta->NroBoleta,
+          'cod_barras'=>$boleta->CodBarras,
+          'importe_total'=>$boleta->ImporteTotal,
+          'fecha_pago'=>$boleta->FechaPago,
+          'lugar_pago'=>$boleta->LugarPago,
+          'medio_pago'=>$boleta->MedioPago,
+          'tramite_a_iniciar_id'=>$tramite->id));
+        }
         $res = true;
+      }
       else
         $res = "No dispone de ninguna boleta habilitada";
     }
@@ -343,10 +356,20 @@ class TramitesAInicarController extends Controller
       $vto = substr($boleta->FechaPago,1,10);
       $nuevaFecha = strtotime ( '+1 year' , strtotime ( $vto ) ) ;
       if (date('Y-m-d') < date('Y-m-d',$nuevaFecha)){
-        $res = true;
-        break;
+          $res = $boleta;
+          break;
       }
     }
+    return $res;
+  }
+
+  public function boletaUtilizada($boleta){
+    $res = false;
+    $boleta = BoletaBui::where('id_boleta', $boleta->IDBoleta)
+                       ->whereNotNull('tramite_a_iniciar_id')
+                       ->first();
+    if($boleta)
+      $res = true;
     return $res;
   }
 }
