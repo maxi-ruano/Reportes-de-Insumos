@@ -55,14 +55,22 @@ class TramitesAInicarController extends Controller
     /*****/
     $personas = TramitesAIniciar::where('estado', $estadoActual)->get();
     foreach ($personas as $key => $persona) {
-      $boleta = $this->getBoleta($persona);
-      if(!is_null($boleta))
-        $this->guardarDatosBoleta($persona, $boleta, $siguienteEstado);
+      $res = $this->getBoleta($persona);
+      //dd($res);
+      if(empty($res->error))
+        $this->guardarDatosBoleta($persona, $res, $siguienteEstado);
       else {
-        # code...
+        $this->guardarError($res, $estadoActual, $persona->id);
       }
     }
-    return "listo";//$personas = Sigeci::where('');
+  }
+
+  public function guardarError($res, $estado, $tramite){
+    TramitesAIniciarErrores::create(['description' => $res->error,
+                                      'request_ws' => $res->request,
+                                      'response_ws' => $res->response,
+                                      'estado_error' => $estado,
+                                      'tramites_a_inicar_id' => $tramite]);
   }
 
   public function guardarDatosBoleta($persona, $boleta, $siguienteEstado){
@@ -110,6 +118,7 @@ class TramitesAInicarController extends Controller
   }
 
   public function getBoleta($persona){
+    $res = array('error' => '');
     $boletas = $this->wsSafit->getBoletas($persona);
     $boleta = null;
     if(!empty($boletas->datosBoletaPago))
@@ -121,18 +130,23 @@ class TramitesAInicarController extends Controller
           }else
             $boleta = $boletaI;
         }else{
-          TramitesAIniciarErrores::create(['description' => "No existe ninguna boleta valida para esta persona",
-                                           'tramites_a_inicar_id' => $persona->id]);
+          $res['error'] = "No existe ninguna boleta valida para esta persona";
         }
       }
     else {
-      TramitesAIniciarErrores::create(['description' => 'No existen Boletas para el tramite '.$persona->nro_doc,
-                                       'tramites_a_inicar_id' => $persona->id]);
+      $res['error'] = $boletas->rspDescrip;
     }
 
-    if(!is_null($boleta))
+    if(!is_null($boleta)){
       $persona->sexo = $boletas->datosBoletaPago->datosPersonaBoletaPago->oprSexo;
-    return $boleta;
+      $res = $boleta;
+    }else{
+      $res['request'] = json_encode($persona);
+      $res['response'] = json_encode($boletas);
+      $res = (object)$res;
+    }
+
+    return $res;
   }
 
   public function esBoletaValida($boleta){
@@ -203,14 +217,13 @@ class TramitesAInicarController extends Controller
       }
 
       if( !$enviadoCorrectamente ){
-        //dd(json_decode($res));
         TramitesAIniciarErrores::create(['description' => json_encode($res, true),
                                        'tramites_a_inicar_id' => $tramite->id]);
       }else {
         $tramite->estado = $siguienteEstado;
         $tramite->save();
       }
-
+    }
   }
 
   public function verificarLibreDeudaDeTramites($estadoActual, $siguienteEstado){

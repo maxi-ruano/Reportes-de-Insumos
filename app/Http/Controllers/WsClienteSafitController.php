@@ -25,7 +25,6 @@ class WsClienteSafitController extends Controller
                                          $this->uswHash );
     $this->sisID = $res->sesID;
     $this->ingID = $res->ingID;
-    //dd($this->cliente->__getFunctions());
   }
 
   public function cerrarSesion(){
@@ -36,15 +35,14 @@ class WsClienteSafitController extends Controller
   }
 
   public function getBoletas($persona){
-    //dd($this->cliente->__getFunctions());
     $res = $this->cliente->consultar_boleta_pago_persona($this->uswID,
                                                    $this->ingID,
                                                    $this->munID,
                                                    $persona->nro_doc,
                                                    $persona->tipo_doc);
     return $res;
-    //$res = $cliente->consultar_boleta_pago_persona("000016","462718","1","36918762","1");
   }
+
   public function soapClienteDispoble(){
 
   }

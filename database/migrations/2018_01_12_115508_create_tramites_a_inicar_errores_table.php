@@ -16,6 +16,9 @@ class CreateTramitesAInicarErroresTable extends Migration
         Schema::create('tramites_a_iniciar_errores', function (Blueprint $table) {
             $table->increments('id');
             $table->string('description');
+            $table->integer('estado_error');
+            $table->text('request_ws')->nullable();
+            $table->text('response_ws')->nullable();
             $table->integer('tramites_a_inicar_id')->unsigned();
             $table->foreign('tramites_a_inicar_id')
                   ->references('id')->on('tramites_a_inicar');
