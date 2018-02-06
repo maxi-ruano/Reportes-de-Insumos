@@ -48,34 +48,37 @@ class TramitesAInicarController extends Controller
     $this->wsSafit->iniciarSesion();
   }
 
-  public function completarBoletasEnTramitesAIniciar(){
+  public function completarBoletasEnTramitesAIniciar($estadoActual, $siguienteEstado){
     /****** ELIMINAR ANTES DE PRODUCCION ******/
     if(is_null($this->wsSafit))
       $this->temporalConstructor();
     /*****/
-    $personas = TramitesAIniciar::where('estado', 1)->get();
+    $personas = TramitesAIniciar::where('estado', $estadoActual)->get();
     foreach ($personas as $key => $persona) {
       $boleta = $this->getBoleta($persona);
       if(!is_null($boleta))
-        $this->guardarDatosBoleta($persona, $boleta);
+        $this->guardarDatosBoleta($persona, $boleta, $siguienteEstado);
+      else {
+        # code...
+      }
     }
     return "listo";//$personas = Sigeci::where('');
   }
 
-  public function guardarDatosBoleta($persona, $boleta){
+  public function guardarDatosBoleta($persona, $boleta, $siguienteEstado){
     $persona->bop_cb = $boleta->bopCB;
     $persona->bop_monto = $boleta->bopMonto;
     $persona->bop_fec_pag = $boleta->bopFecPag;
     $persona->bop_id = $boleta->bopID;
     $persona->cem_id = $boleta->cemID;
-    $persona->estado = 2;
+    $persona->estado = $siguienteEstado;
     $persona->save();
   }
 
-  public function comletarTurnosEnTramitesAIniciar(){
+  public function comletarTurnosEnTramitesAIniciar($siguienteEstado){
     $xmasDay = new \DateTime(date("Y-m-d").' + ' . $this->diasEnAdelante . ' day');
     $turnos = $this->getTurnos($xmasDay->format('Y-m-d'));
-    $this->guardarTurnosEnTramitesAInicar($turnos);
+    $this->guardarTurnosEnTramitesAInicar($turnos, $siguienteEstado);
   }
 
   public function getTurnos($dia){
@@ -83,22 +86,27 @@ class TramitesAInicarController extends Controller
     return $res;
   }
 
-  public function guardarTurnosEnTramitesAInicar($turnos){
+  public function guardarTurnosEnTramitesAInicar($turnos, $siguienteEstado){
     foreach ($turnos as $key => $turno) {
-      $this->guardarTurnoEnTramitesAInicar($turno);
+      $this->guardarTurnoEnTramitesAInicar($turno, $siguienteEstado);
     }
   }
 
-  public function guardarTurnoEnTramitesAInicar($turno){
-    $tramiteAIniciar = new TramitesAIniciar();
-    $tramiteAIniciar->apellido = $turno->apellido;
-    $tramiteAIniciar->nombre = $turno->nombre;
-    $tramiteAIniciar->tipo_doc = $turno->idtipodoc;
-    $tramiteAIniciar->nro_doc = $turno->numdoc;
-    $tramiteAIniciar->nacionalidad = $this->getIdPais($turno->nacionalidad());
-    $tramiteAIniciar->fecha_nacimiento = $turno->fechaNacimiento();
-    $tramiteAIniciar->save();
-    return $tramiteAIniciar;
+  public function guardarTurnoEnTramitesAInicar($turno, $siguienteEstado){
+    if(empty(TramitesAIniciar::where('sigeci_idcita', $turno->idcita)->first())){
+      $tramiteAIniciar = new TramitesAIniciar();
+      $tramiteAIniciar->apellido = $turno->apellido;
+      $tramiteAIniciar->nombre = $turno->nombre;
+      $tramiteAIniciar->tipo_doc = $turno->idtipodoc;
+      $tramiteAIniciar->nro_doc = $turno->numdoc;
+      $tramiteAIniciar->tipo_tramite_sigeci = $turno->idprestacion;
+      $tramiteAIniciar->nacionalidad = $this->getIdPais($turno->nacionalidad());
+      $tramiteAIniciar->fecha_nacimiento = $turno->fechaNacimiento();
+      $tramiteAIniciar->estado = $siguienteEstado;
+      $tramiteAIniciar->sigeci_idcita = $turno->idcita;
+      $tramiteAIniciar->save();
+      return $tramiteAIniciar;
+    }
   }
 
   public function getBoleta($persona){
@@ -144,14 +152,14 @@ class TramitesAInicarController extends Controller
     return $parametros;
   }
 
-  public function emitirBoletasVirtualPago(){
+  public function emitirBoletasVirtualPago($estadoActual, $siguienteEstado){
     if(is_null($this->wsSafit))
       $this->temporalConstructor();
-    $tramitesAIniciar = TramitesAIniciar::where('estado', 2)->get();
+    $tramitesAIniciar = TramitesAIniciar::where('estado', $estadoActual)->get();
     foreach ($tramitesAIniciar as $key => $tramiteAIniciar) {
       $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);
       if($res->rspID == 1){
-        $tramiteAIniciar->estado=3;
+        $tramiteAIniciar->estado=$siguienteEstado;
         $tramiteAIniciar->save();
       }else{
         TramitesAIniciarErrores::create(['description' => "rspID: ".$res->rspID." rspDescrip: ".$res->rspDescrip,
@@ -165,27 +173,57 @@ class TramitesAInicarController extends Controller
     return $pais->paisAnsv->id_ansv;
   }
 
-  public function enviarTramitesASinalic(){
-    $tramites = TramitesAIniciar::where('estado', 3)->get();
+  public function enviarTramitesASinalic($estadoActual, $siguienteEstado){
+    $tramites = TramitesAIniciar::where('estado', $estadoActual)->get();
     foreach ($tramites as $key => $tramite) {
-
+      $res = null;
+      $enviadoCorrectamente = false;
       $clienteSinalic = new WsClienteSinalicController();
-      $res = $clienteSinalic->iniciarTramiteNuevaLicencia($tramite);
-      if( $res->IniciarTramiteNuevaLicenciaResult->CantidadErrores > 0 )
-        TramitesAIniciarErrores::create(['description' => "error al mandar a sinalic",
+      $datos = $clienteSinalic->parseTramiteParaSinalic($tramite);
+
+      switch ($tramite->tipoTramite()) {
+        case 'IniciarTramiteRenovarLicencia':
+          $res = $clienteSinalic->IniciarTramiteRenovarLicencia($datos);
+          if( $res->IniciarTramiteRenovarLicenciaResult->CantidadErrores == 0 )
+            $enviadoCorrectamente = true;
+        break;
+        case 'IniciarTramiteNuevaLicencia':
+          $res = $clienteSinalic->IniciarTramiteNuevaLicencia($datos);
+          if( $res->IniciarTramiteNuevaLicenciaResult->CantidadErrores == 0 )
+            $enviadoCorrectamente = true;
+        break;
+        case 'IniciarTramiteRenovacionConAmpliacion':
+          $res = $clienteSinalic->IniciarTramiteRenovacionConAmpliacion($datos);
+          if( $res->IniciarTramiteRenovacionConAmpliacionResult->CantidadErrores == 0 )
+            $enviadoCorrectamente = true;
+        break;
+        default:
+          # code...
+          break;
+      }
+
+      if( !$enviadoCorrectamente ){
+        //dd(json_decode($res));
+        TramitesAIniciarErrores::create(['description' => json_encode($res, true),
                                        'tramites_a_inicar_id' => $tramite->id]);
-    }
+      }else {
+        $tramite->estado = $siguienteEstado;
+        $tramite->save();
+      }
+
   }
 
-  public function verificarLibreDeudaDeTramites(){
-    $tramites = TramitesAIniciar::where('estado', 3)->get();
+  public function verificarLibreDeudaDeTramites($estadoActual, $siguienteEstado){
+    $tramites = TramitesAIniciar::where('estado', $estadoActual)->get();
     foreach ($tramites as $key => $tramite) {
       $res = $this->verificarLibreDeuda($tramite);
       if( $res !== true){
         TramitesAIniciarErrores::create(['description' => "error libre deuda: ".$res,
                                        'tramites_a_inicar_id' => $tramite->id]);
+      }else {
+        $tramite->estado = $siguienteEstado;
+        $tramite->save();
       }
-      break;
     }
   }
 
@@ -240,24 +278,24 @@ class TramitesAInicarController extends Controller
                                   ->first();
     if(!$libreDeudaHdr)
       $libreDeudaHdr = new libreDeudaHdr();
-    $libreDeudaHdr->nro_doc = $datos['DOCUMENTO'];
+    $libreDeudaHdr->nro_doc = $datos['DOCUMENTO'] ? $datos['DOCUMENTO'] : "";
     $libreDeudaHdr->tipo_doc = $tramite->tipo_doc;
     $libreDeudaHdr->sexo = $tramite->sexo;
     $libreDeudaHdr->pais = $tramite->nacionalidad;
-    $libreDeudaHdr->nombre = $datos['NOMBRE'];
-    $libreDeudaHdr->apellido = $datos['APELLIDO'];
-    $libreDeudaHdr->tipo_doc_text = $datos['TIPODOC'];
-    $libreDeudaHdr->calle = $datos['CALLE'];
-    $libreDeudaHdr->numero = $datos['NUMERO'];
-    $libreDeudaHdr->piso = $datos['PISO'];
-    $libreDeudaHdr->depto = $datos['DEPTO'];
-    $libreDeudaHdr->telefono = $datos['TELEFONO'];
-    $libreDeudaHdr->localidad = $datos['LOCALIDAD'];
-    $libreDeudaHdr->provincia = $datos['PROVINCIA'];
-    $libreDeudaHdr->provincia_text = $datos['DESCPROVINCIA'];
-    $libreDeudaHdr->codigo_postal = $datos['CODIGOPOSTAL'];
-    $libreDeudaHdr->saldopuntos = $datos['SALDOPUNTOS'];
-    $libreDeudaHdr->cantidadvecesllegoa0 = $datos['CANTIDADVECESLLEGOA0'];
+    $libreDeudaHdr->nombre = $datos['NOMBRE'] ? $datos['NOMBRE'] : "";
+    $libreDeudaHdr->apellido = $datos['APELLIDO'] ? $datos['APELLIDO'] : "";
+    $libreDeudaHdr->tipo_doc_text = $datos['TIPODOC'] ? $datos['TIPODOC'] : "";
+    $libreDeudaHdr->calle = $datos['CALLE'] ? $datos['CALLE'] : "";
+    $libreDeudaHdr->numero = $datos['NUMERO'] ? $datos['NUMERO'] : "";
+    $libreDeudaHdr->piso = $datos['PISO'] ? $datos['PISO'] : "";
+    $libreDeudaHdr->depto = $datos['DEPTO'] ? $datos['DEPTO'] : "";
+    $libreDeudaHdr->telefono = $datos['TELEFONO'] ? $datos['TELEFONO'] : "";
+    $libreDeudaHdr->localidad = $datos['LOCALIDAD'] ? $datos['LOCALIDAD'] : "";
+    if($datos['PROVINCIA'])  $libreDeudaHdr->provincia = $datos['PROVINCIA'];
+    $libreDeudaHdr->provincia_text = $datos['DESCPROVINCIA'] ? $datos['DESCPROVINCIA'] : "";
+    $libreDeudaHdr->codigo_postal = $datos['CODIGOPOSTAL'] ? $datos['CODIGOPOSTAL'] : "";
+    if($datos['SALDOPUNTOS']) $libreDeudaHdr->saldopuntos = $datos['SALDOPUNTOS'];
+    if($datos['CANTIDADVECESLLEGOA0']) $libreDeudaHdr->cantidadvecesllegoa0 = $datos['CANTIDADVECESLLEGOA0'] ;
     $libreDeudaHdr->save();
     return $libreDeudaHdr;
   }
@@ -283,18 +321,17 @@ class TramitesAInicarController extends Controller
     $LibreDeudaLns->save();
   }
 
-  public function verificarBuiTramites(){
-    $tramites = TramitesAIniciar::where('estado', 3)->get();
+  public function verificarBuiTramites($estadoActual, $siguienteEstado){
+    $tramites = TramitesAIniciar::where('estado', $estadoActual)->get();
     foreach ($tramites as $key => $tramite) {
       $res = $this->verificarBui($tramite);
       if( $res !== true){
         TramitesAIniciarErrores::create(['description' => "error en Bui: ".$res,
                                        'tramites_a_inicar_id' => $tramite->id]);
       }else {
-        $tramite->estado = 5;
+        $tramite->estado = $siguienteEstado;
         $tramite->save();
       }
-      break;
     }
     return true;
   }

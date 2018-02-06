@@ -39,27 +39,48 @@ class WsClienteSinalicController extends Controller
       }
   }
 
-  public function iniciarTramiteNuevaLicencia($tramiteAInicar){
-     $datos = array("tramite"=>
-        array(
-         "Apellido" => "$tramiteAInicar->apellido",
-         "Nombre" => $tramiteAInicar->nombre,
-         "IdCelExpedidor" => AnsvCelExpedidor::where('safit_cem_id', $tramiteAInicar->cem_id)->first()->id_cel_expedidor,//$tramiteAInicar->getAnsvCelExpedidor(),
-         "NombreUsuario" => $this->nombreUsuario,
-         "TipoDocumento" => $tramiteAInicar->tipo_doc,
-         "NumeroDocumento" => $tramiteAInicar->nro_doc,
-         "Sexo" => $tramiteAInicar->sexo,
-         "FechaNacimiento" => $tramiteAInicar->fecha_nacimiento,
-         "Nacionalidad" => $tramiteAInicar->nacionalidad,
-         "NumeroFormulario" => $this->numeroFormulario,
-         "CodigoBarraSafit" => $tramiteAInicar->bop_cb,
-         "ImporteAbonadoSafit" => $tramiteAInicar->bop_monto,
-         "FechaPagoSafit" => $tramiteAInicar->bop_fec_pag,
-         "NumeroComprobanteSafit" => $tramiteAInicar->bop_id,
-         "Cuil" => ''
-       )
-     );
-     $res = $this->cliente->IniciarTramiteNuevaLicencia($datos);
-     dd($res);
+  public function IniciarTramiteNuevaLicencia($tramiteAInicar){
+    $res = $this->cliente->IniciarTramiteNuevaLicencia($tramiteAInicar);
+    /*echo "REQUEST:\n" . htmlentities(str_ireplace('><', ">\n<", $this->cliente->__getLastRequest())) . "\n";
+    echo "Response:\n" . htmlentities(str_ireplace('><', ">\n<", $this->cliente->__getLastResponse())) . "\n";*/
+    return $res;
+  }
+
+  public function IniciarTramiteRenovarLicencia($tramiteAInicar){
+    $res = $this->cliente->IniciarTramiteRenovarLicencia($tramiteAInicar);
+    return $res;
+  }
+
+  public function IniciarTramiteRenovacionConAmpliacion($tramiteAInicar){
+    $res = $this->cliente->IniciarTramiteRenovacionConAmpliacion($tramiteAInicar);
+    return $res;
+  }
+
+  public function consulta(){
+    return $this->cliente;
+  }
+
+  public function parseTramiteParaSinalic($tramiteAInicar){
+    $datos = array("tramite"=>
+       array(
+        "Apellido" => "$tramiteAInicar->apellido",
+        "Nombre" => $tramiteAInicar->nombre,
+        "IdCelExpedidor" => AnsvCelExpedidor::where('safit_cem_id', $tramiteAInicar->cem_id)->first()->id_cel_expedidor,//$tramiteAInicar->getAnsvCelExpedidor(),
+        "NombreUsuario" => $this->nombreUsuario,
+        "TipoDocumento" => $tramiteAInicar->tipo_doc,
+        "NumeroDocumento" => $tramiteAInicar->nro_doc,
+        "Sexo" => $tramiteAInicar->sexo,
+        "FechaNacimiento" => date("d/m/Y", strtotime($tramiteAInicar->fecha_nacimiento)),
+        "Nacionalidad" => $tramiteAInicar->nacionalidad,
+        "NumeroFormulario" => $this->numeroFormulario,
+        "CodigoBarraSafit" => $tramiteAInicar->bop_cb,
+        "ImporteAbonadoSafit" => $tramiteAInicar->bop_monto,
+        "FechaPagoSafit" => date("d/m/Y", strtotime($tramiteAInicar->bop_fec_pag)),
+        "NumeroComprobanteSafit" => $tramiteAInicar->bop_id,
+        "Cuil" => ''
+      )
+    );
+
+    return $datos;
   }
 }

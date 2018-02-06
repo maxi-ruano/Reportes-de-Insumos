@@ -19,6 +19,7 @@ class CreateTramitesAInicarTable extends Migration
             $table->string('nombre');
             $table->string('tipo_doc');
             $table->string('nro_doc');
+            $table->integer('tipo_tramite_sigeci');
             $table->string('nacionalidad');
             $table->string('sexo')->nullable();
             $table->string('bop_cb')->nullable();
@@ -28,6 +29,7 @@ class CreateTramitesAInicarTable extends Migration
             $table->string('cem_id')->nullable();
             $table->date('fecha_nacimiento')->nullable();
             $table->string('estado')->default(1); // 1 = pendiente - 2 = completado, listo para enviar - 3 enviado todo ok - 4 enviado errores
+            $table->integer('sigeci_idcita');
             $table->timestamps();
         });
     }
