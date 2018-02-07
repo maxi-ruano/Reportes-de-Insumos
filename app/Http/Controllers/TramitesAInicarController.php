@@ -67,8 +67,8 @@ class TramitesAInicarController extends Controller
 
   public function guardarError($res, $estado, $tramite){
     TramitesAIniciarErrores::create(['description' => $res->error,
-                                      'request_ws' => $res->request,
-                                      'response_ws' => $res->response,
+                                      'request_ws' => json_encode($res->request),
+                                      'response_ws' => json_encode($res->response),
                                       'estado_error' => $estado,
                                       'tramites_a_inicar_id' => $tramite]);
   }
@@ -141,8 +141,8 @@ class TramitesAInicarController extends Controller
       $persona->sexo = $boletas->datosBoletaPago->datosPersonaBoletaPago->oprSexo;
       $res = $boleta;
     }else{
-      $res['request'] = json_encode($persona);
-      $res['response'] = json_encode($boletas);
+      $res['request'] = $persona;
+      $res['response'] = $boletas;
       $res = (object)$res;
     }
 
@@ -172,12 +172,18 @@ class TramitesAInicarController extends Controller
     $tramitesAIniciar = TramitesAIniciar::where('estado', $estadoActual)->get();
     foreach ($tramitesAIniciar as $key => $tramiteAIniciar) {
       $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);
+      echo $res->rspID == 1;
       if($res->rspID == 1){
         $tramiteAIniciar->estado=$siguienteEstado;
         $tramiteAIniciar->save();
       }else{
-        TramitesAIniciarErrores::create(['description' => "rspID: ".$res->rspID." rspDescrip: ".$res->rspDescrip,
-                                         'tramites_a_inicar_id' => $tramiteAIniciar->id]);
+        $array = array('error' => $res->rspDescrip,
+                       'request' => $tramiteAIniciar,
+                       'response' => $res);
+
+        $this->guardarError((object)$array, $estadoActual, $tramiteAIniciar->id);
+        /*TramitesAIniciarErrores::create(['description' => "rspID: ".$res->rspID." rspDescrip: ".$res->rspDescrip,
+                                         'tramites_a_inicar_id' => $tramiteAIniciar->id]);*/
       }
     }
   }
@@ -248,7 +254,7 @@ class TramitesAInicarController extends Controller
     $res = null;
     $url = "http://192.168.110.245/LicenciaWS/LicenciaWS?";
     $datos = "method=getLibreDeuda".
-             "&tipoDoc=DNI".//$tramite->tipo_doc.
+             "&tipoDoc=DsNI".//$tramite->tipo_doc.
              "&numeroDoc=".$tramite->nro_doc.
              "&userName=".$this->userLibreDeuda.
              "&userPass=".$this->passwordLibreDeuda;
@@ -262,7 +268,7 @@ class TramitesAInicarController extends Controller
       xml_parser_free($p);
       $json = json_encode($vals);
       $array = json_decode($json,TRUE);
-      //print_r($json);
+      print_r($json);
       $persona = null;
       $libreDeuda = null;
       foreach ($array as $key => $value) {
