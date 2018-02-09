@@ -172,7 +172,6 @@ class TramitesAInicarController extends Controller
     $tramitesAIniciar = TramitesAIniciar::where('estado', $estadoActual)->get();
     foreach ($tramitesAIniciar as $key => $tramiteAIniciar) {
       $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);
-      echo $res->rspID == 1;
       if($res->rspID == 1){
         $tramiteAIniciar->estado=$siguienteEstado;
         $tramiteAIniciar->save();
@@ -180,10 +179,7 @@ class TramitesAInicarController extends Controller
         $array = array('error' => $res->rspDescrip,
                        'request' => $tramiteAIniciar,
                        'response' => $res);
-
         $this->guardarError((object)$array, $estadoActual, $tramiteAIniciar->id);
-        /*TramitesAIniciarErrores::create(['description' => "rspID: ".$res->rspID." rspDescrip: ".$res->rspDescrip,
-                                         'tramites_a_inicar_id' => $tramiteAIniciar->id]);*/
       }
     }
   }
@@ -197,39 +193,46 @@ class TramitesAInicarController extends Controller
     $tramites = TramitesAIniciar::where('estado', $estadoActual)->get();
     foreach ($tramites as $key => $tramite) {
       $res = null;
-      $enviadoCorrectamente = false;
       $clienteSinalic = new WsClienteSinalicController();
       $datos = $clienteSinalic->parseTramiteParaSinalic($tramite);
 
       switch ($tramite->tipoTramite()) {
         case 'IniciarTramiteRenovarLicencia':
           $res = $clienteSinalic->IniciarTramiteRenovarLicencia($datos);
-          if( $res->IniciarTramiteRenovarLicenciaResult->CantidadErrores == 0 )
-            $enviadoCorrectamente = true;
         break;
         case 'IniciarTramiteNuevaLicencia':
           $res = $clienteSinalic->IniciarTramiteNuevaLicencia($datos);
-          if( $res->IniciarTramiteNuevaLicenciaResult->CantidadErrores == 0 )
-            $enviadoCorrectamente = true;
         break;
         case 'IniciarTramiteRenovacionConAmpliacion':
           $res = $clienteSinalic->IniciarTramiteRenovacionConAmpliacion($datos);
-          if( $res->IniciarTramiteRenovacionConAmpliacionResult->CantidadErrores == 0 )
-            $enviadoCorrectamente = true;
         break;
         default:
           # code...
           break;
       }
-
-      if( !$enviadoCorrectamente ){
-        TramitesAIniciarErrores::create(['description' => json_encode($res, true),
-                                       'tramites_a_inicar_id' => $tramite->id]);
-      }else {
+      dd($res);
+      $res = $this->interpretarResultado($res, $datos);
+      if(!empty($res->error))
+        $this->guardarError($res, $estadoActual, $tramite->id);
+      else {
         $tramite->estado = $siguienteEstado;
+        //$tramite->tramite_sinalic_id = $res->tramite_sinalic_id;
         $tramite->save();
       }
+      break;
     }
+  }
+
+  public function interpretarResultado($resultado, $datos){
+    if($resultado->CantidadErrores > 0){
+      $res = (object)array('error' => $resultado->MensajesRespuesta,
+                   'request' => $datos,
+                   'response' => $resultado);
+    }
+    else
+      $res = (object)array('mensaje' => $resultado->MensajesRespuesta .' Tramite ID: '.$resultado->NumeroTramite,
+                           'tramite_sinalic_id' => $resultado->NumeroTramite);
+    return $res;
   }
 
   public function verificarLibreDeudaDeTramites($estadoActual, $siguienteEstado){
@@ -237,8 +240,7 @@ class TramitesAInicarController extends Controller
     foreach ($tramites as $key => $tramite) {
       $res = $this->verificarLibreDeuda($tramite);
       if( $res !== true){
-        TramitesAIniciarErrores::create(['description' => "error libre deuda: ".$res,
-                                       'tramites_a_inicar_id' => $tramite->id]);
+        $this->guardarError((object)$res, $estadoActual, $tramite->id);
       }else {
         $tramite->estado = $siguienteEstado;
         $tramite->save();
@@ -251,10 +253,10 @@ class TramitesAInicarController extends Controller
   }
 
   public function verificarLibreDeuda($tramite){
-    $res = null;
+    $res = array();
     $url = "http://192.168.110.245/LicenciaWS/LicenciaWS?";
     $datos = "method=getLibreDeuda".
-             "&tipoDoc=DsNI".//$tramite->tipo_doc.
+             "&tipoDoc=DNI".//$tramite->tipo_doc.
              "&numeroDoc=".$tramite->nro_doc.
              "&userName=".$this->userLibreDeuda.
              "&userPass=".$this->passwordLibreDeuda;
@@ -268,12 +270,14 @@ class TramitesAInicarController extends Controller
       xml_parser_free($p);
       $json = json_encode($vals);
       $array = json_decode($json,TRUE);
-      print_r($json);
       $persona = null;
       $libreDeuda = null;
       foreach ($array as $key => $value) {
-        if($value['tag'] == 'ERROR' )
-          $res = $value['value'];
+        if($value['tag'] == 'ERROR' ){
+          $res['error'] = $value['value'];
+          $res['request'] = $datos;
+          $res['response'] = $array;
+        }
         else{
           if($value['tag'] == 'PERSONA' )
             $persona = $value['attributes'];
@@ -344,10 +348,9 @@ class TramitesAInicarController extends Controller
     $tramites = TramitesAIniciar::where('estado', $estadoActual)->get();
     foreach ($tramites as $key => $tramite) {
       $res = $this->verificarBui($tramite);
-      if( $res !== true){
-        TramitesAIniciarErrores::create(['description' => "error en Bui: ".$res,
-                                       'tramites_a_inicar_id' => $tramite->id]);
-      }else {
+      if( !empty($res['error']) )
+        $this->guardarError((object)$res, $estadoActual, $tramite->id);
+      else {
         $tramite->estado = $siguienteEstado;
         $tramite->save();
       }
@@ -358,13 +361,13 @@ class TramitesAInicarController extends Controller
   public function verificarBui($tramite){
     $url = 'http://10.73.100.42:6748/service/api/BUI/GetResumenBoletasPagas';
     $data = array("TipoDocumento" => "DNI",
-                  "NroDocumento" => "24571740",//$tramite->nro_doc, //"24571740",
+                  "NroDocumento" => $tramite->nro_doc, //"24571740",
                   "ListaConceptos" => ["07.02.28"],
                   "Ultima" => "true");
 
     $res = $this->peticionCurl($data, $url, "POST", $this->userBui, $this->passwordBui);
     if(empty($res->boletas))
-      $res = "No dispone de ninguna boleta";
+      $mensaje = $res->mensaje;
     else {
       if($boleta = $this->existeBoletaHabilitada($res->boletas)){
         if(!$this->boletaUtilizada($boleta)){
@@ -377,12 +380,15 @@ class TramitesAInicarController extends Controller
           'lugar_pago'=>$boleta->LugarPago,
           'medio_pago'=>$boleta->MedioPago,
           'tramite_a_iniciar_id'=>$tramite->id));
+          $res = "Se utilizo la Boleta con el Nro: ".$boletaBui->nro_boleta;
+        }else{
+          $mensaje = "La boleta habilitada ya a sido utilizado en el sistema de la direccion general de licencias";
         }
-        $res = true;
-      }
-      else
-        $res = "No dispone de ninguna boleta habilitada";
+      }else
+        $mensaje = "No dispone de ninguna boleta habilitada";
     }
+    if($res !== true)
+      $res = array('error' => $mensaje, 'request' => $data, 'response' => $res);
     return $res;
   }
 
