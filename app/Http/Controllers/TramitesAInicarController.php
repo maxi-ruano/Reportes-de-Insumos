@@ -210,13 +210,12 @@ class TramitesAInicarController extends Controller
           # code...
           break;
       }
-      dd($res);
       $res = $this->interpretarResultado($res, $datos);
       if(!empty($res->error))
         $this->guardarError($res, $estadoActual, $tramite->id);
       else {
         $tramite->estado = $siguienteEstado;
-        //$tramite->tramite_sinalic_id = $res->tramite_sinalic_id;
+        $tramite->tramite_sinalic_id = $res->tramite_sinalic_id;
         $tramite->save();
       }
       break;
@@ -224,15 +223,16 @@ class TramitesAInicarController extends Controller
   }
 
   public function interpretarResultado($resultado, $datos){
+    dd($resultado) ;
     if($resultado->CantidadErrores > 0){
-      $res = (object)array('error' => $resultado->MensajesRespuesta,
+      $res = array('error' => $resultado->MensajesRespuesta,
                    'request' => $datos,
                    'response' => $resultado);
     }
     else
-      $res = (object)array('mensaje' => $resultado->MensajesRespuesta .' Tramite ID: '.$resultado->NumeroTramite,
+      $res = array('mensaje' => $resultado->MensajesRespuesta .' Tramite ID: '.$resultado->NumeroTramite,
                            'tramite_sinalic_id' => $resultado->NumeroTramite);
-    return $res;
+    return (object)$res;
   }
 
   public function verificarLibreDeudaDeTramites($estadoActual, $siguienteEstado){
@@ -240,6 +240,7 @@ class TramitesAInicarController extends Controller
     foreach ($tramites as $key => $tramite) {
       $res = $this->verificarLibreDeuda($tramite);
       if( $res !== true){
+        dd($res);
         $this->guardarError((object)$res, $estadoActual, $tramite->id);
       }else {
         $tramite->estado = $siguienteEstado;
@@ -253,11 +254,11 @@ class TramitesAInicarController extends Controller
   }
 
   public function verificarLibreDeuda($tramite){
-    $res = array();
+    $res = null;
     $url = "http://192.168.110.245/LicenciaWS/LicenciaWS?";
     $datos = "method=getLibreDeuda".
              "&tipoDoc=DNI".//$tramite->tipo_doc.
-             "&numeroDoc=".$tramite->nro_doc.
+             "&numeroDoc=24571740".//$tramite->nro_doc.
              "&userName=".$this->userLibreDeuda.
              "&userPass=".$this->passwordLibreDeuda;
     $wsresult = file_get_contents($url.$datos, false);
@@ -272,8 +273,10 @@ class TramitesAInicarController extends Controller
       $array = json_decode($json,TRUE);
       $persona = null;
       $libreDeuda = null;
+
       foreach ($array as $key => $value) {
         if($value['tag'] == 'ERROR' ){
+          $res = array();
           $res['error'] = $value['value'];
           $res['request'] = $datos;
           $res['response'] = $array;
@@ -361,7 +364,7 @@ class TramitesAInicarController extends Controller
   public function verificarBui($tramite){
     $url = 'http://10.73.100.42:6748/service/api/BUI/GetResumenBoletasPagas';
     $data = array("TipoDocumento" => "DNI",
-                  "NroDocumento" => $tramite->nro_doc, //"24571740",
+                  "NroDocumento" => "24571740",//$tramite->nro_doc, //"24571740",
                   "ListaConceptos" => ["07.02.28"],
                   "Ultima" => "true");
 
