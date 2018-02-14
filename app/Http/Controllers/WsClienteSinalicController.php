@@ -30,19 +30,18 @@ class WsClienteSinalicController extends Controller
                 'stream_context' => $context,
                 'soap_version' => SOAP_1_1,
                 'cache_wsdl' => WSDL_CACHE_NONE,
-                'trace' => 1
+                'trace' => 1,
+                'exceptions' => true
         );
         $this->cliente = new SoapClient($this->url, $soapClientOptions);
       }
-      catch(Exception $e) {
-          echo $e->getMessage();
+      catch(\Exception $e) {
+        echo $e->getMessage();
       }
   }
 
   public function IniciarTramiteNuevaLicencia($tramiteAInicar){
     $res = $this->cliente->IniciarTramiteNuevaLicencia($tramiteAInicar);
-    /*echo "REQUEST:\n" . htmlentities(str_ireplace('><', ">\n<", $this->cliente->__getLastRequest())) . "\n";
-    echo "Response:\n" . htmlentities(str_ireplace('><', ">\n<", $this->cliente->__getLastResponse())) . "\n";*/
     return $res;
   }
 

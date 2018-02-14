@@ -31,15 +31,16 @@ class TramitesAInicarController extends Controller
   private $userBui = "licenciasws";
   private $passwordBui = "lic189";
 
-  public function __contruct(){
+  //SINALIC
+  private $wsSinalic = null;
+
+  public function __construct(){
     $this->wsSafit = new WsClienteSafitController();
     $this->wsSafit->createClienteSoap();
     $this->wsSafit->iniciarSesion();
 
     //WS SINALIC
-    $this->wsSafit = new WsClienteSinalicController();
-    $this->wsSafit->createClienteSoap();
-    $this->wsSafit->iniciarSesion();
+    $this->wsSinalic = new WsClienteSinalicController();
   }
 
   public function temporalConstructor(){
@@ -56,7 +57,6 @@ class TramitesAInicarController extends Controller
     $personas = TramitesAIniciar::where('estado', $estadoActual)->get();
     foreach ($personas as $key => $persona) {
       $res = $this->getBoleta($persona);
-      //dd($res);
       if(empty($res->error))
         $this->guardarDatosBoleta($persona, $res, $siguienteEstado);
       else {
@@ -190,26 +190,31 @@ class TramitesAInicarController extends Controller
   }
 
   public function enviarTramitesASinalic($estadoActual, $siguienteEstado){
+    if(is_null($this->wsSinalic->cliente))
+      return "El Ws de Sinalic no responde, por favor revise la conexion, o contactese con Nacion";
     $tramites = TramitesAIniciar::where('estado', $estadoActual)->get();
     foreach ($tramites as $key => $tramite) {
       $res = null;
-      $clienteSinalic = new WsClienteSinalicController();
-      $datos = $clienteSinalic->parseTramiteParaSinalic($tramite);
+      $datos = $this->wsSinalic->parseTramiteParaSinalic($tramite);
 
       switch ($tramite->tipoTramite()) {
         case 'IniciarTramiteRenovarLicencia':
-          $res = $clienteSinalic->IniciarTramiteRenovarLicencia($datos);
+          $res = $this->wsSinalic->IniciarTramiteRenovarLicencia($datos)
+                                 ->IniciarTramiteRenovarLicenciaResult;
         break;
         case 'IniciarTramiteNuevaLicencia':
-          $res = $clienteSinalic->IniciarTramiteNuevaLicencia($datos);
+          $res = $this->wsSinalic->IniciarTramiteNuevaLicencia($datos)
+                                 ->IniciarTramiteNuevaLicenciaResult;
         break;
         case 'IniciarTramiteRenovacionConAmpliacion':
-          $res = $clienteSinalic->IniciarTramiteRenovacionConAmpliacion($datos);
+          $res = $this->wsSinalic->IniciarTramiteRenovacionConAmpliacion($datos)
+                                 ->IniciarTramiteRenovacionConAmpliacion;
         break;
         default:
           # code...
           break;
       }
+
       $res = $this->interpretarResultado($res, $datos);
       if(!empty($res->error))
         $this->guardarError($res, $estadoActual, $tramite->id);
@@ -218,21 +223,26 @@ class TramitesAInicarController extends Controller
         $tramite->tramite_sinalic_id = $res->tramite_sinalic_id;
         $tramite->save();
       }
-      break;
     }
   }
 
   public function interpretarResultado($resultado, $datos){
-    dd($resultado) ;
-    if($resultado->CantidadErrores > 0){
-      $res = array('error' => $resultado->MensajesRespuesta,
+    if(intval($resultado->CantidadErrores) > 0){
+      $res = array('error' => $this->getErrores($resultado->MensajesRespuesta),
                    'request' => $datos,
                    'response' => $resultado);
     }
     else
-      $res = array('mensaje' => $resultado->MensajesRespuesta .' Tramite ID: '.$resultado->NumeroTramite,
+      $res = array('mensaje' => $this->getErrores($resultado->MensajesRespuesta) .' Tramite ID: '.$resultado->NumeroTramite,
                            'tramite_sinalic_id' => $resultado->NumeroTramite);
     return (object)$res;
+  }
+
+  public function getErrores($lista){
+    $res = '';
+    foreach ($lista as $key => $value)
+      $res.= $value.' - ';
+    return $res;
   }
 
   public function verificarLibreDeudaDeTramites($estadoActual, $siguienteEstado){
@@ -240,7 +250,6 @@ class TramitesAInicarController extends Controller
     foreach ($tramites as $key => $tramite) {
       $res = $this->verificarLibreDeuda($tramite);
       if( $res !== true){
-        dd($res);
         $this->guardarError((object)$res, $estadoActual, $tramite->id);
       }else {
         $tramite->estado = $siguienteEstado;
