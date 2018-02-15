@@ -22,17 +22,23 @@ class TramitesAInicarController extends Controller
   private $munID = 1;
   private $estID = "A";
   private $estadoBoletaNoUtilizada = "N";
-  public $wsSafit = null;
 
   //LIBRE deuda
   private $userLibreDeuda = "LICENCIAS01";
   private $passwordLibreDeuda = "TEST1234";
+  private $urlLibreDeuda = "http://192.168.110.245/LicenciaWS/LicenciaWS?";
 
+  //BUI
   private $userBui = "licenciasws";
   private $passwordBui = "lic189";
+  private $conceptoBui = ["07.02.28"];
+  private $urlVerificacionBui = 'http://10.73.100.42:6748/service/api/BUI/GetResumenBoletasPagas';
 
   //SINALIC
   private $wsSinalic = null;
+
+  //SAFIT
+  public $wsSafit = null;
 
   public function __construct(){
     //WS SAFIT
@@ -255,14 +261,12 @@ class TramitesAInicarController extends Controller
 
   public function verificarLibreDeuda($tramite){
     $res = null;
-    $url = "http://192.168.110.245/LicenciaWS/LicenciaWS?";
     $datos = "method=getLibreDeuda".
-             "&tipoDoc=DNI".//$tramite->tipo_doc.
-             "&numeroDoc=24571740".//$tramite->nro_doc.
+             "&tipoDoc=".$tramite->tipoDocText().
+             "&numeroDoc=".$tramite->nro_doc.
              "&userName=".$this->userLibreDeuda.
              "&userPass=".$this->passwordLibreDeuda;
-    $wsresult = file_get_contents($url.$datos, false);
-
+    $wsresult = file_get_contents($this->urlLibreDeuda.$datos, false);
     if ($wsresult == FALSE){
       $res = "Error con el Ws Libre Deuda";
     }else{
@@ -362,13 +366,12 @@ class TramitesAInicarController extends Controller
   }
 
   public function verificarBui($tramite){
-    $url = 'http://10.73.100.42:6748/service/api/BUI/GetResumenBoletasPagas';
-    $data = array("TipoDocumento" => "DNI",
-                  "NroDocumento" => "24571740",//$tramite->nro_doc, //"24571740",
-                  "ListaConceptos" => ["07.02.28"],
+    $data = array("TipoDocumento" => $tramite->tipoDocText(),
+                  "NroDocumento" => "24571740",//$tramite->nro_doc, //"24571740",//cambiar
+                  "ListaConceptos" => $this->conceptoBui,
                   "Ultima" => "true");
 
-    $res = $this->peticionCurl($data, $url, "POST", $this->userBui, $this->passwordBui);
+    $res = $this->peticionCurl($data, $this->urlVerificacionBui, "POST", $this->userBui, $this->passwordBui);
     if(empty($res->boletas))
       $mensaje = $res->mensaje;
     else {

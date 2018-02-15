@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use App\SigeciPrestacion;
+use App\SysMultivalue;
 class TramitesAIniciar extends Model
 {
   protected $table = 'tramites_a_inicar';
@@ -14,5 +15,10 @@ class TramitesAIniciar extends Model
   {
     $sigeciPrestacion = SigeciPrestacion::where('prestacion_id', $this->tipo_tramite_sigeci)->first();
     return $sigeciPrestacion->ws;
+  }
+
+  public function tipoDocText(){
+    $tipoDocText = SysMultivalue::where('type','TDOC')->where('id', $this->tipo_doc)->first();
+    return $tipoDocText->description;
   }
 }
