@@ -35,25 +35,16 @@ class TramitesAInicarController extends Controller
   private $wsSinalic = null;
 
   public function __construct(){
+    //WS SAFIT
     $this->wsSafit = new WsClienteSafitController();
-    $this->wsSafit->createClienteSoap();
-    $this->wsSafit->iniciarSesion();
-
     //WS SINALIC
     $this->wsSinalic = new WsClienteSinalicController();
   }
 
-  public function temporalConstructor(){
-    $this->wsSafit = new WsClienteSafitController();
-    $this->wsSafit->createClienteSoap();
-    $this->wsSafit->iniciarSesion();
-  }
-
   public function completarBoletasEnTramitesAIniciar($estadoActual, $siguienteEstado){
-    /****** ELIMINAR ANTES DE PRODUCCION ******/
-    if(is_null($this->wsSafit))
-      $this->temporalConstructor();
-    /*****/
+    if(is_null($this->wsSafit->cliente))
+      return "El Ws de SAFIT no responde, por favor revise la conexion, o contactese con Nacion";
+
     $personas = TramitesAIniciar::where('estado', $estadoActual)->get();
     foreach ($personas as $key => $persona) {
       $res = $this->getBoleta($persona);
@@ -167,8 +158,8 @@ class TramitesAInicarController extends Controller
   }
 
   public function emitirBoletasVirtualPago($estadoActual, $siguienteEstado){
-    if(is_null($this->wsSafit))
-      $this->temporalConstructor();
+    if(is_null($this->wsSafit->cliente))
+      return "El Ws de SAFIT no responde, por favor revise la conexion, o contactese con Nacion";
     $tramitesAIniciar = TramitesAIniciar::where('estado', $estadoActual)->get();
     foreach ($tramitesAIniciar as $key => $tramiteAIniciar) {
       $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);

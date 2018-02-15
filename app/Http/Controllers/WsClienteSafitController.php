@@ -19,6 +19,11 @@ class WsClienteSafitController extends Controller
   var $cliente = null;
   var $sesID = null;
 
+  public function __construct(){
+      $this->createClienteSoap();
+      $this->iniciarSesion();
+  }
+
   public function iniciarSesion(){
     $res = $this->cliente->abrir_sesion( $this->uswID,
                                          $this->uswPassword,
@@ -72,7 +77,7 @@ class WsClienteSafitController extends Controller
         );
         $this->cliente = new SoapClient($this->url, $soapClientOptions);
       }
-      catch(Exception $e) {
+      catch(\Exception $e) {
           echo $e->getMessage();
       }
   }
