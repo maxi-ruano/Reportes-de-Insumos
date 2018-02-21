@@ -15,7 +15,7 @@ class AddEstadosModoAutonomoTable extends Migration
     {
         DB::table('sys_multivalue')->insert(array(
           'type' => 'AUTO',
-          'description' => 'se trae de sigeci y se inserta en tramites_a_inicar',
+          'description' => 'se trae de sigeci y se inserta en tramites_a_iniciar',
           'text_id' => 'INICIO',
           'id' => '1',
           'rowid' => '3919'

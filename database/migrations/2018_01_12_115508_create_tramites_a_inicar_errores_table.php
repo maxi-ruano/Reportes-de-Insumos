@@ -19,9 +19,9 @@ class CreateTramitesAInicarErroresTable extends Migration
             $table->integer('estado_error');
             $table->text('request_ws')->nullable();
             $table->text('response_ws')->nullable();
-            $table->integer('tramites_a_inicar_id')->unsigned();
-            $table->foreign('tramites_a_inicar_id')
-                  ->references('id')->on('tramites_a_inicar');
+            $table->integer('tramites_a_iniciar_id')->unsigned();
+            $table->foreign('tramites_a_iniciar_id')
+                  ->references('id')->on('tramites_a_iniciar');
             $table->timestamps();
         });
     }

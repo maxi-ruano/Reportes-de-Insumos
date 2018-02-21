@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateTramitesAInicarTable extends Migration
+class CreateTramitesAIniciarTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,13 +13,12 @@ class CreateTramitesAInicarTable extends Migration
      */
     public function up()
     {
-        Schema::create('tramites_a_inicar', function (Blueprint $table) {
+        Schema::create('tramites_a_iniciar', function (Blueprint $table) {
             $table->increments('id');
             $table->string('apellido');
             $table->string('nombre');
-            $table->string('tipo_doc');
-            $table->string('nro_doc');
-            $table->integer('tipo_tramite_sigeci');
+            $table->integer('tipo_doc');
+            $table->integer('nro_doc');
             $table->integer('nacionalidad');
             $table->string('sexo')->nullable();
             $table->string('bop_cb')->nullable();
@@ -31,6 +30,7 @@ class CreateTramitesAInicarTable extends Migration
             $table->integer('estado')->default(1); // 1 = pendiente - 2 = completado, listo para enviar - 3 enviado todo ok - 4 enviado errores
             $table->integer('sigeci_idcita');
             $table->integer('tramite_sinalic_id')->nullable();
+            $table->integer('tipo_tramite')->nullable();
             $table->timestamps();
         });
     }
@@ -42,6 +42,6 @@ class CreateTramitesAInicarTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('tramites_a_inicar');
+        Schema::dropIfExists('tramites_a_iniciar');
     }
 }

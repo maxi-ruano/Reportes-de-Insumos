@@ -67,7 +67,7 @@ class TramitesAInicarController extends Controller
                                       'request_ws' => json_encode($res->request),
                                       'response_ws' => json_encode($res->response),
                                       'estado_error' => $estado,
-                                      'tramites_a_inicar_id' => $tramite]);
+                                      'tramites_a_iniciar_id' => $tramite]);
   }
 
   public function guardarDatosBoleta($persona, $boleta, $siguienteEstado){
@@ -104,7 +104,7 @@ class TramitesAInicarController extends Controller
       $tramiteAIniciar->nombre = $turno->nombre;
       $tramiteAIniciar->tipo_doc = $turno->idtipodoc;
       $tramiteAIniciar->nro_doc = $turno->numdoc;
-      $tramiteAIniciar->tipo_tramite_sigeci = $turno->idprestacion;
+      $tramiteAIniciar->tipo_tramite = $this->getTipoTramite();
       $tramiteAIniciar->nacionalidad = $this->getIdPais($turno->nacionalidad());
       $tramiteAIniciar->fecha_nacimiento = $turno->fechaNacimiento();
       $tramiteAIniciar->estado = $siguienteEstado;
@@ -439,5 +439,9 @@ class TramitesAInicarController extends Controller
     if($boleta)
       $res = true;
     return $res;
+  }
+
+  public function getTipoTramite(){
+
   }
 }
