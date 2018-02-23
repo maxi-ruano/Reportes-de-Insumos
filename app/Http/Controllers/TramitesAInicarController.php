@@ -104,7 +104,7 @@ class TramitesAInicarController extends Controller
       $tramiteAIniciar->nombre = $turno->nombre;
       $tramiteAIniciar->tipo_doc = $turno->idtipodoc;
       $tramiteAIniciar->nro_doc = $turno->numdoc;
-      $tramiteAIniciar->tipo_tramite = $this->getTipoTramite();
+      //$tramiteAIniciar->tipo_tramite = $this->getTipoTramite();
       $tramiteAIniciar->nacionalidad = $this->getIdPais($turno->nacionalidad());
       $tramiteAIniciar->fecha_nacimiento = $turno->fechaNacimiento();
       $tramiteAIniciar->estado = $siguienteEstado;
@@ -191,6 +191,7 @@ class TramitesAInicarController extends Controller
       return "El Ws de Sinalic no responde, por favor revise la conexion, o contactese con Nacion";
     $tramites = TramitesAIniciar::where('estado', $estadoActual)->get();
     foreach ($tramites as $key => $tramite) {
+      $this->asignarTipoTramiteAIniciar($tramite);
       $res = null;
       $datos = $this->wsSinalic->parseTramiteParaSinalic($tramite);
 
@@ -441,7 +442,81 @@ class TramitesAInicarController extends Controller
     return $res;
   }
 
-  public function getTipoTramite(){
+  public function getTipoTramite($ultimaLicencia){
+    //dd($ultimaLicencia);
+    if(!$ultimaLicencia || $this->licenciaVencidaMasDeUnAnio($ultimaLicencia))
+      $res = 'otorgamiento';
+    else{
+      if($this->estaEnJurisdiccion($ultimaLicencia, 'C.A.B.A.')){
+          $res = 'renovacion es de jurisdiccion';
+      }else{
+          if($this->esNecesarioAmpliacion($ultimaLicencia))
+            $res = 'renovacionConAmpliacion';
+          else
+            $res = 'renovacion solo debe tener a y b';
+      }
+    }
+    return $res;
+  }
 
+  public function estaEnJurisdiccion($ultimaLicencia, $jurisdiccionTexto){
+    $pos = strpos($ultimaLicencia->Domicilio->NombreLocalidad, $jurisdiccionTexto);
+    return $pos !== false;
+  }
+
+  public function licenciaVencidaMasDeUnAnio($ultimaLicencia){
+    $elAnioPasado = strtotime('-1 year');
+    $fecha = str_replace("/","-",$ultimaLicencia->FechaVencimiento);
+    $fechaVencimiento = strtotime($fecha); //se toma para m/d/YYYY de sinalic viene en d/m/y
+
+    return $fechaVencimiento < $elAnioPasado;
+  }
+
+  public function esNecesarioAmpliacion($ultimaLicencia){
+    $clases = strtolower($ultimaLicencia->Clases);
+    $clases = str_replace("a","", $clases);
+    $clases = str_replace("b","", $clases);
+    return preg_match("/[a-z]/i", $clases);
+  }
+
+  public function asignarTipoTramiteAIniciar($tramiteAInicar){
+    $ultimaLicencia = $this->getUltimaLicencia($tramiteAInicar);
+    //$tramite->tipo_tramite = $this->getTipoTramite($ultimaLicencia);
+    dd($this->getTipoTramite($ultimaLicencia));
+    $tramite->save();
+  }
+
+  public function getUltimaLicencia($tramiteAInicar){
+    $licencias = $this->getLicencias($tramiteAInicar);
+    $licencias = $licencias->ConsultarLicenciasResult->LicenciaDTO;
+    $ultimaLicencia = null;
+
+    if(!empty($licencias))
+      if(count($licencias) == 1)
+        return $licencias; //Retorna Una sola licencia
+
+      foreach ($licencias as $key => $value) {
+        if(!$ultimaLicencia){
+          $ultimaLicencia = $value;
+          if(count($licencias) == 1)
+            break;
+        } else {
+          $fecha = str_replace("/","-",$ultimaLicencia->FechaVencimiento);
+          $fecha2 = str_replace("/","-",$value->FechaVencimiento);
+          if(strtotime($fecha) < strtotime($fecha2))
+            $ultimaLicencia = $value;
+        }
+      }
+    return $ultimaLicencia;
+  }
+
+  public function getLicencias($tramiteAInicar){
+    $res = $this->wsSinalic->ConsultarLicencias(array(
+             "nroDocumento" => '35355887',//$tramiteAInicar->nro_doc,
+             "sexo" => 'f',//$tramiteAInicar->sexo,
+             "tipoDocumento" => $tramiteAInicar->tipo_doc
+           ));
+    return $res;
   }
 }
+//35355887F de otra jurisdiccion // 29543881 de CABA

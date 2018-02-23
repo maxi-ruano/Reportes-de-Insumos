@@ -82,4 +82,9 @@ class WsClienteSinalicController extends Controller
 
     return $datos;
   }
+
+  public function ConsultarLicencias($datos){
+    $res = $this->cliente->ConsultarLicencias($datos);
+    return $res;
+  }
 }
