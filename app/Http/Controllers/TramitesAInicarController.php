@@ -195,16 +195,16 @@ class TramitesAInicarController extends Controller
       $res = null;
       $datos = $this->wsSinalic->parseTramiteParaSinalic($tramite);
 
-      switch ($tramite->tipoTramite()) {
-        case 'IniciarTramiteRenovarLicencia':
+      switch ($tramite->tipo_tramite) {
+        case 2: //RENOVACION
           $res = $this->wsSinalic->IniciarTramiteRenovarLicencia($datos)
                                  ->IniciarTramiteRenovarLicenciaResult;
         break;
-        case 'IniciarTramiteNuevaLicencia':
+        case 1: //OTORGAMIENTO
           $res = $this->wsSinalic->IniciarTramiteNuevaLicencia($datos)
                                  ->IniciarTramiteNuevaLicenciaResult;
         break;
-        case 'IniciarTramiteRenovacionConAmpliacion':
+        case 6: //RENOVACION CON AMPLIACION
           $res = $this->wsSinalic->IniciarTramiteRenovacionConAmpliacion($datos)
                                  ->IniciarTramiteRenovacionConAmpliacion;
         break;
@@ -443,17 +443,16 @@ class TramitesAInicarController extends Controller
   }
 
   public function getTipoTramite($ultimaLicencia){
-    //dd($ultimaLicencia);
     if(!$ultimaLicencia || $this->licenciaVencidaMasDeUnAnio($ultimaLicencia))
-      $res = 'otorgamiento';
+      $res = 1;// OTORGAMIENTO
     else{
       if($this->estaEnJurisdiccion($ultimaLicencia, 'C.A.B.A.')){
           $res = 'renovacion es de jurisdiccion';
       }else{
           if($this->esNecesarioAmpliacion($ultimaLicencia))
-            $res = 'renovacionConAmpliacion';
+            $res = 6; //RENOVACION CON AMPLIACION
           else
-            $res = 'renovacion solo debe tener a y b';
+            $res = 2; //RENOVACION
       }
     }
     return $res;
@@ -481,8 +480,7 @@ class TramitesAInicarController extends Controller
 
   public function asignarTipoTramiteAIniciar($tramiteAInicar){
     $ultimaLicencia = $this->getUltimaLicencia($tramiteAInicar);
-    //$tramite->tipo_tramite = $this->getTipoTramite($ultimaLicencia);
-    dd($this->getTipoTramite($ultimaLicencia));
+    $tramite->tipo_tramite = $this->getTipoTramite($ultimaLicencia);
     $tramite->save();
   }
 
@@ -512,8 +510,8 @@ class TramitesAInicarController extends Controller
 
   public function getLicencias($tramiteAInicar){
     $res = $this->wsSinalic->ConsultarLicencias(array(
-             "nroDocumento" => '35355887',//$tramiteAInicar->nro_doc,
-             "sexo" => 'f',//$tramiteAInicar->sexo,
+             "nroDocumento" => $tramiteAInicar->nro_doc,
+             "sexo" => $tramiteAInicar->sexo,
              "tipoDocumento" => $tramiteAInicar->tipo_doc
            ));
     return $res;
