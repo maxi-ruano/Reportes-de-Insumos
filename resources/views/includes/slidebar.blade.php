@@ -19,6 +19,22 @@
         </a>
       </li>
       @endif
+      @if( session('usuario_rol') == 'ROL_ADMIN' || session('usuario_rol') == 'ROL_REPORTES_CONTROL_INSUMOS')
+      <li>
+        <a href="{{ route('reporteSecuenciaInsumos') }}">
+          <i class="fa fa-file"></i> Reporte Secuencia Insumos
+          <span class="fa fa-chevron-down"></span>
+        </a>
+      </li>
+      @endif
+      @if( session('usuario_rol') == 'ROL_ADMIN' || session('usuario_rol') == 'ROL_REPORTES_CONTROL_INSUMOS')
+      <li>
+        <a href="{{ route('reporteControlInsumos') }}">
+          <i class="fa fa-file"></i> Reporte Control de Insumos
+          <span class="fa fa-chevron-down"></span>
+        </a>
+      </li>
+      @endif
     </ul>
   </div>
 

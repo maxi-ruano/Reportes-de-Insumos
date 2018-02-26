@@ -1,0 +1,22 @@
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Sigeci extends Model
+{
+  protected $table = 'sigeci';
+  protected $primaryKey = 'idcita';
+  protected $fillable = ['idcita', 'idorganismo', 'idsede', 'descsede', 'idprestacion', 'descprestacion', 'fecha', 'hora', 'estado', 'idtipodoc',
+                         'tipodoc', 'numdoc', 'nombre', 'apellido', 'telefono', 'email', 'metadata', 'sucroca'];
+
+  public function nacionalidad(){
+    return json_decode($this->metadata)->nacionalidad;
+  }
+
+  public function fechaNacimiento(){
+    return date(json_decode($this->metadata)->FechaNacimiento);
+
+  }
+}
