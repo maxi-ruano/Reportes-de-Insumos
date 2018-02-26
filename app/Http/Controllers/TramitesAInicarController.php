@@ -31,8 +31,9 @@ class TramitesAInicarController extends Controller
   //BUI
   private $userBui = "licenciasws";
   private $passwordBui = "lic189";
-  private $conceptoBui = ["07.02.28"];
+  private $conceptoBui = [["07.02.28"], ["07.02.31"], ["07.02.32"], ["07.02.33"], ["07.02.34"], ["07.02.35"]];
   private $urlVerificacionBui = 'http://10.73.100.42:6748/service/api/BUI/GetResumenBoletasPagas';
+  //"https://pagossir.buenosaires.gob.ar/api/PagosServiceV2.asmx?"
 
   //SINALIC
   private $wsSinalic = null;
@@ -355,23 +356,25 @@ class TramitesAInicarController extends Controller
   public function verificarBuiTramites($estadoActual, $siguienteEstado){
     $tramites = TramitesAIniciar::where('estado', $estadoActual)->get();
     foreach ($tramites as $key => $tramite) {
-      $res = $this->verificarBui($tramite);
-      if( !empty($res['error']) )
-        $this->guardarError((object)$res, $estadoActual, $tramite->id);
-      else {
-        $tramite->estado = $siguienteEstado;
-        $tramite->save();
+      foreach ($this->conceptoBui as $key => $value) {
+        $res = $this->verificarBui($tramite, $value);
+        if( !empty($res['error']) )
+          $this->guardarError((object)$res, $estadoActual, $tramite->id);
+        else {
+          $tramite->estado = $siguienteEstado;
+          $tramite->save();
+          break;
+        }
       }
     }
     return true;
   }
 
-  public function verificarBui($tramite){
+  public function verificarBui($tramite, $concepto){
     $data = array("TipoDocumento" => $tramite->tipoDocText(),
-                  "NroDocumento" => "24571740",//$tramite->nro_doc, //"24571740",//cambiar
-                  "ListaConceptos" => $this->conceptoBui,
-                  "Ultima" => "true");
-
+                  "NroDocumento" => $tramite->nro_doc, //"24571740",//cambiar
+                  "ListaConceptos" => $concepto,
+                  "Ultima" => "false");
     $res = $this->peticionCurl($data, $this->urlVerificacionBui, "POST", $this->userBui, $this->passwordBui);
     if(empty($res->boletas))
       $mensaje = $res->mensaje;
