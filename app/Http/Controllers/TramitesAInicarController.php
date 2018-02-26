@@ -1,0 +1,524 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Sigeci;
+use App\TramitesAIniciar;
+use App\Http\Controllers\SoapController;
+use App\Http\Controllers\WsClienteSafitController;
+use App\Http\Controllers\WsClienteSinalicController;
+use App\AnsvPaises;
+use App\SysMultivalue;
+use App\SigeciPaises;
+use App\TramitesAIniciarErrores;
+use App\LibreDeudaLns;
+use App\LibreDeudaHdr;
+use App\BoletaBui;
+
+class TramitesAInicarController extends Controller
+{
+  private $diasEnAdelante = 3;
+  private $munID = 1;
+  private $estID = "A";
+  private $estadoBoletaNoUtilizada = "N";
+
+  //LIBRE deuda
+  private $userLibreDeuda = "LICENCIAS01";
+  private $passwordLibreDeuda = "TEST1234";
+  private $urlLibreDeuda = "http://192.168.110.245/LicenciaWS/LicenciaWS?";
+
+  //BUI
+  private $userBui = "licenciasws";
+  private $passwordBui = "lic189";
+  private $conceptoBui = [["07.02.28"], ["07.02.31"], ["07.02.32"], ["07.02.33"], ["07.02.34"], ["07.02.35"]];
+  private $urlVerificacionBui = 'http://10.73.100.42:6748/service/api/BUI/GetResumenBoletasPagas';
+  //"https://pagossir.buenosaires.gob.ar/api/PagosServiceV2.asmx?"
+
+  //SINALIC
+  private $wsSinalic = null;
+
+  //SAFIT
+  public $wsSafit = null;
+
+  public function __construct(){
+    //WS SAFIT
+    $this->wsSafit = new WsClienteSafitController();
+    //WS SINALIC
+    $this->wsSinalic = new WsClienteSinalicController();
+  }
+
+  public function completarBoletasEnTramitesAIniciar($estadoActual, $siguienteEstado){
+    if(is_null($this->wsSafit->cliente))
+      return "El Ws de SAFIT no responde, por favor revise la conexion, o contactese con Nacion";
+
+    $personas = TramitesAIniciar::where('estado', $estadoActual)->get();
+    foreach ($personas as $key => $persona) {
+      $res = $this->getBoleta($persona);
+      if(empty($res->error))
+        $this->guardarDatosBoleta($persona, $res, $siguienteEstado);
+      else {
+        $this->guardarError($res, $estadoActual, $persona->id);
+      }
+    }
+  }
+
+  public function guardarError($res, $estado, $tramite){
+    TramitesAIniciarErrores::create(['description' => $res->error,
+                                      'request_ws' => json_encode($res->request),
+                                      'response_ws' => json_encode($res->response),
+                                      'estado_error' => $estado,
+                                      'tramites_a_iniciar_id' => $tramite]);
+  }
+
+  public function guardarDatosBoleta($persona, $boleta, $siguienteEstado){
+    $persona->bop_cb = $boleta->bopCB;
+    $persona->bop_monto = $boleta->bopMonto;
+    $persona->bop_fec_pag = $boleta->bopFecPag;
+    $persona->bop_id = $boleta->bopID;
+    $persona->cem_id = $boleta->cemID;
+    $persona->estado = $siguienteEstado;
+    $persona->save();
+  }
+
+  public function comletarTurnosEnTramitesAIniciar($siguienteEstado){
+    $xmasDay = new \DateTime(date("Y-m-d").' + ' . $this->diasEnAdelante . ' day');
+    $turnos = $this->getTurnos($xmasDay->format('Y-m-d'));
+    $this->guardarTurnosEnTramitesAInicar($turnos, $siguienteEstado);
+  }
+
+  public function getTurnos($dia){
+    $res = Sigeci::where('fecha', $dia)->get();
+    return $res;
+  }
+
+  public function guardarTurnosEnTramitesAInicar($turnos, $siguienteEstado){
+    foreach ($turnos as $key => $turno) {
+      $this->guardarTurnoEnTramitesAInicar($turno, $siguienteEstado);
+    }
+  }
+
+  public function guardarTurnoEnTramitesAInicar($turno, $siguienteEstado){
+    if(empty(TramitesAIniciar::where('sigeci_idcita', $turno->idcita)->first())){
+      $tramiteAIniciar = new TramitesAIniciar();
+      $tramiteAIniciar->apellido = $turno->apellido;
+      $tramiteAIniciar->nombre = $turno->nombre;
+      $tramiteAIniciar->tipo_doc = $turno->idtipodoc;
+      $tramiteAIniciar->nro_doc = $turno->numdoc;
+      //$tramiteAIniciar->tipo_tramite = $this->getTipoTramite();
+      $tramiteAIniciar->nacionalidad = $this->getIdPais($turno->nacionalidad());
+      $tramiteAIniciar->fecha_nacimiento = $turno->fechaNacimiento();
+      $tramiteAIniciar->estado = $siguienteEstado;
+      $tramiteAIniciar->sigeci_idcita = $turno->idcita;
+      $tramiteAIniciar->save();
+      $turno->tramite_a_iniciar_id = $tramiteAIniciar->id;
+      return $tramiteAIniciar;
+    }
+  }
+
+  public function getBoleta($persona){
+    $res = array('error' => '');
+    $boletas = $this->wsSafit->getBoletas($persona);
+    $boleta = null;
+    if(!empty($boletas->datosBoletaPago))
+      foreach ($boletas->datosBoletaPago->datosBoletaPagoParaPersona as $key => $boletaI) {
+        if($this->esBoletaValida($boletaI)){
+          if(!is_null($boleta)){
+            if( date($boletaI->bopFecPag) >= date($boleta->bopFecPag)) // para obtener la boleta mas reciente
+              $boleta = $boletaI;
+          }else
+            $boleta = $boletaI;
+        }else{
+          $res['error'] = "No existe ninguna boleta valida para esta persona";
+        }
+      }
+    else {
+      $res['error'] = $boletas->rspDescrip;
+    }
+
+    if(!is_null($boleta)){
+      $persona->sexo = $boletas->datosBoletaPago->datosPersonaBoletaPago->oprSexo;
+      $res = $boleta;
+    }else{
+      $res['request'] = $persona;
+      $res['response'] = $boletas;
+      $res = (object)$res;
+    }
+
+    return $res;
+  }
+
+  public function esBoletaValida($boleta){
+    $res = false;
+    if($boleta->bopEstado == $this->estadoBoletaNoUtilizada)
+      if($boleta->munID == $this->munID)
+        if($boleta->estID == $this->estID)
+          $res = true;
+    return $res;
+  }
+
+  public function parametros($nroDocumento, $tipoDocumento, $sexo){
+    $parametros = array();
+    $parametros['nroDocumento'] = $nroDocumento;
+    $parametros['tipoDocumento'] = $tipoDocumento;
+    $parametros['Sexo'] = $sexo;
+    return $parametros;
+  }
+
+  public function emitirBoletasVirtualPago($estadoActual, $siguienteEstado){
+    if(is_null($this->wsSafit->cliente))
+      return "El Ws de SAFIT no responde, por favor revise la conexion, o contactese con Nacion";
+    $tramitesAIniciar = TramitesAIniciar::where('estado', $estadoActual)->get();
+    foreach ($tramitesAIniciar as $key => $tramiteAIniciar) {
+      $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);
+      if($res->rspID == 1){
+        $tramiteAIniciar->estado=$siguienteEstado;
+        $tramiteAIniciar->save();
+      }else{
+        $array = array('error' => $res->rspDescrip,
+                       'request' => $tramiteAIniciar,
+                       'response' => $res);
+        $this->guardarError((object)$array, $estadoActual, $tramiteAIniciar->id);
+      }
+    }
+  }
+
+  public function getIdPais($pais){
+    $pais = SigeciPaises::where('pais', $pais)->first();
+    return $pais->paisAnsv->id_ansv;
+  }
+
+  public function enviarTramitesASinalic($estadoActual, $siguienteEstado){
+    if(is_null($this->wsSinalic->cliente))
+      return "El Ws de Sinalic no responde, por favor revise la conexion, o contactese con Nacion";
+    $tramites = TramitesAIniciar::where('estado', $estadoActual)->get();
+    foreach ($tramites as $key => $tramite) {
+      $this->asignarTipoTramiteAIniciar($tramite);
+      $res = null;
+      $datos = $this->wsSinalic->parseTramiteParaSinalic($tramite);
+
+      switch ($tramite->tipo_tramite) {
+        case 2: //RENOVACION
+          $res = $this->wsSinalic->IniciarTramiteRenovarLicencia($datos)
+                                 ->IniciarTramiteRenovarLicenciaResult;
+        break;
+        case 1: //OTORGAMIENTO
+          $res = $this->wsSinalic->IniciarTramiteNuevaLicencia($datos)
+                                 ->IniciarTramiteNuevaLicenciaResult;
+        break;
+        case 6: //RENOVACION CON AMPLIACION
+          $res = $this->wsSinalic->IniciarTramiteRenovacionConAmpliacion($datos)
+                                 ->IniciarTramiteRenovacionConAmpliacion;
+        break;
+        default:
+          # code...
+          break;
+      }
+
+      $res = $this->interpretarResultado($res, $datos);
+      if(!empty($res->error))
+        $this->guardarError($res, $estadoActual, $tramite->id);
+      else {
+        $tramite->estado = $siguienteEstado;
+        $tramite->tramite_sinalic_id = $res->tramite_sinalic_id;
+        $tramite->save();
+      }
+    }
+  }
+
+  public function interpretarResultado($resultado, $datos){
+    if(intval($resultado->CantidadErrores) > 0){
+      $res = array('error' => $this->getErrores($resultado->MensajesRespuesta),
+                   'request' => $datos,
+                   'response' => $resultado);
+    }
+    else
+      $res = array('mensaje' => $this->getErrores($resultado->MensajesRespuesta) .' Tramite ID: '.$resultado->NumeroTramite,
+                           'tramite_sinalic_id' => $resultado->NumeroTramite);
+    return (object)$res;
+  }
+
+  public function getErrores($lista){
+    $res = '';
+    foreach ($lista as $key => $value)
+      $res.= $value.' - ';
+    return $res;
+  }
+
+  public function verificarLibreDeudaDeTramites($estadoActual, $siguienteEstado){
+    $tramites = TramitesAIniciar::where('estado', $estadoActual)->get();
+    foreach ($tramites as $key => $tramite) {
+      $res = $this->verificarLibreDeuda($tramite);
+      if( $res !== true){
+        $this->guardarError((object)$res, $estadoActual, $tramite->id);
+      }else {
+        $tramite->estado = $siguienteEstado;
+        $tramite->save();
+      }
+    }
+  }
+
+  public function validarInhabilitacion($res){
+    return "validarInhabilitacion";
+  }
+
+  public function verificarLibreDeuda($tramite){
+    $res = null;
+    $datos = "method=getLibreDeuda".
+             "&tipoDoc=".$tramite->tipoDocText().
+             "&numeroDoc=".$tramite->nro_doc.
+             "&userName=".$this->userLibreDeuda.
+             "&userPass=".$this->passwordLibreDeuda;
+    $wsresult = file_get_contents($this->urlLibreDeuda.$datos, false);
+    if ($wsresult == FALSE){
+      $res = "Error con el Ws Libre Deuda";
+    }else{
+      $p = xml_parser_create();
+      xml_parse_into_struct($p, $wsresult, $vals, $index);
+      xml_parser_free($p);
+      $json = json_encode($vals);
+      $array = json_decode($json,TRUE);
+      $persona = null;
+      $libreDeuda = null;
+
+      foreach ($array as $key => $value) {
+        if($value['tag'] == 'ERROR' ){
+          $res = array();
+          $res['error'] = $value['value'];
+          $res['request'] = $datos;
+          $res['response'] = $array;
+        }
+        else{
+          if($value['tag'] == 'PERSONA' )
+            $persona = $value['attributes'];
+          if($value['tag'] == 'LIBREDEUDA' )
+            $libreDeuda = $value['attributes'];
+        }
+      }
+      if(is_null($res)){
+        $libreDeudaHdr = $this->guardarDatosPersonaLibreDeuda($persona, $tramite);
+        $this->guardarDatosLibreDeuda($libreDeuda, $libreDeudaHdr);
+        $res = true;
+      }
+    }
+    return $res;
+  }
+
+  public function guardarDatosPersonaLibreDeuda($datos, $tramite){
+    $libreDeudaHdr = LibreDeudaHdr::where('tipo_doc', $tramite->tipo_doc)
+                                  ->where('sexo', $tramite->sexo)
+                                  ->where('pais', $tramite->nacionalidad)
+                                  ->first();
+    if(!$libreDeudaHdr)
+      $libreDeudaHdr = new libreDeudaHdr();
+    $libreDeudaHdr->nro_doc = $datos['DOCUMENTO'] ? $datos['DOCUMENTO'] : "";
+    $libreDeudaHdr->tipo_doc = $tramite->tipo_doc;
+    $libreDeudaHdr->sexo = $tramite->sexo;
+    $libreDeudaHdr->pais = $tramite->nacionalidad;
+    $libreDeudaHdr->nombre = $datos['NOMBRE'] ? $datos['NOMBRE'] : "";
+    $libreDeudaHdr->apellido = $datos['APELLIDO'] ? $datos['APELLIDO'] : "";
+    $libreDeudaHdr->tipo_doc_text = $datos['TIPODOC'] ? $datos['TIPODOC'] : "";
+    $libreDeudaHdr->calle = $datos['CALLE'] ? $datos['CALLE'] : "";
+    $libreDeudaHdr->numero = $datos['NUMERO'] ? $datos['NUMERO'] : "";
+    $libreDeudaHdr->piso = $datos['PISO'] ? $datos['PISO'] : "";
+    $libreDeudaHdr->depto = $datos['DEPTO'] ? $datos['DEPTO'] : "";
+    $libreDeudaHdr->telefono = $datos['TELEFONO'] ? $datos['TELEFONO'] : "";
+    $libreDeudaHdr->localidad = $datos['LOCALIDAD'] ? $datos['LOCALIDAD'] : "";
+    if($datos['PROVINCIA'])  $libreDeudaHdr->provincia = $datos['PROVINCIA'];
+    $libreDeudaHdr->provincia_text = $datos['DESCPROVINCIA'] ? $datos['DESCPROVINCIA'] : "";
+    $libreDeudaHdr->codigo_postal = $datos['CODIGOPOSTAL'] ? $datos['CODIGOPOSTAL'] : "";
+    if($datos['SALDOPUNTOS']) $libreDeudaHdr->saldopuntos = $datos['SALDOPUNTOS'];
+    if($datos['CANTIDADVECESLLEGOA0']) $libreDeudaHdr->cantidadvecesllegoa0 = $datos['CANTIDADVECESLLEGOA0'] ;
+    $libreDeudaHdr->save();
+    return $libreDeudaHdr;
+  }
+
+  public function guardarDatosLibreDeuda($datos, $libreDeudaHdr){
+    $LibreDeudaLns = LibreDeudaLns::where('libredeuda_hdr_id', $libreDeudaHdr->libredeuda_hdr_id)->first();
+    if(!$LibreDeudaLns)
+      $LibreDeudaLns = new LibreDeudaLns();
+    $LibreDeudaLns->libredeuda_hdr_id = $libreDeudaHdr->libredeuda_hdr_id;
+    $LibreDeudaLns->numero_completo = $datos['NUMEROCOMPLETO'];
+    $LibreDeudaLns->numero_id = $datos['NUMEROLD'];
+    $LibreDeudaLns->digito = $datos['DIGITO'];
+    $LibreDeudaLns->codigo_barras = $datos['CODIGOBARRAS'];
+    $LibreDeudaLns->codigo_barras_encriptado = $datos['CODIGOBARRASENCRIPTADO'];
+    $LibreDeudaLns->username = $datos['USERNAME'];
+    $LibreDeudaLns->importe = $datos['IMPORTE'];
+    $LibreDeudaLns->clavesb = $datos['CLAVESB'];
+    $LibreDeudaLns->fecha_emision_completa = $datos['FECHAEMISIONCOMPLETA'];
+    $LibreDeudaLns->hora_emision = $datos['HORAEMISION'];
+    $LibreDeudaLns->fecha_emision = $datos['FECHAEMISION'];
+    $LibreDeudaLns->fecha_vencimiento_completa = $datos['FECHAVENCIMIENTOCOMPLETA'];
+    $LibreDeudaLns->fecha_vencimiento = $datos['FECHAVENCIMIENTO'];
+    $LibreDeudaLns->save();
+  }
+
+  public function verificarBuiTramites($estadoActual, $siguienteEstado){
+    $tramites = TramitesAIniciar::where('estado', $estadoActual)->get();
+    foreach ($tramites as $key => $tramite) {
+      foreach ($this->conceptoBui as $key => $value) {
+        $res = $this->verificarBui($tramite, $value);
+        if( !empty($res['error']) )
+          $this->guardarError((object)$res, $estadoActual, $tramite->id);
+        else {
+          $tramite->estado = $siguienteEstado;
+          $tramite->save();
+          break;
+        }
+      }
+    }
+    return true;
+  }
+
+  public function verificarBui($tramite, $concepto){
+    $data = array("TipoDocumento" => $tramite->tipoDocText(),
+                  "NroDocumento" => $tramite->nro_doc, //"24571740",//cambiar
+                  "ListaConceptos" => $concepto,
+                  "Ultima" => "false");
+    $res = $this->peticionCurl($data, $this->urlVerificacionBui, "POST", $this->userBui, $this->passwordBui);
+    if(empty($res->boletas))
+      $mensaje = $res->mensaje;
+    else {
+      if($boleta = $this->existeBoletaHabilitada($res->boletas)){
+        if(!$this->boletaUtilizada($boleta)){
+          $boletaBui = BoletaBui::create(array(
+          'id_boleta'=>$boleta->IDBoleta,
+          'nro_boleta'=>$boleta->NroBoleta,
+          'cod_barras'=>$boleta->CodBarras,
+          'importe_total'=>$boleta->ImporteTotal,
+          'fecha_pago'=>$boleta->FechaPago,
+          'lugar_pago'=>$boleta->LugarPago,
+          'medio_pago'=>$boleta->MedioPago,
+          'tramite_a_iniciar_id'=>$tramite->id));
+          $res = "Se utilizo la Boleta con el Nro: ".$boletaBui->nro_boleta;
+        }else{
+          $mensaje = "La boleta habilitada ya a sido utilizado en el sistema de la direccion general de licencias";
+        }
+      }else
+        $mensaje = "No dispone de ninguna boleta habilitada";
+    }
+    if($res !== true)
+      $res = array('error' => $mensaje, 'request' => $data, 'response' => $res);
+    return $res;
+  }
+
+  public function peticionCurl($data, $url, $metodo, $user, $password){
+    $data_string = json_encode($data);
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_USERPWD, "$user:$password");
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $metodo);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($data_string))
+    );
+
+    $result = curl_exec($ch);
+    curl_close($ch);
+    $result = (object)json_decode($result, true);
+    return $result;
+  }
+
+  public function existeBoletaHabilitada($boletas){
+    $res = false;
+    foreach ($boletas as $key => $boleta) {
+      $boleta = (object)$boleta;
+      $vto = substr($boleta->FechaPago,1,10);
+      $nuevaFecha = strtotime ( '+1 year' , strtotime ( $vto ) ) ;
+      if (date('Y-m-d') < date('Y-m-d',$nuevaFecha)){
+          $res = $boleta;
+          break;
+      }
+    }
+    return $res;
+  }
+
+  public function boletaUtilizada($boleta){
+    $res = false;
+    $boleta = BoletaBui::where('id_boleta', $boleta->IDBoleta)
+                       ->whereNotNull('tramite_a_iniciar_id')
+                       ->first();
+    if($boleta)
+      $res = true;
+    return $res;
+  }
+
+  public function getTipoTramite($ultimaLicencia){
+    if(!$ultimaLicencia || $this->licenciaVencidaMasDeUnAnio($ultimaLicencia))
+      $res = 1;// OTORGAMIENTO
+    else{
+      if($this->estaEnJurisdiccion($ultimaLicencia, 'C.A.B.A.')){
+          $res = 'renovacion es de jurisdiccion';
+      }else{
+          if($this->esNecesarioAmpliacion($ultimaLicencia))
+            $res = 6; //RENOVACION CON AMPLIACION
+          else
+            $res = 2; //RENOVACION
+      }
+    }
+    return $res;
+  }
+
+  public function estaEnJurisdiccion($ultimaLicencia, $jurisdiccionTexto){
+    $pos = strpos($ultimaLicencia->Domicilio->NombreLocalidad, $jurisdiccionTexto);
+    return $pos !== false;
+  }
+
+  public function licenciaVencidaMasDeUnAnio($ultimaLicencia){
+    $elAnioPasado = strtotime('-1 year');
+    $fecha = str_replace("/","-",$ultimaLicencia->FechaVencimiento);
+    $fechaVencimiento = strtotime($fecha); //se toma para m/d/YYYY de sinalic viene en d/m/y
+
+    return $fechaVencimiento < $elAnioPasado;
+  }
+
+  public function esNecesarioAmpliacion($ultimaLicencia){
+    $clases = strtolower($ultimaLicencia->Clases);
+    $clases = str_replace("a","", $clases);
+    $clases = str_replace("b","", $clases);
+    return preg_match("/[a-z]/i", $clases);
+  }
+
+  public function asignarTipoTramiteAIniciar($tramiteAInicar){
+    $ultimaLicencia = $this->getUltimaLicencia($tramiteAInicar);
+    $tramite->tipo_tramite = $this->getTipoTramite($ultimaLicencia);
+    $tramite->save();
+  }
+
+  public function getUltimaLicencia($tramiteAInicar){
+    $licencias = $this->getLicencias($tramiteAInicar);
+    $licencias = $licencias->ConsultarLicenciasResult->LicenciaDTO;
+    $ultimaLicencia = null;
+
+    if(!empty($licencias))
+      if(count($licencias) == 1)
+        return $licencias; //Retorna Una sola licencia
+
+      foreach ($licencias as $key => $value) {
+        if(!$ultimaLicencia){
+          $ultimaLicencia = $value;
+          if(count($licencias) == 1)
+            break;
+        } else {
+          $fecha = str_replace("/","-",$ultimaLicencia->FechaVencimiento);
+          $fecha2 = str_replace("/","-",$value->FechaVencimiento);
+          if(strtotime($fecha) < strtotime($fecha2))
+            $ultimaLicencia = $value;
+        }
+      }
+    return $ultimaLicencia;
+  }
+
+  public function getLicencias($tramiteAInicar){
+    $res = $this->wsSinalic->ConsultarLicencias(array(
+             "nroDocumento" => $tramiteAInicar->nro_doc,
+             "sexo" => $tramiteAInicar->sexo,
+             "tipoDocumento" => $tramiteAInicar->tipo_doc
+           ));
+    return $res;
+  }
+}
+//35355887F de otra jurisdiccion // 29543881 de CABA
