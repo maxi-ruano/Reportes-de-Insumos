@@ -111,6 +111,7 @@ class TramitesAInicarController extends Controller
       $tramiteAIniciar->estado = $siguienteEstado;
       $tramiteAIniciar->sigeci_idcita = $turno->idcita;
       $tramiteAIniciar->save();
+      $turno->tramite_a_iniciar_id = $tramiteAIniciar->id;
       return $tramiteAIniciar;
     }
   }
