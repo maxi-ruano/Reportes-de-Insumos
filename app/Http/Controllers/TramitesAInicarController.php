@@ -88,7 +88,9 @@ class TramitesAInicarController extends Controller
   }
 
   public function getTurnos($dia){
-    $res = Sigeci::where('fecha', $dia)->get();
+    $res = Sigeci::where('fecha', $dia)
+                 ->whereNull('tramite_a_iniciar_id')
+                 ->get();
     return $res;
   }
 
@@ -195,20 +197,21 @@ class TramitesAInicarController extends Controller
     foreach ($tramites as $key => $tramite) {
       $this->asignarTipoTramiteAIniciar($tramite);
       $res = null;
+      $response = null;
       $datos = $this->wsSinalic->parseTramiteParaSinalic($tramite);
 
       switch ($tramite->tipo_tramite) {
         case 2: //RENOVACION
-          $res = $this->wsSinalic->IniciarTramiteRenovarLicencia($datos)
-                                 ->IniciarTramiteRenovarLicenciaResult;
+          $response = $this->wsSinalic->IniciarTramiteRenovarLicencia($datos);
+          $res = $response->IniciarTramiteRenovarLicenciaResult;
         break;
         case 1: //OTORGAMIENTO
-          $res = $this->wsSinalic->IniciarTramiteNuevaLicencia($datos)
-                                 ->IniciarTramiteNuevaLicenciaResult;
+          $response = $this->wsSinalic->IniciarTramiteNuevaLicencia($datos);
+          $res = $response->IniciarTramiteNuevaLicenciaResult;
         break;
         case 6: //RENOVACION CON AMPLIACION
-          $res = $this->wsSinalic->IniciarTramiteRenovacionConAmpliacion($datos)
-                                 ->IniciarTramiteRenovacionConAmpliacion;
+          $response = $this->wsSinalic->IniciarTramiteRenovacionConAmpliacion($datos);
+          $res = $reponse->IniciarTramiteRenovacionConAmpliacionResult;
         break;
         default:
           # code...
@@ -221,6 +224,7 @@ class TramitesAInicarController extends Controller
       else {
         $tramite->estado = $siguienteEstado;
         $tramite->tramite_sinalic_id = $res->tramite_sinalic_id;
+        $tramite->response_ws = $response;
         $tramite->save();
       }
     }
