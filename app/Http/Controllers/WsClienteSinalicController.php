@@ -41,17 +41,29 @@ class WsClienteSinalicController extends Controller
   }
 
   public function IniciarTramiteNuevaLicencia($tramiteAInicar){
-    $res = $this->cliente->IniciarTramiteNuevaLicencia($tramiteAInicar);
+    try {
+      $res = $this->cliente->IniciarTramiteNuevaLicencia($tramiteAInicar);
+    }catch(\Exception $e) {
+        echo $e->getMessage();
+    }
     return $res;
   }
 
   public function IniciarTramiteRenovarLicencia($tramiteAInicar){
-    $res = $this->cliente->IniciarTramiteRenovarLicencia($tramiteAInicar);
+    try {
+      $res = $this->cliente->IniciarTramiteRenovarLicencia($tramiteAInicar);
+    }catch(\Exception $e) {
+        echo $e->getMessage();
+    }
     return $res;
   }
 
   public function IniciarTramiteRenovacionConAmpliacion($tramiteAInicar){
-    $res = $this->cliente->IniciarTramiteRenovacionConAmpliacion($tramiteAInicar);
+    try {
+      $res = $this->cliente->IniciarTramiteRenovacionConAmpliacion($tramiteAInicar);
+    }catch(\Exception $e) {
+        echo $e->getMessage();
+    }
     return $res;
   }
 
@@ -84,7 +96,11 @@ class WsClienteSinalicController extends Controller
   }
 
   public function ConsultarLicencias($datos){
-    $res = $this->cliente->ConsultarLicencias($datos);
+    try {
+      $res = $this->cliente->ConsultarLicencias($datos);
+    }catch(\Exception $e) {
+        echo $e->getMessage();
+    }
     return $res;
   }
 }

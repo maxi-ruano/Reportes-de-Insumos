@@ -135,7 +135,10 @@ class TramitesAInicarController extends Controller
         }
       }
     else {
-      $res['error'] = $boletas->rspDescrip;
+      if($boletas!=null)
+        $res['error'] = $boletas->rspDescrip;
+      else
+        $res['error'] = "existe un problema con Ws de sinalic";
     }
 
     if(!is_null($boleta)){
@@ -219,12 +222,15 @@ class TramitesAInicarController extends Controller
       }
 
       $res = $this->interpretarResultado($res, $datos);
-      if(!empty($res->error))
+
+      if(!empty($res->error)){
         $this->guardarError($res, $estadoActual, $tramite->id);
-      else {
+        $tramite->response_ws = json_encode($response);
+        $tramite->save();
+      }else {
         $tramite->estado = $siguienteEstado;
         $tramite->tramite_sinalic_id = $res->tramite_sinalic_id;
-        $tramite->response_ws = $response;
+        $tramite->response_ws = json_encode($response);
         $tramite->save();
       }
     }
@@ -455,7 +461,7 @@ class TramitesAInicarController extends Controller
       $res = 1;// OTORGAMIENTO
     else{
       if($this->estaEnJurisdiccion($ultimaLicencia, 'C.A.B.A.')){
-          $res = 'renovacion es de jurisdiccion';
+          $res = 2;
       }else{
           if($this->esNecesarioAmpliacion($ultimaLicencia))
             $res = 6; //RENOVACION CON AMPLIACION
@@ -488,8 +494,8 @@ class TramitesAInicarController extends Controller
 
   public function asignarTipoTramiteAIniciar($tramiteAInicar){
     $ultimaLicencia = $this->getUltimaLicencia($tramiteAInicar);
-    $tramite->tipo_tramite = $this->getTipoTramite($ultimaLicencia);
-    $tramite->save();
+    $tramiteAInicar->tipo_tramite = $this->getTipoTramite($ultimaLicencia);
+    $tramiteAInicar->save();
   }
 
   public function getUltimaLicencia($tramiteAInicar){

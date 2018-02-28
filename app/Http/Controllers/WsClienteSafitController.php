@@ -40,11 +40,17 @@ class WsClienteSafitController extends Controller
   }
 
   public function getBoletas($persona){
-    $res = $this->cliente->consultar_boleta_pago_persona($this->uswID,
+    $res = null;
+    try {
+      $res = $this->cliente->consultar_boleta_pago_persona($this->uswID,
                                                    $this->ingID,
                                                    $this->munID,
                                                    $persona->nro_doc,
                                                    $persona->tipo_doc);
+                                                 }
+    catch(\Exception $e) {
+      echo $e->getMessage();
+    }
     return $res;
   }
 
@@ -73,11 +79,11 @@ class WsClienteSafitController extends Controller
                 'stream_context' => $context,
                 'soap_version' => SOAP_1_1,
                 'cache_wsdl' => WSDL_CACHE_NONE,
-                'trace' => 1
+                'trace' => 1,
+                'exceptions' => true
         );
         $this->cliente = new SoapClient($this->url, $soapClientOptions);
-      }
-      catch(\Exception $e) {
+      }catch(\Exception $e) {
           echo $e->getMessage();
       }
   }
@@ -99,13 +105,17 @@ class WsClienteSafitController extends Controller
                          "importe" => $tramiteAIniciar->bop_monto,
                          "fechaPago" => $tramiteAIniciar->bop_fec_pag,
                          "codigoComprobante" => $tramiteAIniciar->bop_id);
-
-    $res = $this->cliente->obtener_certificado_virtual_pago($this->uswID,
-                                                            $this->ingID,
-                                                            $this->munID,
-                                                            $tramiteAIniciar->cem_id,
-                                                            $datosComprobante,
-                                                            $datosPago);
+    $res = null;
+    try {
+      $res = $this->cliente->obtener_certificado_virtual_pago($this->uswID,
+                                                              $this->ingID,
+                                                              $this->munID,
+                                                              $tramiteAIniciar->cem_id,
+                                                              $datosComprobante,
+                                                              $datosPago);
+    }catch(\Exception $e) {
+        echo $e->getMessage();
+    }
     return $res;
   }
 }
