@@ -11,7 +11,7 @@ class WsClienteSafitController extends Controller
 {
   var $url = 'https://testing.safit.com.ar/service/s_001.php?wsdl';
   var $uswID = '000016';
-  var $uswPassword = 'twe546av1e89as4';
+  var $uswPassword = 'weporjgsdf41654';
   var $uswHash = 'e10adc3949ba59abbe56e057f20f883e';
   var $munID = '1';
   var $ingID = null;
@@ -113,8 +113,22 @@ class WsClienteSafitController extends Controller
                                                               $tramiteAIniciar->cem_id,
                                                               $datosComprobante,
                                                               $datosPago);
+
     }catch(\Exception $e) {
-        echo $e->getMessage();
+        $res = $e->getMessage();
+    }
+    return $res;
+  }
+
+  public function consultarBoletaPago($bopCB, $cemID){
+    try {
+      $res = $this->cliente->consultar_boleta_pago( $this->uswID,
+                                                    $this->ingID,
+                                                    $this->munID,
+                                                    $cemID,
+                                                    $bopCB);
+    }catch(\Exception $e) {
+        $res = $e->getMessage();
     }
     return $res;
   }

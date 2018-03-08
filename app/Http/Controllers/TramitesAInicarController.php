@@ -15,6 +15,7 @@ use App\TramitesAIniciarErrores;
 use App\LibreDeudaLns;
 use App\LibreDeudaHdr;
 use App\BoletaBui;
+use App\AnsvCelExpedidor;
 
 class TramitesAInicarController extends Controller
 {
@@ -529,6 +530,77 @@ class TramitesAInicarController extends Controller
              "tipoDocumento" => $tramiteAInicar->tipo_doc
            ));
     return $res;
+  }
+
+  public function consultarBoletaPago(Request $request){
+    $res = $this->wsSafit->consultarBoletaPago($request->bop_cb, $request->cem_id);
+    if(isset($res->rspID)){
+
+      if($res->rspID == 1){
+        $boleta = (object) array('nro_doc' => $res->datosBoletaPago->datosPersonaBoletaPago->oprDocumento,
+                                 'tipo_doc' => $res->datosBoletaPago->datosPersonaBoletaPago->tdcID,
+                                 'sexo' => $res->datosBoletaPago->datosPersonaBoletaPago->oprSexo,
+                                 'nombre' => $res->datosBoletaPago->datosPersonaBoletaPago->oprNombre,
+                                 'apellido' => $res->datosBoletaPago->datosPersonaBoletaPago->oprApellido,
+                                 'bop_id' => $res->datosBoletaPago->bopID,
+                                 'bop_cb' => $res->datosBoletaPago->bopCB,
+                                 'bop_monto' => $res->datosBoletaPago->bopMonto,
+                                 'bop_fec_pag' => $res->datosBoletaPago->bopFecPag,
+                                 'cem_id' => $request->cem_id);
+
+        return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+                                             ->with('boleta', $boleta);
+      }else{
+        return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+                                             ->with('error', $res->rspDescrip);
+      }
+    }else {
+      return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+                                           ->with('error', 'Ha ocurrido un error inesperado: '.$res);
+    }
+  }
+
+  public function buscarBoletaPago(Request $request){
+    return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores());
+  }
+
+  public function getCentrosEmisores(){
+    $centrosEmisores = AnsvCelExpedidor::whereNotNull('safit_cem_id')->get();
+    foreach ($centrosEmisores as $key => $value) {
+      $value->name = "";
+      if($value->sysMultivalue())
+        $value->name = $value->sysMultivalue()->description;
+    }
+    return $centrosEmisores;
+  }
+
+  public function generarCenat(Request $request){
+    $tramiteAInicar = (object) array('nro_doc' => $request->nro_doc,
+                             'tipo_doc' => $request->tipo_doc,
+                             'sexo' => $request->sexo,
+                             'nombre' => $request->nombre,
+                             'apellido' => $request->apellido,
+                             'fecha_nacimiento' => $request->fecha_nacimiento,
+                             'nacionalidad' => "",
+                             'bop_cb' => $request->bop_cb,
+                             'bop_monto' => $request->bop_monto,
+                             'bop_fec_pag' => $request->bop_fec_pag,
+                             'bop_id' => $request->bop_id,
+                             'cem_id' => $request->cem_id);
+
+    $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAInicar);
+    if(isset($res->rspID)){
+      if($res->rspID == 1)
+        return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+                                             ->with('success', $res->rspDescrip);
+      else
+        return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+                                             ->with('boleta', $tramiteAInicar)
+                                             ->with('error', $res->rspDescrip);
+    }else
+      return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+                                           ->with('boleta', $tramiteAInicar)
+                                           ->with('error', 'Ha ocurrido un error inesperado: '.$res);
   }
 }
 //35355887F de otra jurisdiccion // 29543881 de CABA
