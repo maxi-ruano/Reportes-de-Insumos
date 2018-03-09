@@ -15,6 +15,7 @@ use App\TramitesAIniciarErrores;
 use App\LibreDeudaLns;
 use App\LibreDeudaHdr;
 use App\BoletaBui;
+use App\AnsvCelExpedidor;
 
 class TramitesAInicarController extends Controller
 {
@@ -88,7 +89,9 @@ class TramitesAInicarController extends Controller
   }
 
   public function getTurnos($dia){
-    $res = Sigeci::where('fecha', $dia)->get();
+    $res = Sigeci::where('fecha', $dia)
+                 ->whereNull('tramite_a_iniciar_id')
+                 ->get();
     return $res;
   }
 
@@ -133,7 +136,10 @@ class TramitesAInicarController extends Controller
         }
       }
     else {
-      $res['error'] = $boletas->rspDescrip;
+      if($boletas!=null)
+        $res['error'] = $boletas->rspDescrip;
+      else
+        $res['error'] = "existe un problema con Ws de sinalic";
     }
 
     if(!is_null($boleta)){
@@ -195,20 +201,21 @@ class TramitesAInicarController extends Controller
     foreach ($tramites as $key => $tramite) {
       $this->asignarTipoTramiteAIniciar($tramite);
       $res = null;
+      $response = null;
       $datos = $this->wsSinalic->parseTramiteParaSinalic($tramite);
 
       switch ($tramite->tipo_tramite) {
         case 2: //RENOVACION
-          $res = $this->wsSinalic->IniciarTramiteRenovarLicencia($datos)
-                                 ->IniciarTramiteRenovarLicenciaResult;
+          $response = $this->wsSinalic->IniciarTramiteRenovarLicencia($datos);
+          $res = $response->IniciarTramiteRenovarLicenciaResult;
         break;
         case 1: //OTORGAMIENTO
-          $res = $this->wsSinalic->IniciarTramiteNuevaLicencia($datos)
-                                 ->IniciarTramiteNuevaLicenciaResult;
+          $response = $this->wsSinalic->IniciarTramiteNuevaLicencia($datos);
+          $res = $response->IniciarTramiteNuevaLicenciaResult;
         break;
         case 6: //RENOVACION CON AMPLIACION
-          $res = $this->wsSinalic->IniciarTramiteRenovacionConAmpliacion($datos)
-                                 ->IniciarTramiteRenovacionConAmpliacion;
+          $response = $this->wsSinalic->IniciarTramiteRenovacionConAmpliacion($datos);
+          $res = $reponse->IniciarTramiteRenovacionConAmpliacionResult;
         break;
         default:
           # code...
@@ -216,11 +223,15 @@ class TramitesAInicarController extends Controller
       }
 
       $res = $this->interpretarResultado($res, $datos);
-      if(!empty($res->error))
+
+      if(!empty($res->error)){
         $this->guardarError($res, $estadoActual, $tramite->id);
-      else {
+        $tramite->response_ws = json_encode($response);
+        $tramite->save();
+      }else {
         $tramite->estado = $siguienteEstado;
         $tramite->tramite_sinalic_id = $res->tramite_sinalic_id;
+        $tramite->response_ws = json_encode($response);
         $tramite->save();
       }
     }
@@ -451,7 +462,7 @@ class TramitesAInicarController extends Controller
       $res = 1;// OTORGAMIENTO
     else{
       if($this->estaEnJurisdiccion($ultimaLicencia, 'C.A.B.A.')){
-          $res = 'renovacion es de jurisdiccion';
+          $res = 2;
       }else{
           if($this->esNecesarioAmpliacion($ultimaLicencia))
             $res = 6; //RENOVACION CON AMPLIACION
@@ -484,8 +495,8 @@ class TramitesAInicarController extends Controller
 
   public function asignarTipoTramiteAIniciar($tramiteAInicar){
     $ultimaLicencia = $this->getUltimaLicencia($tramiteAInicar);
-    $tramite->tipo_tramite = $this->getTipoTramite($ultimaLicencia);
-    $tramite->save();
+    $tramiteAInicar->tipo_tramite = $this->getTipoTramite($ultimaLicencia);
+    $tramiteAInicar->save();
   }
 
   public function getUltimaLicencia($tramiteAInicar){
@@ -519,6 +530,77 @@ class TramitesAInicarController extends Controller
              "tipoDocumento" => $tramiteAInicar->tipo_doc
            ));
     return $res;
+  }
+
+  public function consultarBoletaPago(Request $request){
+    $res = $this->wsSafit->consultarBoletaPago($request->bop_cb, $request->cem_id);
+    if(isset($res->rspID)){
+
+      if($res->rspID == 1){
+        $boleta = (object) array('nro_doc' => $res->datosBoletaPago->datosPersonaBoletaPago->oprDocumento,
+                                 'tipo_doc' => $res->datosBoletaPago->datosPersonaBoletaPago->tdcID,
+                                 'sexo' => $res->datosBoletaPago->datosPersonaBoletaPago->oprSexo,
+                                 'nombre' => $res->datosBoletaPago->datosPersonaBoletaPago->oprNombre,
+                                 'apellido' => $res->datosBoletaPago->datosPersonaBoletaPago->oprApellido,
+                                 'bop_id' => $res->datosBoletaPago->bopID,
+                                 'bop_cb' => $res->datosBoletaPago->bopCB,
+                                 'bop_monto' => $res->datosBoletaPago->bopMonto,
+                                 'bop_fec_pag' => $res->datosBoletaPago->bopFecPag,
+                                 'cem_id' => $request->cem_id);
+
+        return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+                                             ->with('boleta', $boleta);
+      }else{
+        return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+                                             ->with('error', $res->rspDescrip);
+      }
+    }else {
+      return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+                                           ->with('error', 'Ha ocurrido un error inesperado: '.$res);
+    }
+  }
+
+  public function buscarBoletaPago(Request $request){
+    return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores());
+  }
+
+  public function getCentrosEmisores(){
+    $centrosEmisores = AnsvCelExpedidor::whereNotNull('safit_cem_id')->get();
+    foreach ($centrosEmisores as $key => $value) {
+      $value->name = "";
+      if($value->sysMultivalue())
+        $value->name = $value->sysMultivalue()->description;
+    }
+    return $centrosEmisores;
+  }
+
+  public function generarCenat(Request $request){
+    $tramiteAInicar = (object) array('nro_doc' => $request->nro_doc,
+                             'tipo_doc' => $request->tipo_doc,
+                             'sexo' => $request->sexo,
+                             'nombre' => $request->nombre,
+                             'apellido' => $request->apellido,
+                             'fecha_nacimiento' => $request->fecha_nacimiento,
+                             'nacionalidad' => "",
+                             'bop_cb' => $request->bop_cb,
+                             'bop_monto' => $request->bop_monto,
+                             'bop_fec_pag' => $request->bop_fec_pag,
+                             'bop_id' => $request->bop_id,
+                             'cem_id' => $request->cem_id);
+
+    $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAInicar);
+    if(isset($res->rspID)){
+      if($res->rspID == 1)
+        return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+                                             ->with('success', $res->rspDescrip);
+      else
+        return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+                                             ->with('boleta', $tramiteAInicar)
+                                             ->with('error', $res->rspDescrip);
+    }else
+      return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+                                           ->with('boleta', $tramiteAInicar)
+                                           ->with('error', 'Ha ocurrido un error inesperado: '.$res);
   }
 }
 //35355887F de otra jurisdiccion // 29543881 de CABA

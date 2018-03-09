@@ -31,6 +31,7 @@ class CreateTramitesAIniciarTable extends Migration
             $table->integer('sigeci_idcita');
             $table->integer('tramite_sinalic_id')->nullable();
             $table->integer('tipo_tramite')->nullable();
+            $table->text('response_ws')->nullable();
             $table->timestamps();
         });
     }

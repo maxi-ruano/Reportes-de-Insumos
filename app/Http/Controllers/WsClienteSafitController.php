@@ -11,7 +11,7 @@ class WsClienteSafitController extends Controller
 {
   var $url = 'https://testing.safit.com.ar/service/s_001.php?wsdl';
   var $uswID = '000016';
-  var $uswPassword = 'twe546av1e89as4';
+  var $uswPassword = 'weporjgsdf41654';
   var $uswHash = 'e10adc3949ba59abbe56e057f20f883e';
   var $munID = '1';
   var $ingID = null;
@@ -40,11 +40,17 @@ class WsClienteSafitController extends Controller
   }
 
   public function getBoletas($persona){
-    $res = $this->cliente->consultar_boleta_pago_persona($this->uswID,
+    $res = null;
+    try {
+      $res = $this->cliente->consultar_boleta_pago_persona($this->uswID,
                                                    $this->ingID,
                                                    $this->munID,
                                                    $persona->nro_doc,
                                                    $persona->tipo_doc);
+                                                 }
+    catch(\Exception $e) {
+      echo $e->getMessage();
+    }
     return $res;
   }
 
@@ -73,11 +79,11 @@ class WsClienteSafitController extends Controller
                 'stream_context' => $context,
                 'soap_version' => SOAP_1_1,
                 'cache_wsdl' => WSDL_CACHE_NONE,
-                'trace' => 1
+                'trace' => 1,
+                'exceptions' => true
         );
         $this->cliente = new SoapClient($this->url, $soapClientOptions);
-      }
-      catch(\Exception $e) {
+      }catch(\Exception $e) {
           echo $e->getMessage();
       }
   }
@@ -99,13 +105,31 @@ class WsClienteSafitController extends Controller
                          "importe" => $tramiteAIniciar->bop_monto,
                          "fechaPago" => $tramiteAIniciar->bop_fec_pag,
                          "codigoComprobante" => $tramiteAIniciar->bop_id);
+    $res = null;
+    try {
+      $res = $this->cliente->obtener_certificado_virtual_pago($this->uswID,
+                                                              $this->ingID,
+                                                              $this->munID,
+                                                              $tramiteAIniciar->cem_id,
+                                                              $datosComprobante,
+                                                              $datosPago);
 
-    $res = $this->cliente->obtener_certificado_virtual_pago($this->uswID,
-                                                            $this->ingID,
-                                                            $this->munID,
-                                                            $tramiteAIniciar->cem_id,
-                                                            $datosComprobante,
-                                                            $datosPago);
+    }catch(\Exception $e) {
+        $res = $e->getMessage();
+    }
+    return $res;
+  }
+
+  public function consultarBoletaPago($bopCB, $cemID){
+    try {
+      $res = $this->cliente->consultar_boleta_pago( $this->uswID,
+                                                    $this->ingID,
+                                                    $this->munID,
+                                                    $cemID,
+                                                    $bopCB);
+    }catch(\Exception $e) {
+        $res = $e->getMessage();
+    }
     return $res;
   }
 }
