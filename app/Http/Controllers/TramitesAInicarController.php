@@ -16,6 +16,7 @@ use App\LibreDeudaLns;
 use App\LibreDeudaHdr;
 use App\BoletaBui;
 use App\AnsvCelExpedidor;
+use App\EmisionBoletaSafit;
 
 class TramitesAInicarController extends Controller
 {
@@ -586,20 +587,26 @@ class TramitesAInicarController extends Controller
                              'bop_fec_pag' => $request->bop_fec_pag,
                              'bop_id' => $request->bop_id,
                              'cem_id' => $request->cem_id);
-
-    $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAInicar);
-    if(isset($res->rspID)){
-      if($res->rspID == 1)
-        return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
-                                             ->with('success', $res->rspDescrip);
-      else
+    $emision = EmisionBoletaSafit::where('numero_boleta', $request->bop_id)->first();
+    if ($emision === null) {
+        $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAInicar);
+      if(isset($res->rspID)){
+        if($res->rspID == 1){
+          $this->guardarEmisionBoleta($request->bop_id, $request->ip());
+          return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+                                               ->with('success', $res->rspDescrip);
+        }else
+          return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+                                               ->with('boleta', $tramiteAInicar)
+                                               ->with('error', $res->rspDescrip);
+      }else
         return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
                                              ->with('boleta', $tramiteAInicar)
-                                             ->with('error', $res->rspDescrip);
-    }else
+                                             ->with('error', 'Ha ocurrido un error inesperado: '.$res);
+    }else{
       return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
-                                           ->with('boleta', $tramiteAInicar)
-                                           ->with('error', 'Ha ocurrido un error inesperado: '.$res);
+                                           ->with('success', 'La boleta ya fue emitida.');
+    }
   }
 
   public function checkPreCheck(){
@@ -637,6 +644,13 @@ class TramitesAInicarController extends Controller
                                           ->with('mensaje', $mensaje)
                                           ->with('error', $error)
                                           ->with('tramite', $res);
+  }
+
+  public function guardarEmisionBoleta($idBoleta, $ip){
+    $emision = new EmisionBoletaSafit();
+    $emision->numero_boleta = $idBoleta;
+    $emision->ip = $ip;
+    $emision->save();
   }
 }
 //35355887F de otra jurisdiccion // 29543881 de CABA
