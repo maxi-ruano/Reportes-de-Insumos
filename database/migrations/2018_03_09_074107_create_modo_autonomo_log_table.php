@@ -15,6 +15,8 @@ class CreateModoAutonomoLogTable extends Migration
     {
         Schema::create('modo_autonomo_log', function (Blueprint $table) {
             $table->increments('id');
+            $table->string('ws');
+            $table->text('description');
             $table->timestamps();
         });
     }
