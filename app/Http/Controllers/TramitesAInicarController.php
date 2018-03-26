@@ -48,6 +48,7 @@ class TramitesAInicarController extends Controller
     $this->wsSafit = new WsClienteSafitController();
     //WS SINALIC
     //$this->wsSinalic = new WsClienteSinalicController();
+    ini_set('default_socket_timeout', 600);
   }
 
   public function completarBoletasEnTramitesAIniciar($estadoActual, $siguienteEstado){
