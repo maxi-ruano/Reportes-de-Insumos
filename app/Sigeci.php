@@ -10,6 +10,7 @@ class Sigeci extends Model
   protected $primaryKey = 'idcita';
   protected $fillable = ['idcita', 'idorganismo', 'idsede', 'descsede', 'idprestacion', 'descprestacion', 'fecha', 'hora', 'estado', 'idtipodoc',
                          'tipodoc', 'numdoc', 'nombre', 'apellido', 'telefono', 'email', 'metadata', 'sucroca', 'tramite_a_iniciar_id'];
+  public $timestamps = false;                         
 
   public function nacionalidad(){
     return json_decode($this->metadata)->nacionalidad;

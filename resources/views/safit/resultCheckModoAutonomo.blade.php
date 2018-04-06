@@ -3,23 +3,28 @@
 @section('content')
 <!-- page content -->
         <div class="row">
+          @include('safit.botoneraPrecheck')
+        </div>
+        <div class="row">
           <label class="control-label col-md-3 col-sm-3 col-xs-12">
-            @include('safit.botoneraPrecheck')
           </label>
-          <div class="col-md-6 col-sm-6 col-xs-12">
-            @if (!empty($error))
-              <div class="alert alert-danger alert-dismissible fade in" role="alert">
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
-                <strong>{{ $error }}</strong>
-              </div>
-            @endif
-            @if (!empty($mensaje))
-              <div class="alert alert-success alert-dismissible fade in" role="alert">
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
-                <strong>{{ $mensaje }}</strong>
-              </div>
-            @endif
-          </div>
+
+              <div class="col-md-6 col-sm-6 col-xs-12">
+              @if (!empty($error))
+                <div class="alert alert-danger alert-dismissible fade in" role="alert">
+                  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+                  <strong>{{ $error }}</strong>
+                </div>
+              @endif
+              @if (!empty($mensaje))
+                <div class="alert alert-success alert-dismissible fade in" role="alert">
+                  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+                  <strong>{{ $mensaje }}</strong>
+                </div>
+              @endif
+            </div>
+          
+
         </div>
         <div class="clearfix"></div>
         <div class="row">
@@ -60,8 +65,34 @@
                 <div class="clearfix"></div>
               </div>
               <div class="x_content">
-                @if (!is_null($log))
-                  @foreach($log as  $value)
+                <ul>
+                @if(!is_null($tramite))
+                  <li>
+                  @if ($tramite->estado >= 3)
+                      <label class="btn btn-success">Cenat Emitido</label>
+                  @else
+                      <label class="btn btn-danger">Cenat no Emitido</label>
+                  @endif
+                  </li>
+                  <li>
+                  @if ($tramite->estado >= 4)
+                      <label class="btn btn-success">Libre Deuda Verificado</label>
+                  @else
+                      <label class="btn btn-danger">Libre Deuda NO Verificado </label>
+                  @endif
+                  </li>
+                  <li>
+                  @if ($tramite->estado >= 5)
+                      <label class="btn btn-success">BUI Verificado</label>
+                  @else
+                      <label class="btn btn-danger">BUI No Verificado </label>
+                  @endif
+                  </li>
+                @endif
+                </ul>
+                {{--
+                @if (false)
+                @foreach($log as  $value)
                   <article class="media event">
                     <a class="pull-left date">
                     <!--  <p class="month">{{$value->estado_error}}</p> -->
@@ -74,6 +105,7 @@
                   </article>
                   @endforeach
                 @endif
+                --}}
               </div>
             </div>
           </div>

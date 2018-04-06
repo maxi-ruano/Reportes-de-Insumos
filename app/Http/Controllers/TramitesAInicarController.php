@@ -47,7 +47,7 @@ class TramitesAInicarController extends Controller
     //WS SAFIT
     $this->wsSafit = new WsClienteSafitController();
     //WS SINALIC
-    //$this->wsSinalic = new WsClienteSinalicController();
+    $this->wsSinalic = new WsClienteSinalicController();
     ini_set('default_socket_timeout', 600);
   }
 
@@ -61,7 +61,7 @@ class TramitesAInicarController extends Controller
       if(empty($res->error))
         $this->guardarDatosBoleta($persona, $res, $siguienteEstado);
       else {
-        $this->guardarError($res, $estadoActual, $persona->id);
+        $this->guardarError($res, $siguienteEstado, $persona->id);
       }
     }
   }
@@ -117,6 +117,7 @@ class TramitesAInicarController extends Controller
       $tramiteAIniciar->sigeci_idcita = $turno->idcita;
       $tramiteAIniciar->save();
       $turno->tramite_a_iniciar_id = $tramiteAIniciar->id;
+      $turno->save();
       return $tramiteAIniciar;
     }
   }
@@ -186,7 +187,7 @@ class TramitesAInicarController extends Controller
         $array = array('error' => $res->rspDescrip,
                        'request' => $tramiteAIniciar,
                        'response' => $res);
-        $this->guardarError((object)$array, $estadoActual, $tramiteAIniciar->id);
+        $this->guardarError((object)$array, $siguienteEstado, $tramiteAIniciar->id);
       }
     }
   }
@@ -227,7 +228,7 @@ class TramitesAInicarController extends Controller
       $res = $this->interpretarResultado($res, $datos);
 
       if(!empty($res->error)){
-        $this->guardarError($res, $estadoActual, $tramite->id);
+        $this->guardarError($res, $siguienteEstado, $tramite->id);
         $tramite->response_ws = json_encode($response);
         $tramite->save();
       }else {
@@ -263,7 +264,7 @@ class TramitesAInicarController extends Controller
     foreach ($tramites as $key => $tramite) {
       $res = $this->verificarLibreDeuda($tramite);
       if( $res !== true){
-        $this->guardarError((object)$res, $estadoActual, $tramite->id);
+        $this->guardarError((object)$res, $siguienteEstado, $tramite->id);
       }else {
         $tramite->estado = $siguienteEstado;
         $tramite->save();
@@ -373,7 +374,7 @@ class TramitesAInicarController extends Controller
       foreach ($this->conceptoBui as $key => $value) {
         $res = $this->verificarBui($tramite, $value);
         if( !empty($res['error']) )
-          $this->guardarError((object)$res, $estadoActual, $tramite->id);
+          $this->guardarError((object)$res, $siguienteEstado, $tramite->id);
         else {
           $tramite->estado = $siguienteEstado;
           $tramite->save();
@@ -625,7 +626,7 @@ class TramitesAInicarController extends Controller
     $res = TramitesAIniciar::where('nro_doc', $request->nro_doc)
                            ->where('nacionalidad', $nacionalidad->id_ansv)
                            ->where('tipo_doc', $request->tipo_doc)
-                           ->where('sexo', $request->sexo)
+                    //       ->where('sexo', $request->sexo)
                            ->first();
     $log = null;
     $error = "";
