@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\SoapController;
 use SoapClient;
-
+use App\ModoAutonomoLog;
 
 class WsClienteSafitController extends Controller
 {
@@ -25,11 +25,17 @@ class WsClienteSafitController extends Controller
   }
 
   public function iniciarSesion(){
-    $res = $this->cliente->abrir_sesion( $this->uswID,
-                                         $this->uswPassword,
-                                         $this->uswHash );
-    $this->sisID = $res->sesID;
-    $this->ingID = $res->ingID;
+    $res = null;
+    try {
+      $res = $this->cliente->abrir_sesion( $this->uswID,
+                                           $this->uswPassword,
+                                           $this->uswHash );
+      $this->sisID = $res->sesID;
+      $this->ingID = $res->ingID;
+    }catch(\Exception $e) {
+      ModoAutonomoLog::create(array('ws' => 'safit-abrir_sesion', 'description' => $e->getMessage()));
+    }
+    return $res;
   }
 
   public function cerrarSesion(){
@@ -49,7 +55,7 @@ class WsClienteSafitController extends Controller
                                                    $persona->tipo_doc);
                                                  }
     catch(\Exception $e) {
-      echo $e->getMessage();
+      ModoAutonomoLog::create(array('ws' => 'safit-consultar_boleta_pago_persona', 'description' => $e->getMessage()));
     }
     return $res;
   }
@@ -84,7 +90,7 @@ class WsClienteSafitController extends Controller
         );
         $this->cliente = new SoapClient($this->url, $soapClientOptions);
       }catch(\Exception $e) {
-          echo $e->getMessage();
+          ModoAutonomoLog::create(array('ws' => 'safit-SoapClient', 'description' => $e->getMessage()));
       }
   }
 
@@ -113,8 +119,8 @@ class WsClienteSafitController extends Controller
                                                               $tramiteAIniciar->cem_id,
                                                               $datosComprobante,
                                                               $datosPago);
-
     }catch(\Exception $e) {
+        ModoAutonomoLog::create(array('ws' => 'safit-obtener_certificado_virtual_pago', 'description' => $e->getMessage()));
         $res = $e->getMessage();
     }
     return $res;
@@ -128,6 +134,7 @@ class WsClienteSafitController extends Controller
                                                     $cemID,
                                                     $bopCB);
     }catch(\Exception $e) {
+        ModoAutonomoLog::create(array('ws' => 'safit-consultar_boleta_pago', 'description' => $e->getMessage()));
         $res = $e->getMessage();
     }
     return $res;

@@ -16,6 +16,7 @@ use App\LibreDeudaLns;
 use App\LibreDeudaHdr;
 use App\BoletaBui;
 use App\AnsvCelExpedidor;
+use App\EmisionBoletaSafit;
 
 class TramitesAInicarController extends Controller
 {
@@ -23,7 +24,7 @@ class TramitesAInicarController extends Controller
   private $munID = 1;
   private $estID = "A";
   private $estadoBoletaNoUtilizada = "N";
-
+  private $estado_final = 6;
   //LIBRE deuda
   private $userLibreDeuda = "LICENCIAS01";
   private $passwordLibreDeuda = "TEST1234";
@@ -46,7 +47,8 @@ class TramitesAInicarController extends Controller
     //WS SAFIT
     $this->wsSafit = new WsClienteSafitController();
     //WS SINALIC
-    $this->wsSinalic = new WsClienteSinalicController();
+    //$this->wsSinalic = new WsClienteSinalicController();
+    ini_set('default_socket_timeout', 600);
   }
 
   public function completarBoletasEnTramitesAIniciar($estadoActual, $siguienteEstado){
@@ -535,7 +537,6 @@ class TramitesAInicarController extends Controller
   public function consultarBoletaPago(Request $request){
     $res = $this->wsSafit->consultarBoletaPago($request->bop_cb, $request->cem_id);
     if(isset($res->rspID)){
-
       if($res->rspID == 1){
         $boleta = (object) array('nro_doc' => $res->datosBoletaPago->datosPersonaBoletaPago->oprDocumento,
                                  'tipo_doc' => $res->datosBoletaPago->datosPersonaBoletaPago->tdcID,
@@ -587,20 +588,70 @@ class TramitesAInicarController extends Controller
                              'bop_fec_pag' => $request->bop_fec_pag,
                              'bop_id' => $request->bop_id,
                              'cem_id' => $request->cem_id);
-
-    $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAInicar);
-    if(isset($res->rspID)){
-      if($res->rspID == 1)
-        return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
-                                             ->with('success', $res->rspDescrip);
-      else
+    $emision = EmisionBoletaSafit::where('numero_boleta', $request->bop_id)->first();
+    if ($emision === null) {
+        $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAInicar);
+      if(isset($res->rspID)){
+        if($res->rspID == 1){
+          $this->guardarEmisionBoleta($request->bop_id, $request->ip());
+          return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+                                               ->with('success', $res->rspDescrip);
+        }else
+          return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+                                               ->with('boleta', $tramiteAInicar)
+                                               ->with('error', $res->rspDescrip);
+      }else
         return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
                                              ->with('boleta', $tramiteAInicar)
-                                             ->with('error', $res->rspDescrip);
-    }else
+                                             ->with('error', 'Ha ocurrido un error inesperado: '.$res);
+    }else{
       return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
-                                           ->with('boleta', $tramiteAInicar)
-                                           ->with('error', 'Ha ocurrido un error inesperado: '.$res);
+                                           ->with('success', 'La boleta ya fue emitida.');
+    }
+  }
+
+  public function checkPreCheck(){
+    $paises = SysMultivalue::where('type','PAIS')->orderBy('description', 'asc')->pluck('description', 'id');
+    $tdoc = SysMultivalue::where('type','TDOC')->orderBy('id', 'asc')->pluck('description', 'id');
+    $sexo = SysMultivalue::where('type','SEXO')->where('id','<>',0)->orderBy('id', 'asc')->pluck('description', 'description');
+    //dd($paises);
+    return View('safit.checkModoAutonomo')->with('paises', $paises)
+                                          ->with('tdoc', $tdoc)
+                                          ->with('sexo', $sexo);
+  }
+
+  public function consultarPreCheck(Request $request){
+    $nacionalidad = AnsvPaises::where('id_dgevyl', $request->nacionalidad)->first();
+    $res = TramitesAIniciar::where('nro_doc', $request->nro_doc)
+                           ->where('nacionalidad', $nacionalidad->id_ansv)
+                           ->where('tipo_doc', $request->tipo_doc)
+                           ->where('sexo', $request->sexo)
+                           ->first();
+    $log = null;
+    $error = "";
+    $mensaje = "";
+    if(isset($res)){
+      if($this->estado_final == $res->estado){
+        $mensaje = "El tramite se a validado correctamente";
+      }else{
+        $error = "Ha ocurrido algunos problemas durante la validacion del tramite, revisar el log";
+        $log = TramitesAIniciarErrores::where('tramites_a_iniciar_id', $res->id)->get();
+      }
+    }else{
+      $error = "El tramite no se a iniciado con el PRE-CHECK";
+    }
+
+    return View('safit.resultCheckModoAutonomo')->with('log', $log)
+                                          ->with('mensaje', $mensaje)
+                                          ->with('error', $error)
+                                          ->with('tramite', $res);
+  }
+
+  public function guardarEmisionBoleta($idBoleta, $ip){
+    $emision = new EmisionBoletaSafit();
+    $emision->numero_boleta = $idBoleta;
+    $emision->ip = $ip;
+    $emision->save();
   }
 }
 //35355887F de otra jurisdiccion // 29543881 de CABA

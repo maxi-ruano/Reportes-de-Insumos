@@ -16,9 +16,13 @@ Route::post('finalizar_examen',['uses' => 'EtlExamenController@calcularYGuardarR
 // Route::get('/address/{id}/destroy',['uses' => 'AddressesController@destroy','as' => 'sysfile.addresses.destroy']);
 Route::get('/', 'HomeController@index');
 Route::get('run', 'MicroservicioController@run');
+//SAFIT
 Route::get('buscarBoletaPago', 'TramitesAInicarController@buscarBoletaPago');
 Route::post('consultarBoletaPago',['uses' => 'TramitesAInicarController@consultarBoletaPago','as' => 'consultarBoletaPago']);
 Route::post('generarCenat', ['uses' => 'TramitesAInicarController@generarCenat','as' => 'generarCenat']);
+Route::get('checkPreCheck', ['uses' => 'TramitesAInicarController@checkPreCheck','as' => 'checkPreCheck']);
+Route::post('consultarPreCheck', ['uses' => 'TramitesAInicarController@consultarPreCheck','as' => 'consultarPreCheck']);
+//END SAFIT
 //Auth::routes();
 Route::get('computadorasMonitor', 'TeoricoPcController@computadorasMonitor');
 Route::get('verificarAsignacion', 'TeoricoPcController@verificarAsignacion');
