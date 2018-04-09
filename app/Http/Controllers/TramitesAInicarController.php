@@ -566,7 +566,7 @@ class TramitesAInicarController extends Controller
     }
 	      }else{
 	      return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
-		                                                ->with('error', 'El Cenat ya fue emitido'); 
+		                                                ->with('success', 'El Cenat ya fue emitido'); 
 	      }
   }
 
@@ -604,10 +604,10 @@ class TramitesAInicarController extends Controller
         if($res->rspID == 1){
 		//$this->iguardarEmisionBoleta($request->bop_id, $request->ip());
 		
-			if(isset($res->inhabilitaciones->reincidencias->rspReincidente))
-			                     if($res->inhabilitaciones->reincidencias->rspReincidente == "P"){
+			if(isset($res->reincidencias->rspReincidente))
+			                     if($res->reincidencias->rspReincidente == "P"){
 					                     return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
-							                                                     ->with('success', "El Cenat se encuentra Demorado");
+							                                                     ->with('error', "El Cenat se encuentra Demorado");
 						              }	     
 		$this->guardarEmisionBoleta($request->bop_id, $request->ip());	
           return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
@@ -622,7 +622,7 @@ class TramitesAInicarController extends Controller
                                              ->with('error', 'Ha ocurrido un error inesperado: '.$res);
     }else{
       return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
-                                           ->with('success', 'La boleta ya fue emitida.');
+                                           ->with('success', 'El Cenat ya fue emitido.');
     }
   }
 
