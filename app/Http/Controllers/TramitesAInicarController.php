@@ -536,6 +536,10 @@ class TramitesAInicarController extends Controller
   }
 
   public function consultarBoletaPago(Request $request){
+	  $emision = null;
+	  if($request->bop_cb < 999999999)
+	  $emision = EmisionBoletaSafit::where('numero_boleta', $request->bop_cb)->first();
+	      if ($emision === null) {
     $res = $this->wsSafit->consultarBoletaPago($request->bop_cb, $request->cem_id);
     if(isset($res->rspID)){
       if($res->rspID == 1){
@@ -560,6 +564,10 @@ class TramitesAInicarController extends Controller
       return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
                                            ->with('error', 'Ha ocurrido un error inesperado: '.$res);
     }
+	      }else{
+	      return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+		                                                ->with('error', 'El Cenat ya fue emitido'); 
+	      }
   }
 
   public function buscarBoletaPago(Request $request){
