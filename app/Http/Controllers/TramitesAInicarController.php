@@ -591,7 +591,7 @@ class TramitesAInicarController extends Controller
                              'nombre' => $request->nombre,
                              'apellido' => $request->apellido,
                              'fecha_nacimiento' => $request->fecha_nacimiento,
-                             'nacionalidad' => "",
+                             'nacionalidad' => $request->nacionalidad,
                              'bop_cb' => $request->bop_cb,
                              'bop_monto' => $request->bop_monto,
                              'bop_fec_pag' => $request->bop_fec_pag,
