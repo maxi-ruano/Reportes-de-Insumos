@@ -9,7 +9,8 @@ use App\ModoAutonomoLog;
 
 class WsClienteSafitController extends Controller
 {
-  var $url = 'https://testing.safit.com.ar/service/s_001.php?wsdl';
+	// var $url = 'https://testing.safit.com.ar/service/s_001.php?wsdl';
+  var $url = 'https://www.safit.com.ar/service/s_001.php?wsdl';        
   var $uswID = '000016';
   var $uswPassword = 'weporjgsdf41654';
   var $uswHash = 'e10adc3949ba59abbe56e057f20f883e';
@@ -52,8 +53,15 @@ class WsClienteSafitController extends Controller
                                                    $this->ingID,
                                                    $this->munID,
                                                    $persona->nro_doc,
-                                                   $persona->tipo_doc);
-                                                 }
+						   $persona->tipo_doc);
+      /*
+      echo "REQUEST:\n" . htmlentities($this->cliente->__getLastRequest()) . "\n";
+
+      echo "REQUEST:\n" . htmlentities($this->cliente->__getLastResponse()) . "\n";
+      dd("final");
+       */
+    }
+
     catch(\Exception $e) {
       ModoAutonomoLog::create(array('ws' => 'safit-consultar_boleta_pago_persona', 'description' => $e->getMessage()));
     }

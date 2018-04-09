@@ -8,7 +8,7 @@
         <div class="row">
           <label class="control-label col-md-3 col-sm-3 col-xs-12">
           </label>
-
+		{{--
               <div class="col-md-6 col-sm-6 col-xs-12">
               @if (!empty($error))
                 <div class="alert alert-danger alert-dismissible fade in" role="alert">
@@ -23,11 +23,11 @@
                 </div>
               @endif
             </div>
-          
+         --}} 
 
         </div>
         <div class="clearfix"></div>
-        <div class="row">
+        <div class="row">{{--
           <div class="col-md-6">
             <div class="x_panel">
               <div class="x_title">
@@ -42,8 +42,8 @@
                   <div class="clearfix"></div>
               </div>
             </div>
-          </div>
-          <div class="col-md-6">
+          </div>--}}
+          <div class="col-md-12">
             <div class="x_panel">
               <div class="x_title">
                 <h2>Log de Pre-Check <small></small></h2>
@@ -73,7 +73,7 @@
                   @else
                       <label class="btn btn-danger">Cenat no Emitido</label>
                   @endif
-                  </li>
+                  </li>{{--
                   <li>
                   @if ($tramite->estado >= 4)
                       <label class="btn btn-success">Libre Deuda Verificado</label>
@@ -87,7 +87,9 @@
                   @else
                       <label class="btn btn-danger">BUI No Verificado </label>
                   @endif
-                  </li>
+		  </li>--}}
+		@else
+		<li><label class="btn btn-danger">Cenat no Emitido</label></li>	
                 @endif
                 </ul>
                 {{--

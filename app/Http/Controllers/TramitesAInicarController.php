@@ -602,7 +602,14 @@ class TramitesAInicarController extends Controller
         $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAInicar);
       if(isset($res->rspID)){
         if($res->rspID == 1){
-          $this->guardarEmisionBoleta($request->bop_id, $request->ip());
+		//$this->iguardarEmisionBoleta($request->bop_id, $request->ip());
+		
+			if(isset($res->inhabilitaciones->reincidencias->rspReincidente))
+			                     if($res->inhabilitaciones->reincidencias->rspReincidente == "P"){
+					                     return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+							                                                     ->with('success', "El Cenat se encuentra Demorado");
+						              }	     
+		$this->guardarEmisionBoleta($request->bop_id, $request->ip());	
           return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
                                                ->with('success', $res->rspDescrip);
         }else
