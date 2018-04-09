@@ -176,11 +176,18 @@ class TramitesAInicarController extends Controller
 
   public function emitirBoletasVirtualPago($estadoActual, $siguienteEstado){
     if(is_null($this->wsSafit->cliente))
-      return "El Ws de SAFIT no responde, por favor revise la conexion, o contactese con Nacion";
+      return "El Ws de SAFIT no responde, por favor revise la conexion, o contactese con Safit";
     $tramitesAIniciar = TramitesAIniciar::where('estado', $estadoActual)->get();
     foreach ($tramitesAIniciar as $key => $tramiteAIniciar) {
       $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);
       if($res->rspID == 1){
+        if(isset($res->reincidencias->rspReincidente))
+  			  if($res->reincidencias->rspReincidente == "P"){
+            $array = array('error' => "El Cenat esta demorado",
+                           'request' => $tramiteAIniciar,
+                           'response' => $res);
+            $this->guardarError((object)$array, $siguienteEstado, $tramiteAIniciar->id);
+          }
         $tramiteAIniciar->estado=$siguienteEstado;
         $tramiteAIniciar->save();
       }else{
@@ -566,7 +573,7 @@ class TramitesAInicarController extends Controller
     }
 	      }else{
 	      return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
-		                                                ->with('success', 'El Cenat ya fue emitido'); 
+		                                                ->with('success', 'El Cenat ya fue emitido');
 	      }
   }
 
@@ -602,14 +609,12 @@ class TramitesAInicarController extends Controller
         $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAInicar);
       if(isset($res->rspID)){
         if($res->rspID == 1){
-		//$this->iguardarEmisionBoleta($request->bop_id, $request->ip());
-		
-			if(isset($res->reincidencias->rspReincidente))
-			                     if($res->reincidencias->rspReincidente == "P"){
-					                     return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
-							                                                     ->with('error', "El Cenat se encuentra Demorado");
-						              }	     
-		$this->guardarEmisionBoleta($request->bop_id, $request->ip());	
+    			if(isset($res->reincidencias->rspReincidente))
+             if($res->reincidencias->rspReincidente == "P"){
+                return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+                                                     ->with('error', "El Cenat se encuentra Demorado");
+             }
+		      $this->guardarEmisionBoleta($request->bop_id, $request->ip());
           return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
                                                ->with('success', $res->rspDescrip);
         }else
