@@ -175,21 +175,27 @@ class TramitesAInicarController extends Controller
   }
 
   public function emitirBoletasVirtualPago($estadoActual, $siguienteEstado){
+    $demorado = false;
     if(is_null($this->wsSafit->cliente))
       return "El Ws de SAFIT no responde, por favor revise la conexion, o contactese con Safit";
     $tramitesAIniciar = TramitesAIniciar::where('estado', $estadoActual)->get();
     foreach ($tramitesAIniciar as $key => $tramiteAIniciar) {
       $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);
       if($res->rspID == 1){
-        if(isset($res->reincidencias->rspReincidente))
+        if(isset($res->reincidencias->rspReincidente)){
   			  if($res->reincidencias->rspReincidente == "P"){
             $array = array('error' => "El Cenat esta demorado",
                            'request' => $tramiteAIniciar,
                            'response' => $res);
             $this->guardarError((object)$array, $siguienteEstado, $tramiteAIniciar->id);
+            $demorado = true;
           }
-        $tramiteAIniciar->estado=$siguienteEstado;
-        $tramiteAIniciar->save();
+        }
+        if(!$demorado){
+          $tramiteAIniciar->estado=$siguienteEstado;
+          $tramiteAIniciar->save();
+          $this->guardarEmisionBoleta($tramiteAIniciar->bop_id, '192.168.76.33');
+        }
       }else{
         $array = array('error' => $res->rspDescrip,
                        'request' => $tramiteAIniciar,
