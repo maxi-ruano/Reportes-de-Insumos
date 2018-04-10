@@ -463,6 +463,10 @@ class CreateSigeciPaises extends Migration
           'id' => '111',
           'pais' => 'Palestina'
         ));
+        DB::table('sigeci_paises')->insert(array(
+          'id' => '112',
+          'pais' => 'Uruguaya'
+        ));
     }
     /**
      * Reverse the migrations.

@@ -130,6 +130,7 @@ class AddIdSigeci extends Migration
         DB::table('ansv_paises')->where('id_dgevyl','8')->update(['id_sigeci_paises' => '109']);
         DB::table('ansv_paises')->where('id_dgevyl','82')->update(['id_sigeci_paises' => '110']);
         DB::table('ansv_paises')->where('id_dgevyl','104')->update(['id_sigeci_paises' => '111']);
+        DB::table('ansv_paises')->where('id_dgevyl','2')->update(['id_sigeci_paises' => '112']);
     }
 
     /**
