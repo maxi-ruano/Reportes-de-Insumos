@@ -20,7 +20,7 @@ use App\EmisionBoletaSafit;
 
 class TramitesAInicarController extends Controller
 {
-  private $diasEnAdelante = 3;
+  private $diasEnAdelante = 2;
   private $munID = 1;
   private $estID = "A";
   private $estadoBoletaNoUtilizada = "N";
@@ -57,11 +57,15 @@ class TramitesAInicarController extends Controller
 
     $personas = TramitesAIniciar::where('estado', $estadoActual)->get();
     foreach ($personas as $key => $persona) {
+      try{	    
       $res = $this->getBoleta($persona);
       if(empty($res->error))
         $this->guardarDatosBoleta($persona, $res, $siguienteEstado);
       else {
         $this->guardarError($res, $siguienteEstado, $persona->id);
+      }
+      }catch(\Exception $e){
+        \Log::error($e->getMessage()." IDCITA: ".$persona->id);
       }
     }
   }
@@ -98,8 +102,12 @@ class TramitesAInicarController extends Controller
   }
 
   public function guardarTurnosEnTramitesAInicar($turnos, $siguienteEstado){
-    foreach ($turnos as $key => $turno) {
-      $this->guardarTurnoEnTramitesAInicar($turno, $siguienteEstado);
+	  foreach ($turnos as $key => $turno) {
+		  try{
+			  $this->guardarTurnoEnTramitesAInicar($turno, $siguienteEstado);
+		  }catch(\Exception $e){
+		  	\Log::error($e->getMessage()." IDCITA: ".$turno->idcita);
+		  }
     }
   }
 
