@@ -57,7 +57,7 @@ class TramitesAInicarController extends Controller
 
     $personas = TramitesAIniciar::where('estado', $estadoActual)->get();
     foreach ($personas as $key => $persona)  { if(isset($persona->sigeci->fecha)) if($persona->sigeci->fecha == '2018-04-16'){//dd($persona);
-      try{	    
+      try{
       $res = $this->getBoleta($persona);
       if(empty($res->error))
         $this->guardarDatosBoleta($persona, $res, $siguienteEstado);
@@ -182,15 +182,12 @@ class TramitesAInicarController extends Controller
     return $parametros;
   }
 
-  public function emitirBoletasVirtualPago($estadoActual, $siguienteEstado){ echo "hola ahora si";
-    
+  public function emitirBoletasVirtualPago($estadoActual, $siguienteEstado){
     if(is_null($this->wsSafit->cliente))
       return "El Ws de SAFIT no responde, por favor revise la conexion, o contactese con Safit";
     $tramitesAIniciar = TramitesAIniciar::where('estado', $estadoActual)->get();
     /*
-     *
-
-     * $tramitesAIniciar = \DB::table('tramites_a_iniciar')
+      $tramitesAIniciar = \DB::table('tramites_a_iniciar')
 	                ->join('sigeci', 'sigeci.tramite_a_iniciar_id', '=', 'tramites_a_iniciar.id')
 			            ->where('sigeci.fecha', '2018-04-12')
 				    ->select('tramites_a_iniciar.*')
@@ -200,26 +197,24 @@ class TramitesAInicarController extends Controller
     foreach ($tramitesAIniciar as $key => $tramiteAIniciar) { //echo $tramiteAIniciar->sigeci->fecha ;
     $demorado = false;
     if($tramiteAIniciar->sigeci->fecha == '2018-04-16'){// dd($tramiteAIniciar);
-      $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);//dd($res); 
-      if($res->rspID == 1){ echo "parece <br>";
+      $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);//dd($res);
+      if($res->rspID == 1){
         if(isset($res->reincidencias->rspReincidente)){
   			  if($res->reincidencias->rspReincidente == "P"){
             $array = array('error' => "El Cenat esta demorado",
                            'request' => $tramiteAIniciar,
-                           'response' => $res); echo "antes de demorado <br>";
+                           'response' => $res);
             $this->guardarError((object)$array, $siguienteEstado, $tramiteAIniciar->id);
-	    $demorado = true;
-	    echo "demorado ". $tramiteAIniciar->id;
+	           $demorado = true;
           }
         }
-        if(!$demorado){echo "no demorado";
+        if(!$demorado){
           $tramiteAIniciar->estado=$siguienteEstado;
           $tramiteAIniciar->save();
           $this->guardarEmisionBoleta($tramiteAIniciar->bop_id, '192.168.76.33');
-        } echo "emitido ".$tramiteAIniciar->id;
+        }
       }else{
-	      echo "error ";
-        $array = array('error' => $res->rspDescrip,
+	      $array = array('error' => $res->rspDescrip,
                        'request' => $tramiteAIniciar,
                        'response' => $res);
         $this->guardarError((object)$array, $siguienteEstado, $tramiteAIniciar->id);
