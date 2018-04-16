@@ -20,7 +20,7 @@ use App\EmisionBoletaSafit;
 
 class TramitesAInicarController extends Controller
 {
-  private $diasEnAdelante = 2;
+  private $diasEnAdelante = 0;
   private $munID = 1;
   private $estID = "A";
   private $estadoBoletaNoUtilizada = "N";
@@ -56,7 +56,7 @@ class TramitesAInicarController extends Controller
       return "El Ws de SAFIT no responde, por favor revise la conexion, o contactese con Nacion";
 
     $personas = TramitesAIniciar::where('estado', $estadoActual)->get();
-    foreach ($personas as $key => $persona) {
+    foreach ($personas as $key => $persona)  { if(isset($persona->sigeci->fecha)) if($persona->sigeci->fecha == '2018-04-16'){//dd($persona);
       try{	    
       $res = $this->getBoleta($persona);
       if(empty($res->error))
@@ -66,7 +66,7 @@ class TramitesAInicarController extends Controller
       }
       }catch(\Exception $e){
         \Log::error($e->getMessage()." IDCITA: ".$persona->id);
-      }
+      }}
     }
   }
 
@@ -182,34 +182,50 @@ class TramitesAInicarController extends Controller
     return $parametros;
   }
 
-  public function emitirBoletasVirtualPago($estadoActual, $siguienteEstado){
-    $demorado = false;
+  public function emitirBoletasVirtualPago($estadoActual, $siguienteEstado){ echo "hola ahora si";
+    
     if(is_null($this->wsSafit->cliente))
       return "El Ws de SAFIT no responde, por favor revise la conexion, o contactese con Safit";
     $tramitesAIniciar = TramitesAIniciar::where('estado', $estadoActual)->get();
-    foreach ($tramitesAIniciar as $key => $tramiteAIniciar) {
-      $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);
-      if($res->rspID == 1){
+    /*
+     *
+
+     * $tramitesAIniciar = \DB::table('tramites_a_iniciar')
+	                ->join('sigeci', 'sigeci.tramite_a_iniciar_id', '=', 'tramites_a_iniciar.id')
+			            ->where('sigeci.fecha', '2018-04-12')
+				    ->select('tramites_a_iniciar.*')
+			    	    ->limit(100)->offset(100)
+				    ->get();*/
+    //dd($tramitesAIniciar);
+    foreach ($tramitesAIniciar as $key => $tramiteAIniciar) { //echo $tramiteAIniciar->sigeci->fecha ;
+    $demorado = false;
+    if($tramiteAIniciar->sigeci->fecha == '2018-04-16'){// dd($tramiteAIniciar);
+      $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);//dd($res); 
+      if($res->rspID == 1){ echo "parece <br>";
         if(isset($res->reincidencias->rspReincidente)){
   			  if($res->reincidencias->rspReincidente == "P"){
             $array = array('error' => "El Cenat esta demorado",
                            'request' => $tramiteAIniciar,
-                           'response' => $res);
+                           'response' => $res); echo "antes de demorado <br>";
             $this->guardarError((object)$array, $siguienteEstado, $tramiteAIniciar->id);
-            $demorado = true;
+	    $demorado = true;
+	    echo "demorado ". $tramiteAIniciar->id;
           }
         }
-        if(!$demorado){
+        if(!$demorado){echo "no demorado";
           $tramiteAIniciar->estado=$siguienteEstado;
           $tramiteAIniciar->save();
           $this->guardarEmisionBoleta($tramiteAIniciar->bop_id, '192.168.76.33');
-        }
+        } echo "emitido ".$tramiteAIniciar->id;
       }else{
+	      echo "error ";
         $array = array('error' => $res->rspDescrip,
                        'request' => $tramiteAIniciar,
                        'response' => $res);
         $this->guardarError((object)$array, $siguienteEstado, $tramiteAIniciar->id);
-      }
+      }// dd("final");
+    }
+    //dd("final");
     }
   }
 

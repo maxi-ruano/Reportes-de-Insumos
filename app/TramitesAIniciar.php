@@ -21,4 +21,10 @@ class TramitesAIniciar extends Model
     $tipoDocText = SysMultivalue::where('type','TDOC')->where('id', $this->tipo_doc)->first();
     return $tipoDocText->description;
   }
+   function sigeci(){
+
+
+	                              return $this->hasOne('App\Sigeci','tramite_a_iniciar_id','id');
+				                                   }
+
 }
