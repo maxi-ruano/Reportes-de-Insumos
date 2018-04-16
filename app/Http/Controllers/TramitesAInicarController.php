@@ -193,11 +193,10 @@ class TramitesAInicarController extends Controller
 				    ->select('tramites_a_iniciar.*')
 			    	    ->limit(100)->offset(100)
 				    ->get();*/
-    //dd($tramitesAIniciar);
-    foreach ($tramitesAIniciar as $key => $tramiteAIniciar) { //echo $tramiteAIniciar->sigeci->fecha ;
+    foreach ($tramitesAIniciar as $key => $tramiteAIniciar) {
     $demorado = false;
-    if($tramiteAIniciar->sigeci->fecha == '2018-04-16'){// dd($tramiteAIniciar);
-      $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);//dd($res);
+    if($tramiteAIniciar->sigeci->fecha == '2018-04-16'){
+      $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);
       if($res->rspID == 1){
         if(isset($res->reincidencias->rspReincidente)){
   			  if($res->reincidencias->rspReincidente == "P"){
@@ -218,9 +217,8 @@ class TramitesAInicarController extends Controller
                        'request' => $tramiteAIniciar,
                        'response' => $res);
         $this->guardarError((object)$array, $siguienteEstado, $tramiteAIniciar->id);
-      }// dd("final");
+      }
     }
-    //dd("final");
     }
   }
 
