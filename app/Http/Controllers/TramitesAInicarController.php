@@ -21,7 +21,9 @@ use App\ValidacionesPrecheck;
 
 class TramitesAInicarController extends Controller
 {
-  private $diasEnAdelante = 0;
+  private $diasEnAdelante = 2;
+  private $fecha_inicio = '';
+  private $fecha_fin = '';
   private $munID = 1;
   private $estID = "A";
   private $estadoBoletaNoUtilizada = "N";
@@ -50,25 +52,34 @@ class TramitesAInicarController extends Controller
     //WS SINALIC
     $this->wsSinalic = new WsClienteSinalicController();
     ini_set('default_socket_timeout', 600);
+    $this->calcularFechas();
   }
 
   public function completarBoletasEnTramitesAIniciar($estadoActual, $siguienteEstado){
     if(is_null($this->wsSafit->cliente))
       return "El Ws de SAFIT no responde, por favor revise la conexion, o contactese con Nacion";
 
-    $personas = TramitesAIniciar::where('estado', $estadoActual)->get();
-    foreach ($personas as $key => $persona)  { if(isset($persona->sigeci->fecha)) if($persona->sigeci->fecha == '2018-04-16'){
-      try{
-      $res = $this->getBoleta($persona);
-      if(empty($res->error))
-        $this->guardarDatosBoleta($persona, $res, $siguienteEstado);
-      else {
-        $this->guardarError($res, $siguienteEstado, $persona->id);
-      }
+    $personas = \DB::table('tramites_a_iniciar')
+                    ->join('sigeci', 'sigeci.tramite_a_iniciar_id', '=', 'tramites_a_iniciar.id')
+                    ->whereBetween('sigeci.fecha', [$this->fecha_inicio, $this->fecha_fin])
+                    ->where('tramites_a_iniciar.estado', $estadoActual)
+                    ->get();
+
+    foreach ($personas as $key => $persona)  {
+        $res = $this->getBoleta($persona);
+        if(empty($res->error))
+          $this->guardarDatosBoleta($persona, $res, $siguienteEstado);
+        else {
+          $this->guardarError($res, $siguienteEstado, $persona->id);
+        }
       }catch(\Exception $e){
         \Log::error($e->getMessage()." IDCITA: ".$persona->id);
-      }}
+      }
     }
+  }
+
+  public function guardarValidacion($tramitesAIniciar, $estado){
+
   }
 
   public function guardarError($res, $estado, $tramite){
@@ -86,7 +97,7 @@ class TramitesAInicarController extends Controller
     $persona->bop_id = $boleta->bopID;
     $persona->cem_id = $boleta->cemID;
     $persona->estado = $siguienteEstado;
-    $persona->save();
+    return $persona->save();
   }
 
   public function comletarTurnosEnTramitesAIniciar($siguienteEstado){
@@ -104,18 +115,15 @@ class TramitesAInicarController extends Controller
 
   public function guardarTurnosEnTramitesAInicar($turnos, $siguienteEstado){
 	  foreach ($turnos as $key => $turno) {
-      $this->guardarTurnoEnTramitesAInicar($turno, $siguienteEstado);
-      /*
-		  try{
+      try{
 			  $this->guardarTurnoEnTramitesAInicar($turno, $siguienteEstado);
 		  }catch(\Exception $e){
 		  	\Log::error($e->getMessage()." IDCITA: ".$turno->idcita);
-		  }*/
+		  }
     }
   }
 
   public function guardarTurnoEnTramitesAInicar($turno, $siguienteEstado){
-    //dd("guardarTurnoEnTramitesAInicar");
     if(empty(TramitesAIniciar::where('sigeci_idcita', $turno->idcita)->first())){
       $tramiteAIniciar = new TramitesAIniciar();
       $tramiteAIniciar->apellido = $turno->apellido;
@@ -717,5 +725,12 @@ class TramitesAInicarController extends Controller
     $emision->ip = $ip;
     $emision->save();
   }
+
+  public function calcularFechas(){
+    $this->fecha_inicio = date("Y-m-d");
+    $xmasDay = new \DateTime($this->fecha_inicio.' + ' . $this->diasEnAdelante . ' day');
+    $this->fecha_fin = $xmasDay->format('Y-m-d');
+  }
+
 }
 //35355887F de otra jurisdiccion // 29543881 de CABA
