@@ -298,6 +298,16 @@
                 <button id="generarCenat" class="btn btn-primary btn-block">Generar Cenat</button>
               </div>
             </div>
+            <div id="contenedorMessage" class="form-group" style="display: none;">
+              <label class="control-label col-md-3 col-sm-3 col-xs-12">
+              </label>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <div id="clasesMessage" class="alert alert-success alert-dismissible fade in" role="alert">
+                  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+                  <strong id="menssage"></strong>
+                </div>
+              </div>
+            </div>
         </div>
       </div>
     </div>
@@ -316,8 +326,8 @@
     function generarCenat(nacionalidad, bop_id, cem_id, fecha_nacimiento){
       $.ajax({
           headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-          type: "POST",
-          url: '{{ config('app.url') }}'+'/deve_teorico/public/generarCenatEnUnPaso',
+          type: "GET",
+          url: '{{ config('app.url') }}'+'/generarCenatEnUnPaso',
           data: {
                  nacionalidad: nacionalidad,
                  bop_id: bop_id,
@@ -331,13 +341,23 @@
           success: function( msg ) {
             consule.log(msg.res);
             $('#generarCenat').attr('disabled', false);
+            setMessage(msg.res, msg.message)
           },
           error: function(xhr, status, error) {
+            $('#generarCenat').attr('disabled', false);
             var err = eval("(" + xhr.responseText + ")");
             console.log(err)
+            setMessage("error", err)
           }
-
       });
+    }
+    function setMessage(type, message){
+      $("#contenedorMessage").show();
+      $("#message").html(message);
+      if(type=='error')
+        $("#clasesMessage").removeClass('alert-danger').addClass('alert-success');
+      else
+        $("#clasesMessage").removeClass('alert-success').addClass('alert-danger');
     }
 
     function validaciones(){
