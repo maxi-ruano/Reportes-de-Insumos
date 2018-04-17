@@ -17,6 +17,7 @@ use App\LibreDeudaHdr;
 use App\BoletaBui;
 use App\AnsvCelExpedidor;
 use App\EmisionBoletaSafit;
+use App\ValidacionesPrecheck;
 
 class TramitesAInicarController extends Controller
 {
@@ -56,7 +57,7 @@ class TramitesAInicarController extends Controller
       return "El Ws de SAFIT no responde, por favor revise la conexion, o contactese con Nacion";
 
     $personas = TramitesAIniciar::where('estado', $estadoActual)->get();
-    foreach ($personas as $key => $persona)  { if(isset($persona->sigeci->fecha)) if($persona->sigeci->fecha == '2018-04-16'){//dd($persona);
+    foreach ($personas as $key => $persona)  { if(isset($persona->sigeci->fecha)) if($persona->sigeci->fecha == '2018-04-16'){
       try{
       $res = $this->getBoleta($persona);
       if(empty($res->error))
@@ -103,15 +104,18 @@ class TramitesAInicarController extends Controller
 
   public function guardarTurnosEnTramitesAInicar($turnos, $siguienteEstado){
 	  foreach ($turnos as $key => $turno) {
+      $this->guardarTurnoEnTramitesAInicar($turno, $siguienteEstado);
+      /*
 		  try{
 			  $this->guardarTurnoEnTramitesAInicar($turno, $siguienteEstado);
 		  }catch(\Exception $e){
 		  	\Log::error($e->getMessage()." IDCITA: ".$turno->idcita);
-		  }
+		  }*/
     }
   }
 
   public function guardarTurnoEnTramitesAInicar($turno, $siguienteEstado){
+    //dd("guardarTurnoEnTramitesAInicar");
     if(empty(TramitesAIniciar::where('sigeci_idcita', $turno->idcita)->first())){
       $tramiteAIniciar = new TramitesAIniciar();
       $tramiteAIniciar->apellido = $turno->apellido;
@@ -123,10 +127,26 @@ class TramitesAInicarController extends Controller
       $tramiteAIniciar->fecha_nacimiento = $turno->fechaNacimiento();
       $tramiteAIniciar->estado = $siguienteEstado;
       $tramiteAIniciar->sigeci_idcita = $turno->idcita;
-      $tramiteAIniciar->save();
+      $saved = $tramiteAIniciar->save();
       $turno->tramite_a_iniciar_id = $tramiteAIniciar->id;
       $turno->save();
+      if($saved)
+        $this->crearValidacionesPrecheck($tramiteAIniciar->id);
+      else {
+        dd($saved);
+      }
       return $tramiteAIniciar;
+    }
+  }
+
+  public function crearValidacionesPrecheck($id){
+    $validaciones = SysMultivalue::where('type','VALP')->get();
+    foreach ($validaciones as $key => $value) {
+      $validaciones = new ValidacionesPrecheck();
+      $validaciones->tramite_a_iniciar_id = $id;
+      $validaciones->validation_id = $value->id;
+      $validaciones->validado = false;
+      $validaciones->save();
     }
   }
 

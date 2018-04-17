@@ -30,34 +30,42 @@ class AddEstadosModoAutonomoTable extends Migration
         ));
 
         DB::table('sys_multivalue')->insert(array(
-          'type' => 'AUTO',
+          'type' => 'VALP',
           'description' => 'Se emitio la boleta de safit',
           'text_id' => 'EMISION_BOLETA_SAFIT',
-          'id' => '3',
+          'id' => '1',
           'rowid' => '3921'
         ));
 
         DB::table('sys_multivalue')->insert(array(
-          'type' => 'AUTO',
+          'type' => 'VALP',
           'description' => 'Se verifico el Libre Deuda',
           'text_id' => 'LIBRE_DEUDA',
-          'id' => '4',
+          'id' => '2',
           'rowid' => '3922'
         ));
 
         DB::table('sys_multivalue')->insert(array(
-          'type' => 'AUTO',
+          'type' => 'VALP',
           'description' => 'Se verifico el Boleta BUI',
           'text_id' => 'BUI',
-          'id' => '5',
+          'id' => '3',
           'rowid' => '3923'
+        ));
+
+        DB::table('sys_multivalue')->insert(array(
+          'type' => 'AUTO',
+          'description' => 'Validaciones Precheck',
+          'text_id' => 'VALIDACIONES',
+          'id' => '3',
+          'rowid' => '3925'
         ));
 
         DB::table('sys_multivalue')->insert(array(
           'type' => 'AUTO',
           'description' => 'Se inicio el tramite en Sinalic',
           'text_id' => 'INICIO_EN_SINALIC',
-          'id' => '6',
+          'id' => '4',
           'rowid' => '3924'
         ));
     }
