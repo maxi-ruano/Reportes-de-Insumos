@@ -20,6 +20,7 @@ Route::get('run', 'MicroservicioController@run');
 Route::get('buscarBoletaPago', 'TramitesAInicarController@buscarBoletaPago');
 Route::post('consultarBoletaPago',['uses' => 'TramitesAInicarController@consultarBoletaPago','as' => 'consultarBoletaPago']);
 Route::post('generarCenat', ['uses' => 'TramitesAInicarController@generarCenat','as' => 'generarCenat']);
+Route::get('generarCenatEnUnPaso', ['uses' => 'TramitesAInicarController@generarCenatEnUnPaso','as' => 'generarCenatEnUnPaso']);
 Route::get('checkPreCheck', ['uses' => 'TramitesAInicarController@checkPreCheck','as' => 'checkPreCheck']);
 Route::post('consultarPreCheck', ['uses' => 'TramitesAInicarController@consultarPreCheck','as' => 'consultarPreCheck']);
 //END SAFIT
