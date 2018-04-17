@@ -21,6 +21,7 @@ use App\ValidacionesPrecheck;
 
 class TramitesAInicarController extends Controller
 {
+  private $localhost = '192.168.76.33';
   private $diasEnAdelante = 2;
   private $fecha_inicio = '';
   private $fecha_fin = '';
@@ -59,13 +60,10 @@ class TramitesAInicarController extends Controller
     if(is_null($this->wsSafit->cliente))
       return "El Ws de SAFIT no responde, por favor revise la conexion, o contactese con Nacion";
 
-    $personas = \DB::table('tramites_a_iniciar')
-                    ->join('sigeci', 'sigeci.tramite_a_iniciar_id', '=', 'tramites_a_iniciar.id')
-                    ->whereBetween('sigeci.fecha', [$this->fecha_inicio, $this->fecha_fin])
-                    ->where('tramites_a_iniciar.estado', $estadoActual)
-                    ->get();
+    $personas = $this->getTramitesAIniciar($estadoActual, $this->fecha_inicio, $this->fecha_fin);
 
     foreach ($personas as $key => $persona)  {
+      try {
         $res = $this->getBoleta($persona);
         if(empty($res->error))
           $this->guardarDatosBoleta($persona, $res, $siguienteEstado);
@@ -78,8 +76,13 @@ class TramitesAInicarController extends Controller
     }
   }
 
-  public function guardarValidacion($tramitesAIniciar, $estado){
-
+  public function getTramitesAIniciar($estado, $fecha_inicio, $fecha_fin){
+    $personas = \DB::table('tramites_a_iniciar')
+                    ->join('sigeci', 'sigeci.tramite_a_iniciar_id', '=', 'tramites_a_iniciar.id')
+                    ->whereBetween('sigeci.fecha', [$fecha_inicio, $fecha_fin])
+                    ->where('tramites_a_iniciar.estado', $estado)
+                    ->get();
+    return $personas;
   }
 
   public function guardarError($res, $estado, $tramite){
@@ -210,20 +213,12 @@ class TramitesAInicarController extends Controller
     return $parametros;
   }
 
-  public function emitirBoletasVirtualPago($estadoActual, $siguienteEstado){
+  public function emitirBoletasVirtualPago($estadoActual, $estadoValidacion, $siguienteEstado){
     if(is_null($this->wsSafit->cliente))
       return "El Ws de SAFIT no responde, por favor revise la conexion, o contactese con Safit";
-    $tramitesAIniciar = TramitesAIniciar::where('estado', $estadoActual)->get();
-    /*
-      $tramitesAIniciar = \DB::table('tramites_a_iniciar')
-	                ->join('sigeci', 'sigeci.tramite_a_iniciar_id', '=', 'tramites_a_iniciar.id')
-			            ->where('sigeci.fecha', '2018-04-12')
-				    ->select('tramites_a_iniciar.*')
-			    	    ->limit(100)->offset(100)
-				    ->get();*/
+    $tramitesAIniciar = $this->getTramitesAIniciar($estadoActual, $this->fecha_inicio, $this->fecha_fin);
     foreach ($tramitesAIniciar as $key => $tramiteAIniciar) {
     $demorado = false;
-    if($tramiteAIniciar->sigeci->fecha == '2018-04-16'){
       $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);
       if($res->rspID == 1){
         if(isset($res->reincidencias->rspReincidente)){
@@ -231,22 +226,21 @@ class TramitesAInicarController extends Controller
             $array = array('error' => "El Cenat esta demorado",
                            'request' => $tramiteAIniciar,
                            'response' => $res);
-            $this->guardarError((object)$array, $siguienteEstado, $tramiteAIniciar->id);
+            $this->guardarError((object)$array, $estadoValidacion, $tramiteAIniciar->id);
 	           $demorado = true;
           }
         }
         if(!$demorado){
-          $tramiteAIniciar->estado=$siguienteEstado;
-          $tramiteAIniciar->save();
-          $this->guardarEmisionBoleta($tramiteAIniciar->bop_id, '192.168.76.33');
+          $this->guardarValidacion($tramiteAIniciar->id, true, $estadoValidacion);
+          $this->actualizarEstado($tramiteAIniciar, $siguienteEstado);
+          $this->guardarEmisionBoleta($tramiteAIniciar->bop_id, $this->localhost);
         }
       }else{
 	      $array = array('error' => $res->rspDescrip,
                        'request' => $tramiteAIniciar,
                        'response' => $res);
-        $this->guardarError((object)$array, $siguienteEstado, $tramiteAIniciar->id);
+        $this->guardarError((object)$array, $estadoValidacion, $tramiteAIniciar->id);
       }
-    }
     }
   }
 
@@ -732,5 +726,20 @@ class TramitesAInicarController extends Controller
     $this->fecha_fin = $xmasDay->format('Y-m-d');
   }
 
+  public function guardarValidacion($tramitesAIniciar, $estado, $validation){
+    $validacion = ValidacionesPrecheck::where('validation_id', $validation)
+                                      ->where('tramite_a_iniciar_id', $tramitesAIniciar->id)
+                                      ->first();
+    $validation->validado = $estado;
+    return $validation->save();
+  }
+
+  public function actualizarEstado($tramiteAIniciar, $siguienteEstado){
+    $validaciones = ValidacionesPrecheck::where('tramite_a_iniciar_id', $tramiteAIniciar->id)
+                                        ->where('validado', false)
+                                        ->get();
+    if(count($validaciones)==0)
+      $tramiteAIniciar->estado = $siguienteEstado;
+  }
 }
 //35355887F de otra jurisdiccion // 29543881 de CABA
