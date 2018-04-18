@@ -589,7 +589,7 @@ class TramitesAInicarController extends Controller
           return $res->rspDescrip;
         }
       }else {
-        return 'Ha ocurrido un error inesperado: '.$res;
+        return 'Ha ocurrido un error inesperado al buscar la boleta: '.$res;
       }
     }else{
        return 'El Cenat ya fue emitido';
@@ -625,7 +625,7 @@ class TramitesAInicarController extends Controller
         return response()->json(['res' => 'error', 'message' => $res]);
       }
     }else{
-      return array('res'=>'error','message' => 'El Cenat ya fue emitido.');
+      return array('res'=>'success', 'message' => 'El Cenat ya fue emitido.');
     }
   }
 
@@ -649,12 +649,13 @@ class TramitesAInicarController extends Controller
              if($res->reincidencias->rspReincidente == "P"){
                 return array('res'=>'error', 'message' => "El Cenat se encuentra Demorado");
              }
-		      $this->guardarEmisionBoleta($boleta->bop_id, $boleta->ip());
-          return array('res'=>'success', 'message' => $res->rspDescrip);
+		      $this->guardarEmisionBoleta($boleta->bop_id, $_SERVER['REMOTE_ADDR']);
+          return array('res'=>'success', 'message' => $res->rspDescrip."<br>Nombre : ".$boleta->nombre." ".$boleta->apellido.
+                                                                       "<br>Documento : ".$boleta->nro_doc);
         }else
           return array('res'=>'error', 'message' => $res->rspDescrip);
       }else
-        return array('res'=>'error', 'message' => 'Ha ocurrido un error inesperado: '.$res);
+        return array('res'=>'error', 'message' => 'Ha ocurrido un error inesperado al emitir la boleta: '.$res);
   }
 
   public function checkPreCheck(){

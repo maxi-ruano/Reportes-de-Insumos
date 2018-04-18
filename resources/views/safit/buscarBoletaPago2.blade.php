@@ -342,10 +342,12 @@
           success: function( msg ) {
             console.log(msg.message);
             $('#generarCenat').attr('disabled', false);
+            $("#generarCenat").html('Generar Cenat');
             setMessage(msg.res, msg.message)
           },
           error: function(xhr, status, error) {
             $('#generarCenat').attr('disabled', false);
+            $("#generarCenat").html('Generar Cenat');
             var err = eval("(" + xhr.responseText + ")");
             console.log(err)
             setMessage("error", err)
@@ -360,16 +362,15 @@
       else{
 	      $("#clasesMessage").removeClass('alert-danger').addClass('alert-success');
 	      limpiarCampos()
-	 }
+	     }
       $("#message").html(message);
-      $("#generarCenat").html('Generar Cenat');
     }
     function limpiarCampos(){
-	          $('#nacionalidad').val(13),
-			        $('#bop_id').val(""),
-				      $('#cem_id').val(""),
-				            $('#fecha_nacimiento').val(1)
-					        }
+        $('#nacionalidad').val(13),
+        $('#bop_id').val(""),
+	      $('#cem_id').val(1),
+	      $('#fecha_nacimiento').val("")
+		}
     function validaciones(){
       var fecha_nacimiento = $('#fecha_nacimiento').val()
       var bop_id = $('#bop_id').val()
