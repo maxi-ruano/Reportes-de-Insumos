@@ -354,13 +354,13 @@
     }
     function setMessage(type, message){
       $("#contenedorMessage").show();
-      
+
       if(type=='error')
         $("#clasesMessage").removeClass('alert-success').addClass('alert-danger');
       else{
 	      $("#clasesMessage").removeClass('alert-danger').addClass('alert-success');
 	      limpiarCampos()
-	 }      
+	 }
       $("#message").html(message);
       $("#generarCenat").html('Generar Cenat');
     }
@@ -371,8 +371,26 @@
 				            $('#fecha_nacimiento').val(1)
 					        }
     function validaciones(){
-      return true;
+      var fecha_nacimiento = $('#fecha_nacimiento').val()
+      var bop_id = $('#bop_id').val()
+      var res = false
+      console.log("res"+fecha_nacimiento+" "+bop_id)
+
+      if(fecha_nacimiento == "" || bop_id == ""){
+        setMessage('error', 'Los campos no pueden ser vacios')
+      }else {
+        res = isValidDate($('#fecha_nacimiento').val());
+        if(!res)
+            setMessage('error', 'la fecha no es valida')
+      }
+      return res
     }
+
+    function isValidDate(dateString) {
+      var regEx = /^\d{4}-\d{2}-\d{2}$/;
+      return dateString.match(regEx) != null;
+    }
+
     $('#generarCenat').on('click', function (e) {
       if(validaciones()){
         e.preventDefault();

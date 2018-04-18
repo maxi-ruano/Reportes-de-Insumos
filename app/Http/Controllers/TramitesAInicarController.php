@@ -611,16 +611,21 @@ class TramitesAInicarController extends Controller
   }
 
   public function generarCenatEnUnPaso(Request $request){
-    $res = $this->consultarBoletaPago($request->input('bop_id'), $request->input('cem_id'));
-    if(isset($res->nro_doc)){
-      $res = $this->generarCenat($res, $request->input('fecha_nacimiento'), $request->input('nacionalidad'));
-      if(isset($res['success'])){
-        return response()->json($res);
-      }else {
-        return response()->json($res);
+    $emision = EmisionBoletaSafit::where('numero_boleta', $request->input('bop_id'))->first();
+    if ($emision === null) {
+      $res = $this->consultarBoletaPago($request->input('bop_id'), $request->input('cem_id'));
+      if(isset($res->nro_doc)){
+        $res = $this->generarCenat($res, $request->input('fecha_nacimiento'), $request->input('nacionalidad'));
+        if(isset($res['success'])){
+          return response()->json($res);
+        }else {
+          return response()->json($res);
+        }
+      }else{
+        return response()->json(['res' => 'error', 'message' => $res]);
       }
     }else{
-      return response()->json(['res' => 'error', 'message' => $res]);
+      return array('res'=>'error','message' => 'El Cenat ya fue emitido.');
     }
   }
 
@@ -637,9 +642,7 @@ class TramitesAInicarController extends Controller
                              'bop_fec_pag' => $boleta->bop_fec_pag,
                              'bop_id' => $boleta->bop_id,
                              'cem_id' => $boleta->cem_id);
-    $emision = EmisionBoletaSafit::where('numero_boleta', $boleta->bop_id)->first();
-    if ($emision === null) {
-        $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAInicar);
+      $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAInicar);
       if(isset($res->rspID)){
         if($res->rspID == 1){
     			if(isset($res->reincidencias->rspReincidente))
@@ -652,9 +655,6 @@ class TramitesAInicarController extends Controller
           return array('res'=>'error', 'message' => $res->rspDescrip);
       }else
         return array('res'=>'error', 'message' => 'Ha ocurrido un error inesperado: '.$res);
-    }else{
-      return array('res'=>'error','message' => 'El Cenat ya fue emitido.');
-    }
   }
 
   public function checkPreCheck(){
