@@ -368,7 +368,6 @@
     function limpiarCampos(){
         $('#nacionalidad').val(13),
         $('#bop_id').val(""),
-	      $('#cem_id').val(1),
 	      $('#fecha_nacimiento').val("")
 		}
     function validaciones(){
