@@ -327,7 +327,7 @@
       $.ajax({
           headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
           type: "GET",
-          url: '{{ config('app.url') }}'+'/deve_teorico/public/generarCenatEnUnPaso',
+          url: '{{ config('app.url') }}'+'/generarCenatEnUnPaso',
           data: {
                  nacionalidad: nacionalidad,
                  bop_id: bop_id,
