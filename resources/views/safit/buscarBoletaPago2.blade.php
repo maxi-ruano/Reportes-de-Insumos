@@ -34,7 +34,7 @@
               <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">Fecha Nacimiento :<span class="required">*</span>
               </label>
               <div class="col-md-6 col-sm-6 col-xs-12">
-                <input id="fecha_nacimiento" type="text" data-date-format='yy-mm-dd' class="form-control" placeholder="Fecha Nacimiento" aria-describedby="inputSuccess2Status4">
+                <input id="fecha_nacimiento" type="text" data-date-format='yy-mm-dd' class="form-control" placeholder="YYYY-MM-DD" aria-describedby="inputSuccess2Status4">
                 <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
               </div>
             </div>
@@ -357,12 +357,19 @@
       
       if(type=='error')
         $("#clasesMessage").removeClass('alert-success').addClass('alert-danger');
-      else
+      else{
 	      $("#clasesMessage").removeClass('alert-danger').addClass('alert-success');
+	      limpiarCampos()
+	 }      
       $("#message").html(message);
       $("#generarCenat").html('Generar Cenat');
     }
-
+    function limpiarCampos(){
+	          $('#nacionalidad').val(13),
+			        $('#bop_id').val(""),
+				      $('#cem_id').val(""),
+				            $('#fecha_nacimiento').val(1)
+					        }
     function validaciones(){
       return true;
     }
