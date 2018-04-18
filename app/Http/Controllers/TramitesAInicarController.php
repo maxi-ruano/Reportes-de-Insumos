@@ -47,7 +47,7 @@ class TramitesAInicarController extends Controller
     //WS SAFIT
     $this->wsSafit = new WsClienteSafitController();
     //WS SINALIC
-    $this->wsSinalic = new WsClienteSinalicController();
+   // $this->wsSinalic = new WsClienteSinalicController();
     ini_set('default_socket_timeout', 600);
   }
 
@@ -615,16 +615,16 @@ class TramitesAInicarController extends Controller
     if(isset($res->nro_doc)){
       $res = $this->generarCenat($res, $request->input('fecha_nacimiento'), $request->input('nacionalidad'));
       if(isset($res['success'])){
-        return response()->json(['res' => 'success', 'message' => $res]);
+        return response()->json($res);
       }else {
-        return response()->json(['res' => 'error', 'message' => $res]);
+        return response()->json($res);
       }
     }else{
       return response()->json(['res' => 'error', 'message' => $res]);
     }
   }
 
-  public function generarCenat(Request $boleta, $fecha_nacimiento, $nacionalidad){
+  public function generarCenat($boleta, $fecha_nacimiento, $nacionalidad){
     $tramiteAInicar = (object) array('nro_doc' => $boleta->nro_doc,
                              'tipo_doc' => $boleta->tipo_doc,
                              'sexo' => $boleta->sexo,
@@ -644,16 +644,16 @@ class TramitesAInicarController extends Controller
         if($res->rspID == 1){
     			if(isset($res->reincidencias->rspReincidente))
              if($res->reincidencias->rspReincidente == "P"){
-                return array('error' => "El Cenat se encuentra Demorado");
+                return array('res'=>'error', 'message' => "El Cenat se encuentra Demorado");
              }
 		      $this->guardarEmisionBoleta($boleta->bop_id, $boleta->ip());
-          return array('success' => $res->rspDescrip);
+          return array('res'=>'success', 'message' => $res->rspDescrip);
         }else
-          return array('error' => $res->rspDescrip);
+          return array('res'=>'error', 'message' => $res->rspDescrip);
       }else
-        return array('error' => 'Ha ocurrido un error inesperado: '.$res);
+        return array('res'=>'error', 'message' => 'Ha ocurrido un error inesperado: '.$res);
     }else{
-      return array('error' => 'El Cenat ya fue emitido.');
+      return array('res'=>'error','message' => 'El Cenat ya fue emitido.');
     }
   }
 

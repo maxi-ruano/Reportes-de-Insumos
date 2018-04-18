@@ -304,7 +304,7 @@
               <div class="col-md-6 col-sm-6 col-xs-12">
                 <div id="clasesMessage" class="alert alert-success alert-dismissible fade in" role="alert">
                   <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
-                  <strong id="menssage"></strong>
+                  <strong ><span id="message"></span></strong>
                 </div>
               </div>
             </div>
@@ -327,7 +327,7 @@
       $.ajax({
           headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
           type: "GET",
-          url: '{{ config('app.url') }}'+'/generarCenatEnUnPaso',
+          url: '{{ config('app.url') }}'+'/deve_teorico/public/generarCenatEnUnPaso',
           data: {
                  nacionalidad: nacionalidad,
                  bop_id: bop_id,
@@ -336,10 +336,11 @@
                },
           //async:false,
           beforeSend: function(){
-            $('#generarCenat').attr('disabled','disabled');
+		  $('#generarCenat').attr('disabled','disabled');
+		  $("#generarCenat").html('Generando Cenat ...');
           },
           success: function( msg ) {
-            consule.log(msg.res);
+            console.log(msg.message);
             $('#generarCenat').attr('disabled', false);
             setMessage(msg.res, msg.message)
           },
@@ -353,11 +354,13 @@
     }
     function setMessage(type, message){
       $("#contenedorMessage").show();
-      $("#message").html(message);
+      
       if(type=='error')
-        $("#clasesMessage").removeClass('alert-danger').addClass('alert-success');
-      else
         $("#clasesMessage").removeClass('alert-success').addClass('alert-danger');
+      else
+	      $("#clasesMessage").removeClass('alert-danger').addClass('alert-success');
+      $("#message").html(message);
+      $("#generarCenat").html('Generar Cenat');
     }
 
     function validaciones(){
