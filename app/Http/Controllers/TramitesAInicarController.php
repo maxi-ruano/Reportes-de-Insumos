@@ -47,7 +47,7 @@ class TramitesAInicarController extends Controller
     //WS SAFIT
     $this->wsSafit = new WsClienteSafitController();
     //WS SINALIC
-    $this->wsSinalic = new WsClienteSinalicController();
+    //$this->wsSinalic = new WsClienteSinalicController();
     ini_set('default_socket_timeout', 600);
   }
 
