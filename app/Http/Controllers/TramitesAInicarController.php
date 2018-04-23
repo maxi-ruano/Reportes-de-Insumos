@@ -94,6 +94,7 @@ class TramitesAInicarController extends Controller
   }
 
   public function guardarDatosBoleta($persona, $boleta, $siguienteEstado){
+    $persona = TramitesAIniciar::find($persona->id);
     $persona->bop_cb = $boleta->bopCB;
     $persona->bop_monto = $boleta->bopMonto;
     $persona->bop_fec_pag = $boleta->bopFecPag;
@@ -220,23 +221,30 @@ class TramitesAInicarController extends Controller
     foreach ($tramitesAIniciar as $key => $tramiteAIniciar) {
     $demorado = false;
       $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);
-      if($res->rspID == 1){
-        if(isset($res->reincidencias->rspReincidente)){
-  			  if($res->reincidencias->rspReincidente == "P"){
-            $array = array('error' => "El Cenat esta demorado",
-                           'request' => $tramiteAIniciar,
-                           'response' => $res);
-            $this->guardarError((object)$array, $estadoValidacion, $tramiteAIniciar->id);
-	           $demorado = true;
+      if(isset($res->rspID)){
+        if($res->rspID == 1){
+          if(isset($res->reincidencias->rspReincidente)){
+    			  if($res->reincidencias->rspReincidente == "P"){
+              $array = array('error' => "El Cenat esta demorado",
+                             'request' => $tramiteAIniciar,
+                             'response' => $res);
+              $this->guardarError((object)$array, $estadoValidacion, $tramiteAIniciar->id);
+  	           $demorado = true;
+            }
           }
-        }
-        if(!$demorado){
-          $this->guardarValidacion($tramiteAIniciar->id, true, $estadoValidacion);
-          $this->actualizarEstado($tramiteAIniciar, $siguienteEstado);
-          $this->guardarEmisionBoleta($tramiteAIniciar->bop_id, $this->localhost);
+          if(!$demorado){
+            $this->guardarValidacion($tramiteAIniciar, true, $estadoValidacion);
+            $this->actualizarEstado($tramiteAIniciar, $siguienteEstado);
+            $this->guardarEmisionBoleta($tramiteAIniciar->bop_id, $this->localhost);
+          }
+        }else{
+  	      $array = array('error' => $res->rspDescrip,
+                         'request' => $tramiteAIniciar,
+                         'response' => $res);
+          $this->guardarError((object)$array, $estadoValidacion, $tramiteAIniciar->id);
         }
       }else{
-	      $array = array('error' => $res->rspDescrip,
+        $array = array('error' => $res,
                        'request' => $tramiteAIniciar,
                        'response' => $res);
         $this->guardarError((object)$array, $estadoValidacion, $tramiteAIniciar->id);
@@ -730,8 +738,8 @@ class TramitesAInicarController extends Controller
     $validacion = ValidacionesPrecheck::where('validation_id', $validation)
                                       ->where('tramite_a_iniciar_id', $tramitesAIniciar->id)
                                       ->first();
-    $validation->validado = $estado;
-    return $validation->save();
+    $validacion->validado = $estado;
+    return $validacion->save();
   }
 
   public function actualizarEstado($tramiteAIniciar, $siguienteEstado){
