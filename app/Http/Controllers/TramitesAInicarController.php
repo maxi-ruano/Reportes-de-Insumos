@@ -78,9 +78,23 @@ class TramitesAInicarController extends Controller
 
   public function getTramitesAIniciar($estado, $fecha_inicio, $fecha_fin){
     $personas = \DB::table('tramites_a_iniciar')
+                    ->select('tramites_a_iniciar.*')
                     ->join('sigeci', 'sigeci.tramite_a_iniciar_id', '=', 'tramites_a_iniciar.id')
                     ->whereBetween('sigeci.fecha', [$fecha_inicio, $fecha_fin])
                     ->where('tramites_a_iniciar.estado', $estado)
+                    ->get();
+    return $personas;
+  }
+
+  public function getTramitesAIniciarValidaciones($estado, $estadoValidacion, $fecha_inicio, $fecha_fin){
+    $personas = \DB::table('tramites_a_iniciar')
+                    ->select('tramites_a_iniciar.*')
+                    ->join('sigeci', 'sigeci.tramite_a_iniciar_id', '=', 'tramites_a_iniciar.id')
+                    ->join('validaciones_precheck', 'validaciones_precheck.tramite_a_iniciar_id', '=', 'tramites_a_iniciar.id')
+                    ->whereBetween('sigeci.fecha', [$fecha_inicio, $fecha_fin])
+                    ->where('tramites_a_iniciar.estado', '>=', $estado)
+                    ->where('validaciones_precheck.validation_id', $estadoValidacion)
+                    ->where('validaciones_precheck.validado', false)
                     ->get();
     return $personas;
   }
@@ -319,15 +333,15 @@ class TramitesAInicarController extends Controller
     return $res;
   }
 
-  public function verificarLibreDeudaDeTramites($estadoActual, $siguienteEstado){
-    $tramites = TramitesAIniciar::where('estado', $estadoActual)->get();
+  public function verificarLibreDeudaDeTramites($estadoActual, $estadoValidacion, $siguienteEstado){
+    $tramites = $this->getTramitesAIniciar($estadoActual, $this->fecha_inicio, $this->fecha_fin);
     foreach ($tramites as $key => $tramite) {
       $res = $this->verificarLibreDeuda($tramite);
       if( $res !== true){
         $this->guardarError((object)$res, $siguienteEstado, $tramite->id);
       }else {
-        $tramite->estado = $siguienteEstado;
-        $tramite->save();
+        $this->guardarValidacion($tramite, true, $estadoValidacion);
+        $this->actualizarEstado($tramite, $siguienteEstado);
       }
     }
   }
@@ -337,6 +351,7 @@ class TramitesAInicarController extends Controller
   }
 
   public function verificarLibreDeuda($tramite){
+    $tramite = TramitesAIniciar::find($tramite->id);
     $res = null;
     $datos = "method=getLibreDeuda".
              "&tipoDoc=".$tramite->tipoDocText().
@@ -428,16 +443,16 @@ class TramitesAInicarController extends Controller
     $LibreDeudaLns->save();
   }
 
-  public function verificarBuiTramites($estadoActual, $siguienteEstado){
-    $tramites = TramitesAIniciar::where('estado', $estadoActual)->get();
+  public function verificarBuiTramites($estadoActual, $estadoValidacion, $siguienteEstado){
+    $tramites = $this->getTramitesAIniciarValidaciones($estadoActual, $estadoValidacion, $this->fecha_inicio, $this->fecha_fin);
     foreach ($tramites as $key => $tramite) {
       foreach ($this->conceptoBui as $key => $value) {
         $res = $this->verificarBui($tramite, $value);
         if( !empty($res['error']) )
           $this->guardarError((object)$res, $siguienteEstado, $tramite->id);
         else {
-          $tramite->estado = $siguienteEstado;
-          $tramite->save();
+          $this->guardarValidacion($tramite, true, $estadoValidacion);
+          $this->actualizarEstado($tramite, $siguienteEstado);
           break;
         }
       }
@@ -446,11 +461,13 @@ class TramitesAInicarController extends Controller
   }
 
   public function verificarBui($tramite, $concepto){
+    $tramite = TramitesAIniciar::find($tramite->id);
     $data = array("TipoDocumento" => $tramite->tipoDocText(),
                   "NroDocumento" => $tramite->nro_doc, //"24571740",//cambiar
                   "ListaConceptos" => $concepto,
                   "Ultima" => "false");
     $res = $this->peticionCurl($data, $this->urlVerificacionBui, "POST", $this->userBui, $this->passwordBui);
+    $mensaje = "ha ocurrido un error inesperado";
     if(empty($res->boletas))
       $mensaje = $res->mensaje;
     else {
@@ -746,8 +763,11 @@ class TramitesAInicarController extends Controller
     $validaciones = ValidacionesPrecheck::where('tramite_a_iniciar_id', $tramiteAIniciar->id)
                                         ->where('validado', false)
                                         ->get();
-    if(count($validaciones)==0)
+    if(count($validaciones)==0){
+      $tramiteAIniciar = TramitesAIniciar::find($tramiteAIniciar->id);
       $tramiteAIniciar->estado = $siguienteEstado;
+      $tramiteAIniciar->save();
+    }
   }
 }
 //35355887F de otra jurisdiccion // 29543881 de CABA
