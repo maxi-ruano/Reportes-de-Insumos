@@ -701,43 +701,6 @@ class TramitesAInicarController extends Controller
     }
   }
 
-  public function checkPreCheck(){
-    $paises = SysMultivalue::where('type','PAIS')->orderBy('description', 'asc')->pluck('description', 'id');
-    $tdoc = SysMultivalue::where('type','TDOC')->orderBy('id', 'asc')->pluck('description', 'id');
-    $sexo = SysMultivalue::where('type','SEXO')->where('id','<>',0)->orderBy('id', 'asc')->pluck('description', 'description');
-    //dd($paises);
-    return View('safit.checkModoAutonomo')->with('paises', $paises)
-                                          ->with('tdoc', $tdoc)
-                                          ->with('sexo', $sexo);
-  }
-
-  public function consultarPreCheck(Request $request){
-    $nacionalidad = AnsvPaises::where('id_dgevyl', $request->nacionalidad)->first();
-    $res = TramitesAIniciar::where('nro_doc', $request->nro_doc)
-                           ->where('nacionalidad', $nacionalidad->id_ansv)
-                           ->where('tipo_doc', $request->tipo_doc)
-                    //       ->where('sexo', $request->sexo)
-                           ->first();
-    $log = null;
-    $error = "";
-    $mensaje = "";
-    if(isset($res)){
-      if($this->estado_final == $res->estado){
-        $mensaje = "El tramite se a validado correctamente";
-      }else{
-        $error = "Ha ocurrido algunos problemas durante la validacion del tramite, revisar el log";
-        $log = TramitesAIniciarErrores::where('tramites_a_iniciar_id', $res->id)->get();
-      }
-    }else{
-      $error = "El tramite no se a iniciado con el PRE-CHECK";
-    }
-
-    return View('safit.resultCheckModoAutonomo')->with('log', $log)
-                                          ->with('mensaje', $mensaje)
-                                          ->with('error', $error)
-                                          ->with('tramite', $res);
-  }
-
   public function guardarEmisionBoleta($idBoleta, $ip){
     $emision = new EmisionBoletaSafit();
     $emision->numero_boleta = $idBoleta;

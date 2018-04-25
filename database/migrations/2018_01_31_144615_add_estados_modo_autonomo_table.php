@@ -31,7 +31,7 @@ class AddEstadosModoAutonomoTable extends Migration
 
         DB::table('sys_multivalue')->insert(array(
           'type' => 'VALP',
-          'description' => 'Se emitio la boleta de safit',
+          'description' => 'EMISION BOLETA SAFIT',
           'text_id' => 'EMISION_BOLETA_SAFIT',
           'id' => '1',
           'rowid' => '3921'
@@ -39,7 +39,7 @@ class AddEstadosModoAutonomoTable extends Migration
 
         DB::table('sys_multivalue')->insert(array(
           'type' => 'VALP',
-          'description' => 'Se verifico el Libre Deuda',
+          'description' => 'LIBRE DEUDA',
           'text_id' => 'LIBRE_DEUDA',
           'id' => '2',
           'rowid' => '3922'
@@ -47,7 +47,7 @@ class AddEstadosModoAutonomoTable extends Migration
 
         DB::table('sys_multivalue')->insert(array(
           'type' => 'VALP',
-          'description' => 'Se verifico el Boleta BUI',
+          'description' => 'BUI',
           'text_id' => 'BUI',
           'id' => '3',
           'rowid' => '3923'

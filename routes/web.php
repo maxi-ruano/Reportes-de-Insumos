@@ -20,8 +20,8 @@ Route::get('run', 'MicroservicioController@run');
 Route::get('buscarBoletaPago', 'TramitesAInicarController@buscarBoletaPago');
 Route::post('consultarBoletaPago',['uses' => 'TramitesAInicarController@consultarBoletaPago','as' => 'consultarBoletaPago']);
 Route::post('generarCenat', ['uses' => 'TramitesAInicarController@generarCenat','as' => 'generarCenat']);
-Route::get('checkPreCheck', ['uses' => 'TramitesAInicarController@checkPreCheck','as' => 'checkPreCheck']);
-Route::post('consultarPreCheck', ['uses' => 'TramitesAInicarController@consultarPreCheck','as' => 'consultarPreCheck']);
+Route::get('checkPreCheck', ['uses' => 'PreCheckController@checkPreCheck','as' => 'checkPreCheck']);
+Route::get('consultarPreCheck', ['uses' => 'PreCheckController@consultarPreCheck','as' => 'consultarPreCheck']);
 //END SAFIT
 //Auth::routes();
 Route::get('computadorasMonitor', 'TeoricoPcController@computadorasMonitor');
