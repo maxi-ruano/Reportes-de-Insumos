@@ -22,7 +22,8 @@ use App\ValidacionesPrecheck;
 class TramitesAInicarController extends Controller
 {
   private $localhost = '192.168.76.33';
-  private $diasEnAdelante = 2;
+  private $diasEnAdelante = 1;
+  private $cantidadDias = 1;
   private $fecha_inicio = '';
   private $fecha_fin = '';
   private $munID = 1;
@@ -82,6 +83,7 @@ class TramitesAInicarController extends Controller
                     ->join('sigeci', 'sigeci.tramite_a_iniciar_id', '=', 'tramites_a_iniciar.id')
                     ->whereBetween('sigeci.fecha', [$fecha_inicio, $fecha_fin])
                     ->where('tramites_a_iniciar.estado', $estado)
+                    ->skip(2)->take(1)
                     ->get();
     return $personas;
   }
@@ -95,6 +97,7 @@ class TramitesAInicarController extends Controller
                     ->where('tramites_a_iniciar.estado', '>=', $estado)
                     ->where('validaciones_precheck.validation_id', $estadoValidacion)
                     ->where('validaciones_precheck.validado', false)
+                    ->skip(2)->take(1)
                     ->get();
     return $personas;
   }
@@ -119,14 +122,15 @@ class TramitesAInicarController extends Controller
   }
 
   public function comletarTurnosEnTramitesAIniciar($siguienteEstado){
-    $xmasDay = new \DateTime(date("Y-m-d").' + ' . $this->diasEnAdelante . ' day');
-    $turnos = $this->getTurnos($xmasDay->format('Y-m-d'));
+    $turnos = $this->getTurnos($this->fecha_inicio, $this->fecha_fin);
     $this->guardarTurnosEnTramitesAInicar($turnos, $siguienteEstado);
   }
 
-  public function getTurnos($dia){
-    $res = Sigeci::where('fecha', $dia)
+  public function getTurnos($fecha_inicio, $fecha_fin){
+    $res = Sigeci::whereBetween('fecha', [$fecha_inicio, $fecha_fin])
                  ->whereNull('tramite_a_iniciar_id')
+                 ->skip(10)
+                 ->take(5)
                  ->get();
     return $res;
   }
@@ -200,7 +204,9 @@ class TramitesAInicarController extends Controller
     }
 
     if(!is_null($boleta)){
+      $persona = TramitesAIniciar::find($persona->id);
       $persona->sexo = $boletas->datosBoletaPago->datosPersonaBoletaPago->oprSexo;
+      $persona->save();
       $res = $boleta;
     }else{
       $res['request'] = $persona;
@@ -709,8 +715,9 @@ class TramitesAInicarController extends Controller
   }
 
   public function calcularFechas(){
-    $this->fecha_inicio = date("Y-m-d");
-    $xmasDay = new \DateTime($this->fecha_inicio.' + ' . $this->diasEnAdelante . ' day');
+    $this->fecha_inicio = new \DateTime(date("Y-m-d").' + ' . $this->diasEnAdelante . ' day');
+    $this->fecha_inicio = $this->fecha_inicio->format('Y-m-d');
+    $xmasDay = new \DateTime($this->fecha_inicio.' + ' . $this->cantidadDias . ' day');
     $this->fecha_fin = $xmasDay->format('Y-m-d');
   }
 
