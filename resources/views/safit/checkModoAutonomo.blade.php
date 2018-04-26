@@ -81,7 +81,13 @@
         error = 'Verificado'
         type = 'success'
       }else{
-        error = ((msj.error) ? msj.error.description : '')
+        var prop = 'description'
+        if (msj.error){
+          if(msj.error.description)
+          error =  msj.error.description
+        }else
+          error =  'No verificado'
+
         fecha_error = ((msj.error) ? msj.error.created_at : '')
       }
       html = '<li>'+
