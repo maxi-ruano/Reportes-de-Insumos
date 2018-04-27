@@ -39,7 +39,7 @@ class TramitesAInicarController extends Controller
   private $userBui = "licenciasws";
   private $passwordBui = "lic189";
   private $conceptoBui = [["07.02.28"], ["07.02.31"], ["07.02.32"], ["07.02.33"], ["07.02.34"], ["07.02.35"]];
-  private $urlVerificacionBui = 'http://10.73.100.42:6748/service/api/BUI/GetResumenBoletasPagas';
+  private $urlVerificacionBui = 'https://pagossir.buenosaires.gob.ar/api/BUI/GetResumenBoletasPagas';
   //"https://pagossir.buenosaires.gob.ar/api/PagosServiceV2.asmx?"
 
   //SINALIC
@@ -83,7 +83,6 @@ class TramitesAInicarController extends Controller
                     ->join('sigeci', 'sigeci.tramite_a_iniciar_id', '=', 'tramites_a_iniciar.id')
                     ->whereBetween('sigeci.fecha', [$fecha_inicio, $fecha_fin])
                     ->where('tramites_a_iniciar.estado', $estado)
-                    ->skip(2)->take(1)
                     ->get();
     return $personas;
   }
@@ -97,7 +96,6 @@ class TramitesAInicarController extends Controller
                     ->where('tramites_a_iniciar.estado', '>=', $estado)
                     ->where('validaciones_precheck.validation_id', $estadoValidacion)
                     ->where('validaciones_precheck.validado', false)
-                    ->skip(2)->take(1)
                     ->get();
     return $personas;
   }
@@ -129,8 +127,6 @@ class TramitesAInicarController extends Controller
   public function getTurnos($fecha_inicio, $fecha_fin){
     $res = Sigeci::whereBetween('fecha', [$fecha_inicio, $fecha_fin])
                  ->whereNull('tramite_a_iniciar_id')
-                 ->skip(10)
-                 ->take(5)
                  ->get();
     return $res;
   }
@@ -344,7 +340,7 @@ class TramitesAInicarController extends Controller
     foreach ($tramites as $key => $tramite) {
       $res = $this->verificarLibreDeuda($tramite);
       if( $res !== true){
-        $this->guardarError((object)$res, $siguienteEstado, $tramite->id);
+        $this->guardarError((object)$res, $estadoValidacion, $tramite->id);
       }else {
         $this->guardarValidacion($tramite, true, $estadoValidacion);
         $this->actualizarEstado($tramite, $siguienteEstado);
@@ -455,7 +451,7 @@ class TramitesAInicarController extends Controller
       foreach ($this->conceptoBui as $key => $value) {
         $res = $this->verificarBui($tramite, $value);
         if( !empty($res['error']) )
-          $this->guardarError((object)$res, $siguienteEstado, $tramite->id);
+          $this->guardarError((object)$res, $estadoValidacion, $tramite->id);
         else {
           $this->guardarValidacion($tramite, true, $estadoValidacion);
           $this->actualizarEstado($tramite, $siguienteEstado);
