@@ -19,7 +19,10 @@ class TramitesAIniciar extends Model
 
   public function tipoDocText(){
     $tipoDocText = SysMultivalue::where('type','TDOC')->where('id', $this->tipo_doc)->first();
-    return $tipoDocText->description;
+    if($tipoDocText)
+      return $tipoDocText->description;
+    else
+      return "";  
   }
 
   public function sigeci(){

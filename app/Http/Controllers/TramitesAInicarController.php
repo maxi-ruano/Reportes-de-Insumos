@@ -23,7 +23,7 @@ class TramitesAInicarController extends Controller
 {
   private $localhost = '192.168.76.33';
   private $diasEnAdelante = 1;
-  private $cantidadDias = 1;
+  private $cantidadDias = 3;
   private $fecha_inicio = '';
   private $fecha_fin = '';
   private $munID = 1;
@@ -33,14 +33,15 @@ class TramitesAInicarController extends Controller
   //LIBRE deuda
   private $userLibreDeuda = "LICENCIAS01";
   private $passwordLibreDeuda = "TEST1234";
-  private $urlLibreDeuda = "http://192.168.110.245/LicenciaWS/LicenciaWS?";
+  //private $urlLibreDeuda = "https://192.168.110.245/LicenciaWS/LicenciaWS?";
+  private $urlLibreDeuda = "https://tcaba2.dgai.com.ar/LicenciaWS/LicenciaWS?";
 
   //BUI
   private $userBui = "licenciasws";
   private $passwordBui = "lic189";
   private $conceptoBui = [["07.02.28"], ["07.02.31"], ["07.02.32"], ["07.02.33"], ["07.02.34"], ["07.02.35"]];
-  private $urlVerificacionBui = 'https://pagossir.buenosaires.gob.ar/api/BUI/GetResumenBoletasPagas';
-  //"https://pagossir.buenosaires.gob.ar/api/PagosServiceV2.asmx?"
+  //private $urlVerificacionBui = 'https://pagossir.buenosaires.gob.ar/api/BUI/GetResumenBoletasPagas';
+  private $urlVerificacionBui = 'http://10.73.100.42:6748/service/api/BUI/GetResumenBoletasPagas';
 
   //SINALIC
   private $wsSinalic = null;
@@ -484,7 +485,8 @@ class TramitesAInicarController extends Controller
           'lugar_pago'=>$boleta->LugarPago,
           'medio_pago'=>$boleta->MedioPago,
           'tramite_a_iniciar_id'=>$tramite->id));
-          $res = "Se utilizo la Boleta con el Nro: ".$boletaBui->nro_boleta;
+	  //$res = "Se utilizo la Boleta con el Nro: ".$boletaBui->nro_boleta;
+	  $res = true;
         }else{
           $mensaje = "La boleta habilitada ya a sido utilizado en el sistema de la direccion general de licencias";
         }
