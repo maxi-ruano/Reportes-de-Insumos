@@ -32,7 +32,8 @@ class TramitesAInicarController extends Controller
   private $estado_final = 6;
   //LIBRE deuda
   private $userLibreDeuda = "LICENCIAS01";
-  private $passwordLibreDeuda = "TEST1234";
+  private $passwordLibreDeuda = "LICWEB";
+  //private $passwordLibreDeuda = "TEST1234";
   //private $urlLibreDeuda = "https://192.168.110.245/LicenciaWS/LicenciaWS?";
   private $urlLibreDeuda = "https://tcaba2.dgai.com.ar/LicenciaWS/LicenciaWS?";
 
