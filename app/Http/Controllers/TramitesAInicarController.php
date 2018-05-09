@@ -22,8 +22,8 @@ use App\ValidacionesPrecheck;
 class TramitesAInicarController extends Controller
 {
   private $localhost = '192.168.76.33';
-  private $diasEnAdelante = 1;
-  private $cantidadDias = 3;
+  private $diasEnAdelante = 0;
+  private $cantidadDias = 0;
   private $fecha_inicio = '';
   private $fecha_fin = '';
   private $munID = 1;
@@ -338,7 +338,7 @@ class TramitesAInicarController extends Controller
   }
 
   public function verificarLibreDeudaDeTramites($estadoActual, $estadoValidacion, $siguienteEstado){
-    $tramites = $this->getTramitesAIniciar($estadoActual, $this->fecha_inicio, $this->fecha_fin);
+    $tramites = $this->getTramitesAIniciarValidaciones($estadoActual, $estadoValidacion, $this->fecha_inicio, $this->fecha_fin);
     foreach ($tramites as $key => $tramite) {
       $res = $this->verificarLibreDeuda($tramite);
       if( $res !== true){
@@ -373,11 +373,11 @@ class TramitesAInicarController extends Controller
       $array = json_decode($json,TRUE);
       $persona = null;
       $libreDeuda = null;
-
+      
       foreach ($array as $key => $value) {
         if($value['tag'] == 'ERROR' ){
           $res = array();
-          $res['error'] = $value['value'];
+          $res['error'] = ( isset($value['value'])? $value['value'] : "" );
           $res['request'] = $datos;
           $res['response'] = $array;
         }
