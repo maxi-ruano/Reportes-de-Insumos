@@ -25,7 +25,7 @@ class MicroservicioController extends Controller
       // pasa de estado 3 a 4 los tramites
       //$tramitesAIniciar->verificarLibreDeudaDeTramites($this->estados->INICIO, $this->estados->LIBRE_DEUDA, $this->estados->VALIDACIONES);
       // pasa de estado 4 a 5 los tramites
-      $tramitesAIniciar->verificarBuiTramites( $this->estados->SAFIT, $this->estados->BUI, $this->estados->VALIDACIONES);
+      $tramitesAIniciar->verificarBuiTramites( $this->estados->INICIO, $this->estados->BUI, $this->estados->VALIDACIONES);
       // pasa de estado 5 a 6 los tramites
       //$tramitesAIniciar->enviarTramitesASinalic( $this->estados->VALIDACIONES, $this->estados->INICIO_EN_SINALIC);
       //*/
