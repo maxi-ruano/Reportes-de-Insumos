@@ -91,8 +91,8 @@
         fecha_error = ((msj.error) ? msj.error.created_at : '')
       }
       html = '<li>'+
-        '<div class="block">'+
-          '<div class="tags">'+
+        '<div class="block_precheck">'+
+          '<div class="tags_precheck">'+
             '<a class="btn btn-'+type+' btn-xs btn-block">'+
               '<span>'+msj.description+'</span>'+
             '</a>'+
@@ -183,5 +183,5 @@
 @endpush
 
 @section('css')
-
+<link href="{{ asset('css/precheck.css') }}" rel="stylesheet">
 @endsection
