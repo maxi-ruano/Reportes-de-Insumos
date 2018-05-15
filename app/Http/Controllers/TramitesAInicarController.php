@@ -22,7 +22,7 @@ use App\ValidacionesPrecheck;
 class TramitesAInicarController extends Controller
 {
   private $localhost = '192.168.76.33';
-  private $diasEnAdelante = 0;
+  private $diasEnAdelante = 3;
   private $cantidadDias = 0;
   private $fecha_inicio = '';
   private $fecha_fin = '';
@@ -737,6 +737,26 @@ class TramitesAInicarController extends Controller
       $tramiteAIniciar->estado = $siguienteEstado;
       $tramiteAIniciar->save();
     }
+  }
+
+  public function revisarValidaciones($siguienteEstado, $estado){
+    $tramites = TramitesAIniciar::where('estado',$estado)->get();
+    foreach ($tramites as $key => $tramite) {
+      if($this->validacionesTerminadas($tramite->id)){
+        $tramite->estado = $siguienteEstado; 
+        $tramite->save();
+      }
+        
+    }   
+  }
+
+  public function validacionesTerminadas($id){
+      $res = ValidacionesPrecheck::where("tramite_a_iniciar_id", $id);
+      foreach($res as $key => $validacion){
+        if (!$validacion->validado)
+          return false;
+      }
+      return true;
   }
 }
 //35355887F de otra jurisdiccion // 29543881 de CABA
