@@ -122,7 +122,7 @@
       $.ajax({
           headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
           type: "GET",
-          url: '{{ config('app.url') }}'+'/deve_teorico/public/consultarPreCheck',
+          url: '{{ config('app.url') }}'+'/consultarPreCheck',
           data: {
                  nacionalidad: nacionalidad,
                  nro_doc: nro_doc,
