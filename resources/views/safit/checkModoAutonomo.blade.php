@@ -24,7 +24,7 @@
               <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">Nacionalidad<span class="required">*</span>
               </label>
               <div class="col-md-6 col-sm-6 col-xs-12">
-                {!! Form::select('nacionalidad', $paises,   null, ['id'=>'nacionalidad', 'data-type'=>'text', 'class'=>'form-control  paises', 'tabindex'=>'-1', 'data-placeholder'=>'Seleccionar Cliente', 'required']) !!}
+                {!! Form::select('nacionalidad', $paises,   1, ['id'=>'nacionalidad', 'data-type'=>'text', 'class'=>'form-control  paises', 'tabindex'=>'-1', 'data-placeholder'=>'Seleccionar Cliente', 'required']) !!}
 
               </div>
             </div>
