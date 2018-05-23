@@ -43,13 +43,18 @@
       @endforeach
     </div>
     <!-- /top totales -->
+
+    <!-- /Grafica-->
+
+
+    <!-- /Grafica -->
     
 
     <!-- /Widget Summary - ESTADISTICAS -->
     <div class="col-md-4 col-sm-4 col-xs-12">
         <div class="x_panel tile fixed_height_350">
           <div class="x_title">
-            <h2>ESTADÍSTICAS</h2>
+            <h2>ESTADÍSTICAS PreCheck </h2>
             <ul class="nav navbar-right panel_toolbox">
               <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
             </ul>
@@ -59,7 +64,6 @@
             @foreach ($datos_precheck as $datos)
               <div class="widget_summary">
                 <div class="w_left w_25">
-
                 <span>{{ $datos['titulo'] }}</span>
                 </div>
                 <div class="w_center w_55">
@@ -108,8 +112,10 @@
         $('#btnConsultar').click();
       });
       
-      //Actualizar
-      //setTimeout($('#btnConsultar').click(), 5000);
+      //Actualizar pagina cada 10 segundos
+      setTimeout(function(){
+        window.location.reload(1);
+      }, 10000);
 
     });
   </script>
