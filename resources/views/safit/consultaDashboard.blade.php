@@ -99,23 +99,34 @@
 
   <script type="text/javascript">
     $(document).ready(function(){
-      
-      $('#fecha').daterangepicker({
-        singleDatePicker: true,
-        maxDate: moment().add(0, 'day'),
-        locale: {
-              format: 'DD-MM-YYYY'
+
+      $.ajax({
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+        url: '/consultaTotales',
+        data: {fecha: '2018-05-23' },
+        type: "GET", dataType: "json",
+        success: function(ret){
+          alert('entro ajax');
+        },
+        error: function(xhr, status, error) {
+          var err = eval("(" + xhr.responseText + ")");
+          console.log(err)
         }
       });
 
-      $('#fecha').on('change', function(e) {
+      //Configuracion del datepicker
+      $('#fecha').daterangepicker({
+        singleDatePicker: true,
+        maxDate: moment().add(0, 'day'),
+        locale: { format: 'DD-MM-YYYY' }
+      }).on('change', function(e) {
         $('#btnConsultar').click();
       });
       
       //Actualizar pagina cada 10 segundos
-      setTimeout(function(){
+      /*setTimeout(function(){
         window.location.reload(1);
-      }, 10000);
+      }, 10000);*/
 
     });
   </script>
