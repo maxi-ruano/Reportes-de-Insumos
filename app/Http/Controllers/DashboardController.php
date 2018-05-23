@@ -12,9 +12,9 @@ class DashboardController extends Controller
         $fecha = isset($request->fecha)?date('Y-m-d', strtotime($request->fecha)):date('Y-m-d');
         
         //1)TOTAL TURNOS ASIGNADOS POR SIGECI / PRECHECK / SAFIT / LIBRE DEUDA / BUI
-        $consulta = \DB::select("SELECT
+        $precheck = \DB::select("SELECT
                                 count(DISTINCT sigeci.numdoc) as turnos,
-                                count (DISTINCT tramites_a_iniciar.id) as total_tramitesainiciar,
+                                count (DISTINCT tramites_a_iniciar.sigeci_idcita) as tramitesainiciar,
                                 count (DISTINCT (case when tramites_a_iniciar.estado = 6 then sigeci.numdoc else null end) ) as tramitesainiciar_ok,
                                 count (case when validaciones_precheck.validation_id = 3 and validaciones_precheck.validado=true then 1 else null end) as safit,
                                 count (case when validaciones_precheck.validation_id = 4 and validaciones_precheck.validado=true then 1 else null end) as libredeuda,
@@ -24,13 +24,12 @@ class DashboardController extends Controller
                             LEFT JOIN validaciones_precheck ON validaciones_precheck.tramite_a_iniciar_id = tramites_a_iniciar.id
                             WHERE sigeci.fecha = '".$fecha."'");
         
-        $turnos                 = $consulta[0]->turnos;
-        $total_tramitesainiciar = $consulta[0]->total_tramitesainiciar;
-        $tramitesainiciar_ok    = $consulta[0]->tramitesainiciar_ok;
-        $safit                  = $consulta[0]->safit;
-        $libredeuda             = $consulta[0]->libredeuda;
-        $bui                    = $consulta[0]->bui;
-
+        $turnos                 = $precheck[0]->turnos;
+        $tramitesainiciar       = $precheck[0]->tramitesainiciar;
+        $tramitesainiciar_ok    = $precheck[0]->tramitesainiciar_ok;
+        $safit                  = $precheck[0]->safit;
+        $libredeuda             = $precheck[0]->libredeuda;
+        $bui                    = $precheck[0]->bui;
 
         //2)TOTAL TRAMITES INICIADOS CON PRECHECK OK - OFF
         $tramites =  \DB::select("SELECT 
@@ -50,8 +49,8 @@ class DashboardController extends Controller
         $tramitesprecheck_off   = $tramites[0]->tramitesprecheck_off;
 
         //Preparar un array para los datos a mostrar
-        $datos_precheck[0] = ['titulo' => 'TURNOS', 'subtitulo' => 'Asignados por Sigeci', 'total' => $turnos, 'porc' => '100', 'ico' => 'fa fa-user'];
-        $datos_precheck[1] = ['titulo' => 'PRECHECK', 'subtitulo' => 'Turnos Iniciados', 'total' => $total_tramitesainiciar, 'porc' => $this->porcentaje($total_tramitesainiciar,$turnos), 'ico' => 'fa fa-check'];
+        $datos_precheck[0] = ['titulo' => 'TURNOS', 'subtitulo' => 'en tramites a iniciar', 'total' => $turnos, 'porc' => $tramitesainiciar, 'ico' => 'fa fa-user'];
+        $datos_precheck[1] = ['titulo' => 'PRECHECK', 'subtitulo' => 'Turnos Iniciados', 'total' => $tramitesainiciar, 'porc' => $this->porcentaje($tramitesainiciar,$turnos), 'ico' => 'fa fa-check'];
         $datos_precheck[2] = ['titulo' => 'Precheck ON', 'subtitulo' => 'con PreCheck OK!', 'total' => $tramitesainiciar_ok, 'porc' => $this->porcentaje($tramitesainiciar_ok,$turnos), 'ico' => 'fa fa-clock-o'];
         $datos_precheck[3] = ['titulo' => 'SAFIT', 'subtitulo' => 'validados', 'total' => $safit, 'porc' => $this->porcentaje($safit,$turnos), 'ico' => 'fa fa-cloud-upload'];
         $datos_precheck[4] = ['titulo' => 'LIBRE DEUDA', 'subtitulo' => 'validados', 'total' => $libredeuda, 'porc' => $this->porcentaje($libredeuda,$turnos), 'ico' => 'fa fa-cloud-download'];
@@ -67,10 +66,11 @@ class DashboardController extends Controller
         return View('safit.consultaDashboard')->with('datos_precheck',$datos_precheck)
                                               ->with('datos_tramites',$datos_tramites)
                                               ->with('fecha',$fecha);
-        
+
     }
 
     public function porcentaje($valor,$base){
-        return    $porc = ( $valor > 0 )?round($valor*100/$base):0;
+        $porc = ( $valor > 0 )?round($valor*100/$base):0;
+        return $porc;
     }
 }
