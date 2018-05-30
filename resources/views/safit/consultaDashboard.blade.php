@@ -100,7 +100,8 @@
   <script type="text/javascript">
     $(document).ready(function(){
 
-      $.ajax({
+      /*PROBANDO AJAX - ejemplo*/
+      /*$.ajax({
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
         url: '/consultaTotales',
         data: {fecha: '2018-05-23' },
@@ -112,7 +113,7 @@
           var err = eval("(" + xhr.responseText + ")");
           console.log(err)
         }
-      });
+      });*/
 
       //Configuracion del datepicker
       $('#fecha').daterangepicker({
