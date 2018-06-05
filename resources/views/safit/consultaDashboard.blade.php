@@ -44,11 +44,58 @@
     </div>
     <!-- /top totales -->
 
-    <!-- /Grafica-->
-
-
-    <!-- /Grafica -->
     
+
+    <!-- /Grafica - echart_donut -->
+    <div class="col-md-4 col-sm-6 col-xs-12">
+      <div class="x_panel">
+        <div class="x_title">
+          <h2>Sede ROCA</h2>
+          <ul class="nav navbar-right panel_toolbox">
+            <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+            </li>
+            <li><a class="close-link"><i class="fa fa-close"></i></a>
+            </li>
+          </ul>
+          <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+          <div id="echart_sedeRoca" style="height:450px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-8 col-sm-6 col-xs-12">
+      <div class="x_panel">
+        <div class="x_title">
+          <h2>Otras Sedes</h2>
+          <ul class="nav navbar-right panel_toolbox">
+            <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+            </li>
+            <li><a class="close-link"><i class="fa fa-close"></i></a>
+            </li>
+          </ul>
+          <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+          <div id="echart_sede01" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede01 </div>
+          <div id="echart_sede02" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede02 </div>
+          <div id="echart_sede03" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede03 </div>
+          <div id="echart_sede04" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede04 </div>
+          <div id="echart_sede05" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede05 </div>
+          <div id="echart_sede06" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede06 </div>
+          <div id="echart_sede07" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede07 </div>
+          <div id="echart_sede08" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede08 </div>
+          <div id="echart_sede09" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede09 </div>
+          <div id="echart_sede10" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede10 </div>
+          <div id="echart_sede11" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede11 </div>
+          <div id="echart_sede12" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede12 </div>
+        </div>
+      </div>
+    </div>
+    <!-- /Grafica -->
+
+
 
     <!-- /Widget Summary - ESTADISTICAS -->
     <div class="col-md-4 col-sm-4 col-xs-12">
@@ -97,6 +144,10 @@
   <script src="{{ asset('vendors/moment/min/moment.min.js')}}"></script>
   <script src="{{ asset('vendors/bootstrap-daterangepicker/daterangepicker.js')}}"></script>
 
+  <!-- Template Gentelella ECharts - Graph -->
+  <script src="{{ asset('vendors/echarts/dist/echarts.min.js')}}"></script>
+  <script src="{{ asset('js/dashboard.js')}}"></script>
+
   <script type="text/javascript">
     $(document).ready(function(){
 
@@ -114,21 +165,6 @@
           console.log(err)
         }
       });*/
-
-      //Configuracion del datepicker
-      $('#fecha').daterangepicker({
-        singleDatePicker: true,
-        maxDate: moment().add(0, 'day'),
-        locale: { format: 'DD-MM-YYYY' }
-      }).on('change', function(e) {
-        $('#btnConsultar').click();
-      });
-      
-      //Actualizar pagina cada 10 segundos
-      /*setTimeout(function(){
-        window.location.reload(1);
-      }, 10000);*/
-
     });
   </script>
 @endpush

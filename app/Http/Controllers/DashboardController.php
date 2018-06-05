@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Sigeci;
+use App\Tramites;
 
 class DashboardController extends Controller
 {
@@ -49,8 +49,8 @@ class DashboardController extends Controller
         $tramitesprecheck_off   = $tramites[0]->tramitesprecheck_off;
 
         //Preparar un array para los datos a mostrar
-        $datos_precheck[0] = ['titulo' => 'TURNOS', 'subtitulo' => 'en tramites a iniciar', 'total' => $turnos, 'porc' => $tramitesainiciar, 'ico' => 'fa fa-user'];
-        $datos_precheck[1] = ['titulo' => 'PRECHECK', 'subtitulo' => 'Turnos Iniciados', 'total' => $tramitesainiciar, 'porc' => $this->porcentaje($tramitesainiciar,$turnos), 'ico' => 'fa fa-check'];
+        $datos_precheck[0] = ['titulo' => 'TURNOS', 'subtitulo' => 'en tramites a iniciar', 'total' => $turnos, 'porc' => '100', 'ico' => 'fa fa-user'];
+        $datos_precheck[1] = ['titulo' => 'PRECHECK', 'subtitulo' => 'de los turnos', 'total' => $tramitesainiciar, 'porc' => $this->porcentaje($tramitesainiciar,$turnos), 'ico' => 'fa fa-check'];
         $datos_precheck[2] = ['titulo' => 'Precheck ON', 'subtitulo' => 'con PreCheck OK!', 'total' => $tramitesainiciar_ok, 'porc' => $this->porcentaje($tramitesainiciar_ok,$turnos), 'ico' => 'fa fa-clock-o'];
         $datos_precheck[3] = ['titulo' => 'SAFIT', 'subtitulo' => 'validados', 'total' => $safit, 'porc' => $this->porcentaje($safit,$turnos), 'ico' => 'fa fa-cloud-upload'];
         $datos_precheck[4] = ['titulo' => 'LIBRE DEUDA', 'subtitulo' => 'validados', 'total' => $libredeuda, 'porc' => $this->porcentaje($libredeuda,$turnos), 'ico' => 'fa fa-cloud-download'];
@@ -69,7 +69,7 @@ class DashboardController extends Controller
 
     }
 
-    public function consultaTotales(Request $request){
+  /*  public function consultaTotales(Request $request){
 
         $fecha = isset($request->fecha)?date('Y-m-d', strtotime($request->fecha)):date('Y-m-d');
         
@@ -106,6 +106,27 @@ class DashboardController extends Controller
         //dd('entro a consultaTotales');
 
         return response()->json($consulta);
+    } */
+
+    public function consultaTurnosPorEstacion(Request $request){
+        $fecha = isset($request->fecha)?date('Y-m-d', strtotime($request->fecha)):date('Y-m-d');
+        
+        $sql = Tramites::selectRaw("tramites.estado, (case when tramites.estado = 1 then 'Fotografia' else sys_multivalue.description end) as name, count(tramites.tramite_id) as cant")
+                    ->join('sys_multivalue',function($join) {
+                        $join->on('sys_multivalue.id', '=', 'tramites.estado')
+                             ->whereRaw("sys_multivalue.type = 'STAT' ");
+                    })
+                    ->whereRaw("CAST(tramites.fec_inicio as date) = '".$fecha."'")
+                    ->groupBy('tramites.estado','sys_multivalue.description')
+                    ->orderBy('tramites.estado')
+                    ->toSql();
+        $consulta =  \DB::table(\DB::raw('('.$sql.') as consulta'))
+                        ->selectRaw('name, SUM(cant) as value')
+                        ->whereIn('estado', ['1','2','3','4','5','12','13'])
+                        ->groupBy('name')
+                        ->orderBy(\DB::raw('MAX(estado)'))
+                        ->get();
+        return $consulta;
     }
 
     public function porcentaje($valor,$base){
