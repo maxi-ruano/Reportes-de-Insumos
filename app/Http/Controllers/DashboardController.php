@@ -108,23 +108,34 @@ class DashboardController extends Controller
         return response()->json($consulta);
     } */
 
+    public function obtenerSucursales(){
+        $sucursales =  \DB::table('sys_multivalue')
+                        ->select('id','description')                        
+                        ->where('type', 'SUCU')
+                        ->whereNotIn('id', ['2','3','20','80','90','101','102','104','121','150'])
+                        ->orderBy('description')
+                        ->get();
+        return $sucursales;
+    }
+
     public function consultaTurnosPorEstacion(Request $request){
         $fecha = isset($request->fecha)?date('Y-m-d', strtotime($request->fecha)):date('Y-m-d');
         
-        $sql = Tramites::selectRaw("tramites.estado, (case when tramites.estado = 1 then 'Fotografia' else sys_multivalue.description end) as name, count(tramites.tramite_id) as cant")
+        $sql = Tramites::selectRaw("tramites.sucursal, tramites.estado, (case when tramites.estado = 1 then 'Fotografia' else sys_multivalue.description end) as name, count(tramites.tramite_id) as cant")
                     ->join('sys_multivalue',function($join) {
                         $join->on('sys_multivalue.id', '=', 'tramites.estado')
                              ->whereRaw("sys_multivalue.type = 'STAT' ");
                     })
                     ->whereRaw("CAST(tramites.fec_inicio as date) = '".$fecha."'")
-                    ->groupBy('tramites.estado','sys_multivalue.description')
-                    ->orderBy('tramites.estado')
+                    ->groupBy('tramites.sucursal','tramites.estado','sys_multivalue.description')
+                    ->orderBy('tramites.sucursal','tramites.estado')
                     ->toSql();
         $consulta =  \DB::table(\DB::raw('('.$sql.') as consulta'))
-                        ->selectRaw('name, SUM(cant) as value')
+                        ->selectRaw('sucursal, name, SUM(cant) as value')
                         ->whereIn('estado', ['1','2','3','4','5','12','13'])
-                        ->groupBy('name')
-                        ->orderBy(\DB::raw('MAX(estado)'))
+                        ->where('sucursal','=',$request->sucursal)
+                        ->groupBy('sucursal','name')
+                        ->orderBy('sucursal',\DB::raw('MAX(estado)'))
                         ->get();
         return $consulta;
     }

@@ -27,6 +27,7 @@ Route::get('consultarPreCheck', ['uses' => 'PreCheckController@consultarPreCheck
 //TemplateDashboard
 Route::get('consultaDashboard', ['uses' => 'DashboardController@consultaDashboard','as' => 'consultaDashboard']);
 Route::get('consultaTurnosPorEstacion', ['uses' => 'DashboardController@consultaTurnosPorEstacion','as' => 'consultaTurnosPorEstacion']);
+Route::get('obtenerSucursales', ['uses' => 'DashboardController@obtenerSucursales','as' => 'obtenerSucursales']);
 //end TemplateDashboard
 
 //Auth::routes();

@@ -237,25 +237,67 @@ function init_charts() {
 
     //echart Donut
     if ($('#echart_sedeRoca').length ){
+        
         var fecha = $("#fecha").val();
-        console.log(fecha);
+        var sucursal = '';
+        var elementId = '';
+        $("#echart_sedes").empty();
+        
         $.ajax({
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            url: '/obtenerSucursales',
+            type: "GET", dataType: "json",
+            success: function(ret){
+                
+                for(var i=0; i < ret.length; i++){
+                    
+                    sucursal = ret[i]['id'];
+                    titulo = ret[i]['description'];
+                    
+                    $.ajax({
+                        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                        url: '/consultaTurnosPorEstacion',
+                        data: {fecha: fecha, sucursal: sucursal },
+                        type: "GET", dataType: "json",
+                        async:false,
+                        success: function(datos){
+                            if(sucursal == 1) {
+                                generarGrafico('echart_sedeRoca',datos,'Personas en espera','Por estación');
+                            }else{
+                                elementId = 'echart_sede'+sucursal;
+                                $("#echart_sedes").append('<div id="'+elementId+'" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"></div>');
+                                generarGraficoMin(elementId, datos, titulo);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                          var err = eval("(" + xhr.responseText + ")");
+                        }
+                    });
+
+                }
+
+            }
+        });
+    }
+
+        /*$.ajax({
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
             url: '/consultaTurnosPorEstacion',
             data: {fecha: fecha },
             type: "GET", dataType: "json",
             success: function(ret){
-                generarGrafico('echart_sedeRoca',ret,'Sede ROCA','Por estación');
-                /*generarGraficoMin('echart_sede01',ret,'Sede 01');
+                console.log(ret);
+                generarGrafico('echart_sedeRoca',ret,'Personas en espera','Por estación');
+                generarGraficoMin('echart_sede01',ret,'Sede 01');
                 generarGraficoMin('echart_sede02',ret,'Sede 02');
                 generarGraficoMin('echart_sede03',ret,'Sede 03');
-                generarGraficoMin('echart_sede04',ret,'Sede 04');*/
+                generarGraficoMin('echart_sede04',ret,'Sede 04');
             },
             error: function(xhr, status, error) {
               var err = eval("(" + xhr.responseText + ")");
             }
-        });
-    }
+        }); */
+    
 
     function generarGrafico(elementId, datos, titulo = '', subtitulo = ''){
         
@@ -310,6 +352,7 @@ function init_charts() {
                     }
                 },
                 emphasis: {
+                    //color: '#FF0000',
                     label: {
                         show: true,
                         textStyle: {
@@ -336,7 +379,7 @@ function init_charts() {
                 value: 1548,
                 name: 'Teorico'
             }]*/
-        }]
+            }]
         });
 
     }
@@ -385,13 +428,11 @@ function init_charts() {
                             fontSize: '16',
                             fontWeight: 'normal'
                         }
-                    },
-                    //color: '#FF0000'
+                    }
                 }
             },
             data: datos
-        }]
+            }]
         });
-
     }
 }

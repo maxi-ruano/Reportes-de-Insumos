@@ -77,7 +77,7 @@
           </ul>
           <div class="clearfix"></div>
         </div>
-        <div class="x_content">
+        <div id="echart_sedes" class="x_content">
           <div id="echart_sede01" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede01 </div>
           <div id="echart_sede02" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede02 </div>
           <div id="echart_sede03" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede03 </div>
