@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Tramites;
+use App\SysMultivalue;
 
 class DashboardController extends Controller
 {
@@ -109,33 +110,33 @@ class DashboardController extends Controller
     } */
 
     public function obtenerSucursales(){
-        $sucursales =  \DB::table('sys_multivalue')
-                        ->select('id','description')                        
+        $sucursales =  SysMultivalue::select('id','description',\DB::raw("(Case When split_part(description,' ',3) = '' then split_part(description,' ',1) else split_part(description,' ',3) end) as name"))
                         ->where('type', 'SUCU')
                         ->whereNotIn('id', ['2','3','20','80','90','101','102','104','121','150'])
-                        ->orderBy('description')
+                        ->orderBy('name')
                         ->get();
         return $sucursales;
     }
 
-    public function consultaTurnosPorEstacion(Request $request){
+    public function consultaTurnosEnEspera(Request $request){
         $fecha = isset($request->fecha)?date('Y-m-d', strtotime($request->fecha)):date('Y-m-d');
         
-        $sql = Tramites::selectRaw("tramites.sucursal, tramites.estado, (case when tramites.estado = 1 then 'Fotografia' else sys_multivalue.description end) as name, count(tramites.tramite_id) as cant")
-                    ->join('sys_multivalue',function($join) {
-                        $join->on('sys_multivalue.id', '=', 'tramites.estado')
-                             ->whereRaw("sys_multivalue.type = 'STAT' ");
+        $sql = SysMultivalue::selectRaw("sys_multivalue.id, MAX(case when sys_multivalue.id = 1 then 'Fotografia' else sys_multivalue.description end) as description, count(tramites.tramite_id) as cant")
+                    ->leftjoin('tramites',function($join) use($fecha, $request) {
+                        $join->on('tramites.estado', '=', 'sys_multivalue.id')
+                        ->whereRaw("CAST(tramites.fec_inicio as date) = '".$fecha."'")
+                        ->whereRaw("tramites.sucursal = '".$request->sucursal."'");
                     })
-                    ->whereRaw("CAST(tramites.fec_inicio as date) = '".$fecha."'")
-                    ->groupBy('tramites.sucursal','tramites.estado','sys_multivalue.description')
-                    ->orderBy('tramites.sucursal','tramites.estado')
+                    ->whereRaw("sys_multivalue.type = 'STAT' ")
+                    ->whereRaw("sys_multivalue.id IN('1','2','3','4','5','12','13') ")
+                    ->groupBy('sys_multivalue.id')
+                    ->orderBy('sys_multivalue.id')
                     ->toSql();
+
         $consulta =  \DB::table(\DB::raw('('.$sql.') as consulta'))
-                        ->selectRaw('sucursal, name, SUM(cant) as value')
-                        ->whereIn('estado', ['1','2','3','4','5','12','13'])
-                        ->where('sucursal','=',$request->sucursal)
-                        ->groupBy('sucursal','name')
-                        ->orderBy('sucursal',\DB::raw('MAX(estado)'))
+                        ->selectRaw('description as name, SUM(cant) as value')
+                        ->groupBy('description')
+                        ->orderBy(\DB::raw('MAX(id)'))
                         ->get();
         return $consulta;
     }

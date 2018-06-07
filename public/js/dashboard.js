@@ -12,9 +12,9 @@ $(document).ready(function() {
     });
 
     //Actualizar pagina cada 10 segundos
-    /*setTimeout(function(){
+    setTimeout(function(){
         window.location.reload(1);
-    }, 10000);*/
+    }, 120000);
 
 });
 
@@ -252,11 +252,11 @@ function init_charts() {
                 for(var i=0; i < ret.length; i++){
                     
                     sucursal = ret[i]['id'];
-                    titulo = ret[i]['description'];
+                    titulo = ret[i]['name'];
                     
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                        url: '/consultaTurnosPorEstacion',
+                        url: '/consultaTurnosEnEspera',
                         data: {fecha: fecha, sucursal: sucursal },
                         type: "GET", dataType: "json",
                         async:false,

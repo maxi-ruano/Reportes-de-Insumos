@@ -77,20 +77,7 @@
           </ul>
           <div class="clearfix"></div>
         </div>
-        <div id="echart_sedes" class="x_content">
-          <div id="echart_sede01" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede01 </div>
-          <div id="echart_sede02" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede02 </div>
-          <div id="echart_sede03" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede03 </div>
-          <div id="echart_sede04" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede04 </div>
-          <div id="echart_sede05" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede05 </div>
-          <div id="echart_sede06" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede06 </div>
-          <div id="echart_sede07" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede07 </div>
-          <div id="echart_sede08" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede08 </div>
-          <div id="echart_sede09" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede09 </div>
-          <div id="echart_sede10" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede10 </div>
-          <div id="echart_sede11" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede11 </div>
-          <div id="echart_sede12" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"> sede12 </div>
-        </div>
+        <div id="echart_sedes" class="x_content"> </div>
       </div>
     </div>
     <!-- /Grafica -->
