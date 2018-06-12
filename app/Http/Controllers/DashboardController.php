@@ -70,50 +70,11 @@ class DashboardController extends Controller
 
     }
 
-  /*  public function consultaTotales(Request $request){
-
-        $fecha = isset($request->fecha)?date('Y-m-d', strtotime($request->fecha)):date('Y-m-d');
-        
-        //1)TOTAL TURNOS ASIGNADOS POR SIGECI / PRECHECK / SAFIT / LIBRE DEUDA / BUI
-        $precheck = \DB::select("SELECT
-                                count(DISTINCT sigeci.numdoc) as turnos,
-                                count (DISTINCT tramites_a_iniciar.id) as tramitesainiciar,
-                                count (DISTINCT (case when tramites_a_iniciar.estado = 6 then sigeci.numdoc else null end) ) as tramitesainiciar_ok,
-                                count (case when validaciones_precheck.validation_id = 3 and validaciones_precheck.validado=true then 1 else null end) as safit,
-                                count (case when validaciones_precheck.validation_id = 4 and validaciones_precheck.validado=true then 1 else null end) as libredeuda,
-                                count (case when validaciones_precheck.validation_id = 5 and validaciones_precheck.validado=true then 1 else null end) as bui
-                            FROM sigeci
-                            LEFT JOIN tramites_a_iniciar ON tramites_a_iniciar.sigeci_idcita = sigeci.idcita
-                            LEFT JOIN validaciones_precheck ON validaciones_precheck.tramite_a_iniciar_id = tramites_a_iniciar.id
-                            WHERE sigeci.fecha = '".$fecha."'");
-
-        //2)TOTAL TRAMITES INICIADOS CON PRECHECK OK - OFF
-        $tramites =  \DB::select("SELECT 
-                                    count(DISTINCT tramites.nro_doc) as total_tramites,
-                                    count(DISTINCT (case when tramites_a_iniciar.estado = 6 then tramites.nro_doc else null end)) as tramitesprecheck_on,
-                                    count(DISTINCT (case when tramites_a_iniciar.estado <> 6 then tramites.nro_doc else null end)) as tramitesprecheck_off
-                                FROM tramites 
-                                INNER JOIN ansv_paises ON ansv_paises.id_dgevyl = tramites.pais
-                                INNER JOIN tramites_a_iniciar ON tramites.nro_doc = CAST(tramites_a_iniciar.nro_doc AS varchar(10))
-                                    AND tramites_a_iniciar.nacionalidad = ansv_paises.id_ansv
-                                WHERE tramites.estado NOT IN('93','94') 
-                                    AND tramites_a_iniciar.sigeci_idcita IN(SELECT idcita FROM sigeci WHERE fecha = '".$fecha."')
-                                    AND CAST(tramites.fec_inicio as date) >= '".$fecha."'");
-
-        $sql = array_merge($precheck,$tramites);
-
-        $consulta = json_encode($sql);
-
-        //dd('entro a consultaTotales');
-
-        return response()->json($consulta);
-    } */
-
     public function obtenerSucursales(){
         $sucursales =  SysMultivalue::select('id','description',\DB::raw("(Case When split_part(description,' ',3) = '' then split_part(description,' ',1) else split_part(description,' ',3) end) as name"))
                         ->where('type', 'SUCU')
-                        ->whereNotIn('id', ['2','3','20','80','90','101','102','104','121','150'])
-                        ->orderBy('name')
+                        //->whereNotIn('id', ['2','3','20','80','90','101','102','104','121','150'])
+                        ->orderBy('id')
                         ->get();
         return $sucursales;
     }
@@ -137,6 +98,26 @@ class DashboardController extends Controller
                         ->selectRaw('description as name, SUM(cant) as value')
                         ->groupBy('description')
                         ->orderBy(\DB::raw('MAX(id)'))
+                        ->get();
+        return $consulta;
+    
+    }
+
+    public function consultaTurnosEnEsperaPorSucursal(Request $request){
+
+        $fecha = isset($request->fecha)?date('Y-m-d', strtotime($request->fecha)):date('Y-m-d');
+
+        //Nuevo array para mostrar totales en cada sede por estacion
+        $consulta = SysMultivalue::selectRaw("tramites.sucursal as sucursal_id, (case when sys_multivalue.id = 1 then 2 else sys_multivalue.id end) as estacion_id, MAX(case when sys_multivalue.id = 1 then 'Fotografia' else sys_multivalue.description end) as estacion, count(tramites.tramite_id) as cant")
+                        ->leftjoin('tramites',function($join)    {
+                            $join->on('tramites.estado', '=', 'sys_multivalue.id')
+                            ->whereRaw("sys_multivalue.type = 'STAT' ");
+                        })
+                        ->whereRaw("sys_multivalue.id IN('1','2','3','4','5','12','13') ")
+                        ->whereNotIn('tramites.sucursal', ['2','3','20','80','90','101','102','104','121','150'])
+                        ->whereRaw("CAST(tramites.fec_inicio as date) = '".$fecha."'")
+                        ->groupBy('tramites.sucursal','estacion_id')
+                        ->orderBy('estacion_id')
                         ->get();
         return $consulta;
     }
