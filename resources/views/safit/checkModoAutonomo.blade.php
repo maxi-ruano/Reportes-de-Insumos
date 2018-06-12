@@ -24,7 +24,7 @@
               <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">Nacionalidad<span class="required">*</span>
               </label>
               <div class="col-md-6 col-sm-6 col-xs-12">
-                {!! Form::select('nacionalidad', $paises,   null, ['id'=>'nacionalidad', 'data-type'=>'text', 'class'=>'form-control  paises', 'tabindex'=>'-1', 'data-placeholder'=>'Seleccionar Cliente', 'required']) !!}
+                {!! Form::select('nacionalidad', $paises,   1, ['id'=>'nacionalidad', 'data-type'=>'text', 'class'=>'form-control  paises', 'tabindex'=>'-1', 'data-placeholder'=>'Seleccionar Cliente', 'required']) !!}
 
               </div>
             </div>
@@ -91,8 +91,8 @@
         fecha_error = ((msj.error) ? msj.error.created_at : '')
       }
       html = '<li>'+
-        '<div class="block">'+
-          '<div class="tags">'+
+        '<div class="block_precheck">'+
+          '<div class="tags_precheck">'+
             '<a class="btn btn-'+type+' btn-xs btn-block">'+
               '<span>'+msj.description+'</span>'+
             '</a>'+
@@ -122,7 +122,7 @@
       $.ajax({
           headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
           type: "GET",
-          url: '{{ config('app.url') }}'+'/deve_teorico/public/consultarPreCheck',
+          url: '{{ config('app.url') }}'+'/consultarPreCheck',
           data: {
                  nacionalidad: nacionalidad,
                  nro_doc: nro_doc,
@@ -183,5 +183,5 @@
 @endpush
 
 @section('css')
-
+<link href="{{ asset('css/precheck.css') }}" rel="stylesheet">
 @endsection

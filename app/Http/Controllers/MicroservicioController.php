@@ -20,13 +20,15 @@ class MicroservicioController extends Controller
       //$tramitesAIniciar->comletarTurnosEnTramitesAIniciar( $this->estados->INICIO );
       // pasa de estado 1 a 2 los tramites
       //$tramitesAIniciar->completarBoletasEnTramitesAIniciar( $this->estados->INICIO, $this->estados->SAFIT);
-      // pasa de estado 2 a 3 los tramites
-      //$tramitesAIniciar->emitirBoletasVirtualPago( $this->estados->SAFIT, $this->estados->EMISION_BOLETA_SAFIT,   $this->estados->VALIDACIONES);
-      // pasa de estado 3 a 4 los tramites
-      //$tramitesAIniciar->verificarLibreDeudaDeTramites($this->estados->INICIO, $this->estados->LIBRE_DEUDA, $this->estados->VALIDACIONES);
-      // pasa de estado 4 a 5 los tramites
-      $tramitesAIniciar->verificarBuiTramites( $this->estados->INICIO, $this->estados->BUI, $this->estados->VALIDACIONES);
-      // pasa de estado 5 a 6 los tramites
+      // Emitir cenat solo si estado 2
+      //$tramitesAIniciar->emitirBoletasVirtualPago( $this->estados->SAFIT, $this->estados->EMISION_BOLETA_SAFIT,   $this->estados->VALIDACIONES); //ID validacion 3
+      // Emitir cenat solo si estado 1 ya actualiza validaciones_precheck
+      //$tramitesAIniciar->verificarLibreDeudaDeTramites($this->estados->INICIO, $this->estados->LIBRE_DEUDA, $this->estados->VALIDACIONES); //ID validacion 4
+      // Emitir cenat solo si estado 1 ya actualiza validaciones_precheck
+      //$tramitesAIniciar->verificarBuiTramites( $this->estados->INICIO, $this->estados->BUI, $this->estados->VALIDACIONES); //ID validacion 5
+      $tramitesAIniciar->revisarValidaciones($this->estados->VALIDACIONES_COMPLETAS, $this->estados->VALIDACIONES);
+      // Si bui, cenat y infracciones pasa de estado 2 a 6
+      // pasa de estado 6 a 7 los tramites
       //$tramitesAIniciar->enviarTramitesASinalic( $this->estados->VALIDACIONES, $this->estados->INICIO_EN_SINALIC);
       //*/
     }
@@ -39,6 +41,7 @@ class MicroservicioController extends Controller
       $this->estados->EMISION_BOLETA_SAFIT = SysMultivalue::where('text_id', 'EMISION_BOLETA_SAFIT')->where('type', 'VALP')->first()->id;
       $this->estados->LIBRE_DEUDA = SysMultivalue::where('text_id', 'LIBRE_DEUDA')->where('type', 'VALP')->first()->id;
       $this->estados->BUI = SysMultivalue::where('text_id', 'BUI')->where('type', 'VALP')->first()->id;
+      $this->estados->VALIDACIONES_COMPLETAS = SysMultivalue::where('text_id', 'VALIDACIONES_COMPLETAS')->where('type', 'VALP')->first()->id;
       $this->estados->INICIO_EN_SINALIC = SysMultivalue::where('text_id', 'INICIO_EN_SINALIC')->where('type', 'AUTO')->first()->id;
     }
 }
