@@ -22,7 +22,7 @@ use App\ValidacionesPrecheck;
 class TramitesAInicarController extends Controller
 {
   private $localhost = '192.168.76.33';
-  private $diasEnAdelante = 3;
+  private $diasEnAdelante = 0;
   private $cantidadDias = 0;
   private $fecha_inicio = '';
   private $fecha_fin = '';
@@ -67,6 +67,7 @@ class TramitesAInicarController extends Controller
 
     foreach ($personas as $key => $persona)  {
       try {
+        $persona = TramitesAIniciar::find($persona->id);
         $res = $this->getBoleta($persona);
         if(empty($res->error))
           $this->guardarDatosBoleta($persona, $res, $siguienteEstado);
@@ -74,7 +75,8 @@ class TramitesAInicarController extends Controller
           $this->guardarError($res, $siguienteEstado, $persona->id);
         }
       }catch(\Exception $e){
-        \Log::error($e->getMessage()." IDCITA: ".$persona->id);
+        $array = array('error' => $e->getMessage(), 'request' => "",'response' => "");
+        $this->guardarError((object)$array, $siguienteEstado, $persona->id);
       }
     }
   }
@@ -138,7 +140,8 @@ class TramitesAInicarController extends Controller
       try{
 			  $this->guardarTurnoEnTramitesAInicar($turno, $siguienteEstado);
 		  }catch(\Exception $e){
-		  	\Log::error($e->getMessage()." IDCITA: ".$turno->idcita);
+        $array = array('error' => $e->getMessage()." IDCITA: ".$turno->idcita, 'request' => "",'response' => "");
+        $this->guardarError((object)$array, $siguienteEstado, 1);
 		  }
     }
   }
@@ -220,7 +223,8 @@ class TramitesAInicarController extends Controller
     if($boleta->bopEstado == $this->estadoBoletaNoUtilizada)
       if($boleta->munID == $this->munID)
         if($boleta->estID == $this->estID)
-          $res = true;
+          if($this->fechaDeVencimientoValida($boleta->bopFecPag, 3))
+            $res = true;
     return $res;
   }
 
@@ -237,35 +241,42 @@ class TramitesAInicarController extends Controller
       return "El Ws de SAFIT no responde, por favor revise la conexion, o contactese con Safit";
     $tramitesAIniciar = $this->getTramitesAIniciar($estadoActual, $this->fecha_inicio, $this->fecha_fin);
     foreach ($tramitesAIniciar as $key => $tramiteAIniciar) {
-    $demorado = false;
-      $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);
-      if(isset($res->rspID)){
-        if($res->rspID == 1){
-          if(isset($res->reincidencias->rspReincidente)){
-    			  if($res->reincidencias->rspReincidente == "P"){
-              $array = array('error' => "El Cenat esta demorado",
-                             'request' => $tramiteAIniciar,
-                             'response' => $res);
-              $this->guardarError((object)$array, $estadoValidacion, $tramiteAIniciar->id);
-  	           $demorado = true;
+      try{
+        $demorado = false;
+        $tramiteAIniciar = TramitesAIniciar::find($tramiteAIniciar->id);
+        $tramiteAIniciar->tipo_doc = $tramiteAIniciar->tipoDocSafit();
+        $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);
+        if(isset($res->rspID)){
+          if($res->rspID == 1){
+            if(isset($res->reincidencias->rspReincidente)){
+              if($res->reincidencias->rspReincidente == "P"){
+                $array = array('error' => "El Cenat esta demorado",
+                              'request' => $tramiteAIniciar,
+                              'response' => $res);
+                $this->guardarError((object)$array, $estadoValidacion, $tramiteAIniciar->id);
+                $demorado = true;
+              }
             }
-          }
-          if(!$demorado){
-            $this->guardarValidacion($tramiteAIniciar, true, $estadoValidacion);
-            $this->actualizarEstado($tramiteAIniciar, $siguienteEstado);
-            $this->guardarEmisionBoleta($tramiteAIniciar->bop_id, $this->localhost);
+            if(!$demorado){
+              $this->guardarValidacion($tramiteAIniciar, true, $estadoValidacion, $tramiteAIniciar->bop_id);
+              $this->actualizarEstado($tramiteAIniciar, $siguienteEstado);
+              $this->guardarEmisionBoleta($tramiteAIniciar->bop_id, $this->localhost);
+            }
+          }else{
+            $array = array('error' => $res->rspDescrip,
+                          'request' => $tramiteAIniciar,
+                          'response' => $res);
+            $this->guardarError((object)$array, $estadoValidacion, $tramiteAIniciar->id);
           }
         }else{
-  	      $array = array('error' => $res->rspDescrip,
-                         'request' => $tramiteAIniciar,
-                         'response' => $res);
+          $array = array('error' => $res,
+                        'request' => $tramiteAIniciar,
+                        'response' => $res);
           $this->guardarError((object)$array, $estadoValidacion, $tramiteAIniciar->id);
         }
-      }else{
-        $array = array('error' => $res,
-                       'request' => $tramiteAIniciar,
-                       'response' => $res);
-        $this->guardarError((object)$array, $estadoValidacion, $tramiteAIniciar->id);
+      }catch(\Exception $e){
+        $array = array('error' => $e->getMessage(), 'request' => "",'response' => "");
+        $this->guardarError((object)$array, $siguienteEstado, $tramiteAIniciar->id);
       }
     }
   }
@@ -340,12 +351,17 @@ class TramitesAInicarController extends Controller
   public function verificarLibreDeudaDeTramites($estadoActual, $estadoValidacion, $siguienteEstado){
     $tramites = $this->getTramitesAIniciarValidaciones($estadoActual, $estadoValidacion, $this->fecha_inicio, $this->fecha_fin);
     foreach ($tramites as $key => $tramite) {
-      $res = $this->verificarLibreDeuda($tramite);
-      if( $res !== true){
-        $this->guardarError((object)$res, $estadoValidacion, $tramite->id);
-      }else {
-        $this->guardarValidacion($tramite, true, $estadoValidacion);
-        $this->actualizarEstado($tramite, $siguienteEstado);
+      try{
+        $res = $this->verificarLibreDeuda($tramite);
+        if(!$res['res']){
+          $this->guardarError((object)$res, $estadoValidacion, $tramite->id);
+        }else {
+          $this->guardarValidacion($tramite, true, $estadoValidacion, $res['comprobante']);
+          $this->actualizarEstado($tramite, $siguienteEstado);
+        }
+      }catch(\Exception $e){
+        $array = array('error' => $e->getMessage(), 'request' => "",'response' => "");
+        $this->guardarError((object)$array, $siguienteEstado, $tramite->id);
       }
     }
   }
@@ -356,15 +372,19 @@ class TramitesAInicarController extends Controller
 
   public function verificarLibreDeuda($tramite){
     $tramite = TramitesAIniciar::find($tramite->id);
-    $res = null;
+    $res = array();  
+    $res['res'] = false;
     $datos = "method=getLibreDeuda".
-             "&tipoDoc=".$tramite->tipoDocText().
+             "&tipoDoc=".$tramite->tipoDocLibreDeuda().
              "&numeroDoc=".$tramite->nro_doc.
              "&userName=".$this->userLibreDeuda.
              "&userPass=".$this->passwordLibreDeuda;
     $wsresult = file_get_contents($this->urlLibreDeuda.$datos, false);
     if ($wsresult == FALSE){
-      $res = "Error con el Ws Libre Deuda";
+      $res['res'] = false;
+      $res['error'] = 'Error en el Ws de Libre Deuda';
+      $res['request'] = $datos;
+      $res['response'] = null;
     }else{
       $p = xml_parser_create();
       xml_parse_into_struct($p, $wsresult, $vals, $index);
@@ -376,7 +396,7 @@ class TramitesAInicarController extends Controller
       
       foreach ($array as $key => $value) {
         if($value['tag'] == 'ERROR' ){
-          $res = array();
+          $res['res'] = false;
           $res['error'] = ( isset($value['value'])? $value['value'] : "" );
           $res['request'] = $datos;
           $res['response'] = $array;
@@ -388,10 +408,11 @@ class TramitesAInicarController extends Controller
             $libreDeuda = $value['attributes'];
         }
       }
-      if(is_null($res)){
+      if(!$res['res']){
         $libreDeudaHdr = $this->guardarDatosPersonaLibreDeuda($persona, $tramite);
         $this->guardarDatosLibreDeuda($libreDeuda, $libreDeudaHdr);
-        $res = true;
+        $res['res'] = true;
+        $res['comprobante'] = $libreDeuda['CODIGOBARRAS'];
       }
     }
     return $res;
@@ -450,23 +471,33 @@ class TramitesAInicarController extends Controller
   public function verificarBuiTramites($estadoActual, $estadoValidacion, $siguienteEstado){
     $tramites = $this->getTramitesAIniciarValidaciones($estadoActual, $estadoValidacion, $this->fecha_inicio, $this->fecha_fin);
     foreach ($tramites as $key => $tramite) {
-      foreach ($this->conceptoBui as $key => $value) {
-        $res = $this->verificarBui($tramite, $value);
-        if( !empty($res['error']) )
-          $this->guardarError((object)$res, $estadoValidacion, $tramite->id);
-        else {
-          $this->guardarValidacion($tramite, true, $estadoValidacion);
-          $this->actualizarEstado($tramite, $siguienteEstado);
-          break;
+      try{
+        $error = 'ninguno';
+        foreach ($this->conceptoBui as $key => $value) {
+          $res = $this->verificarBui($tramite, $value);
+          if( !empty($res['error']) ){
+            if($res['error'] != $error){
+              $this->guardarError((object)$res, $estadoValidacion, $tramite->id);
+              $error = $res['error'];
+            }
+          }else {
+            $this->guardarValidacion($tramite, true, $estadoValidacion, $res['comprobante']);
+            $this->actualizarEstado($tramite, $siguienteEstado);
+            break;
+          }
         }
+      }catch(\Exception $e){
+        $array = array('error' => $e->getMessage(), 'request' => "",'response' => "");
+        $this->guardarError((object)$array, $siguienteEstado, $tramite->id);
       }
     }
     return true;
   }
 
   public function verificarBui($tramite, $concepto){
+    $comprobante = array();
     $tramite = TramitesAIniciar::find($tramite->id);
-    $data = array("TipoDocumento" => $tramite->tipoDocText(),
+    $data = array("TipoDocumento" => $tramite->tipoDocBui(),
                   "NroDocumento" => $tramite->nro_doc, //"24571740",//cambiar
                   "ListaConceptos" => $concepto,
                   "Ultima" => "false");
@@ -487,7 +518,8 @@ class TramitesAInicarController extends Controller
           'medio_pago'=>$boleta->MedioPago,
           'tramite_a_iniciar_id'=>$tramite->id));
 	  //$res = "Se utilizo la Boleta con el Nro: ".$boletaBui->nro_boleta;
-	  $res = true;
+          $comprobante['comprobante'] = $boleta->NroBoleta;
+          $res = true;
         }else{
           $mensaje = "La boleta habilitada ya a sido utilizado en el sistema de la direccion general de licencias";
         }
@@ -496,6 +528,8 @@ class TramitesAInicarController extends Controller
     }
     if($res !== true)
       $res = array('error' => $mensaje, 'request' => $data, 'response' => $res);
+    else
+      $res = $comprobante;  
     return $res;
   }
 
@@ -720,11 +754,12 @@ class TramitesAInicarController extends Controller
     $this->fecha_fin = $xmasDay->format('Y-m-d');
   }
 
-  public function guardarValidacion($tramitesAIniciar, $estado, $validation){
+  public function guardarValidacion($tramitesAIniciar, $estado, $validation, $comprobante){
     $validacion = ValidacionesPrecheck::where('validation_id', $validation)
                                       ->where('tramite_a_iniciar_id', $tramitesAIniciar->id)
                                       ->first();
     $validacion->validado = $estado;
+    $validacion->comprobante = $comprobante;
     return $validacion->save();
   }
 
@@ -739,24 +774,44 @@ class TramitesAInicarController extends Controller
     }
   }
 
-  public function revisarValidaciones($siguienteEstado, $estado){
-    $tramites = TramitesAIniciar::where('estado',$estado)->get();
-    foreach ($tramites as $key => $tramite) {
-      if($this->validacionesTerminadas($tramite->id)){
+  public function revisarValidaciones($siguienteEstado){
+    $validaciones = \DB::table('validaciones_precheck')
+                  ->select('validaciones_precheck.tramite_a_iniciar_id')  
+                  ->join('sigeci', 'sigeci.tramite_a_iniciar_id', '=', 'validaciones_precheck.tramite_a_iniciar_id')
+                  ->whereBetween('sigeci.fecha', [$this->fecha_inicio, $this->fecha_fin])
+                  ->groupBy('validaciones_precheck.tramite_a_iniciar_id')
+                  ->get();
+
+    foreach ($validaciones as $key => $validacion) {
+      if($this->validacionesTerminadas($validacion->tramite_a_iniciar_id)){
+        $tramite = TramitesAIniciar::find($validacion->tramite_a_iniciar_id);
         $tramite->estado = $siguienteEstado; 
         $tramite->save();
       }
-        
     }   
   }
 
   public function validacionesTerminadas($id){
-      $res = ValidacionesPrecheck::where("tramite_a_iniciar_id", $id);
-      foreach($res as $key => $validacion){
+      $res = ValidacionesPrecheck::where("tramite_a_iniciar_id", $id)->get();
+      foreach($res as $key => $validacion)
         if (!$validacion->validado)
           return false;
-      }
       return true;
+  }
+
+  public function testCheckBoletas(Request $request){
+    $tramite = TramitesAIniciar::find($request->id);
+    $boleta = $this->getBoleta($tramite);
+    dd($boleta);
+  }
+
+  public function fechaDeVencimientoValida($fecha, $mesesValido){
+    $nuevaFecha = strtotime ( '+'.$mesesValido.' month' , strtotime ( $fecha ) ) ;
+    if (date('Y-m-d') < date('Y-m-d', $nuevaFecha))
+      $res = true;
+    else
+      $res = false;
+    return $res;  
   }
 }
 //35355887F de otra jurisdiccion // 29543881 de CABA

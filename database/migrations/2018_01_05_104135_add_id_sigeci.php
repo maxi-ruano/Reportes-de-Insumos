@@ -14,7 +14,7 @@ class AddIdSigeci extends Migration
     public function up()
     {
         Schema::table('ansv_paises', function (Blueprint $table) {
-            $table->string('id_sigeci_paises')->nullable();
+            $table->integer('id_sigeci_paises')->nullable();
         });
 
         DB::table('ansv_paises')->where('id_dgevyl','110')->update(['id_sigeci_paises' => '1']);

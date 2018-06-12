@@ -53,7 +53,7 @@ class WsClienteSafitController extends Controller
                                                    $this->ingID,
                                                    $this->munID,
                                                    $persona->nro_doc,
-						   $persona->tipo_doc);
+                                                   $persona->tipoDocSafit());
       /*
       echo "REQUEST:\n" . htmlentities($this->cliente->__getLastRequest()) . "\n";
 

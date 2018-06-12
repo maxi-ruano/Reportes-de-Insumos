@@ -16,7 +16,9 @@ class CreateValidacionesPrecheck extends Migration
         Schema::create('validaciones_precheck', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('validation_id');
-            $table->integer('tramite_a_iniciar_id');
+            $table->integer('tramites_a_iniciar_id')->unsigned();
+            $table->foreign('tramites_a_iniciar_id')
+                  ->references('id')->on('tramites_a_iniciar');
             $table->boolean('validado')->dafault(false);
             $table->timestamps();
         });
