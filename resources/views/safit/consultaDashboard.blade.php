@@ -47,10 +47,10 @@
     
 
     <!-- /Grafica - echart_donut -->
-    <div class="col-md-4 col-sm-6 col-xs-12">
+    <div class="col-md-5 col-sm-12 col-xs-12">
       <div class="x_panel">
         <div class="x_title">
-          <h2>Sede ROCA</h2>
+          <h2>Personas en Espera</h2>
           <ul class="nav navbar-right panel_toolbox">
             <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
             </li>
@@ -60,15 +60,15 @@
           <div class="clearfix"></div>
         </div>
         <div class="x_content">
-          <div id="echart_sedeRoca" style="height:450px;"></div>
+          <div id="echart_sedeRoca" style="height:600px;"></div>
         </div>
       </div>
     </div>
 
-    <div class="col-md-8 col-sm-6 col-xs-12">
+    <div class="col-md-7 col-sm-12 col-xs-12">
       <div class="x_panel">
         <div class="x_title">
-          <h2>Otras Sedes</h2>
+          <h2>Por Sucursal</h2>
           <ul class="nav navbar-right panel_toolbox">
             <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
             </li>
@@ -77,7 +77,7 @@
           </ul>
           <div class="clearfix"></div>
         </div>
-        <div id="echart_sedes" class="x_content"> </div>
+        <div id="echart_sedes" style="height:750px;"> </div> <br><br>
       </div>
     </div>
     <!-- /Grafica -->
@@ -132,28 +132,8 @@
   <script src="{{ asset('vendors/bootstrap-daterangepicker/daterangepicker.js')}}"></script>
 
   <!-- Template Gentelella ECharts - Graph -->
-  <script src="{{ asset('vendors/echarts/dist/echarts.min.js')}}"></script>
+  <script src="{{ asset('vendors/echarts/echarts.min.js')}}"></script>
   <script src="{{ asset('js/dashboard.js')}}"></script>
-
-  <script type="text/javascript">
-    $(document).ready(function(){
-
-      /*PROBANDO AJAX - ejemplo*/
-      /*$.ajax({
-        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-        url: '/consultaTotales',
-        data: {fecha: '2018-05-23' },
-        type: "GET", dataType: "json",
-        success: function(ret){
-          alert('entro ajax');
-        },
-        error: function(xhr, status, error) {
-          var err = eval("(" + xhr.responseText + ")");
-          console.log(err)
-        }
-      });*/
-    });
-  </script>
 @endpush
 
 @section('css')

@@ -12,9 +12,9 @@ $(document).ready(function() {
     });
 
     //Actualizar pagina cada 10 segundos
-    setTimeout(function(){
+   /* setTimeout(function(){
         window.location.reload(1);
-    }, 120000);
+    }, 120000);*/
 
 });
 
@@ -239,66 +239,47 @@ function init_charts() {
     if ($('#echart_sedeRoca').length ){
         
         var fecha = $("#fecha").val();
-        var sucursal = '';
+        var sucursales = [];
         var elementId = '';
         $("#echart_sedes").empty();
-        
+
+        //Obtener sucursales
         $.ajax({
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
             url: '/obtenerSucursales',
             type: "GET", dataType: "json",
             success: function(ret){
-                
-                for(var i=0; i < ret.length; i++){
-                    
-                    sucursal = ret[i]['id'];
-                    titulo = ret[i]['name'];
-                    
-                    $.ajax({
-                        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                        url: '/consultaTurnosEnEspera',
-                        data: {fecha: fecha, sucursal: sucursal },
-                        type: "GET", dataType: "json",
-                        async:false,
-                        success: function(datos){
-                            if(sucursal == 1) {
-                                generarGrafico('echart_sedeRoca',datos,'Personas en espera','Por estación');
-                            }else{
-                                elementId = 'echart_sede'+sucursal;
-                                $("#echart_sedes").append('<div id="'+elementId+'" style="height:150px;" class="col-md-3 col-sm-6 col-xs-12"></div>');
-                                generarGraficoMin(elementId, datos, titulo);
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                          var err = eval("(" + xhr.responseText + ")");
-                        }
-                    });
+               sucursales = ret;
+            }
+        });
 
-                }
-
+        //Generar Primer Grafico de forma circula de la sucursal Roca
+        $.ajax({
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            url: '/consultaTurnosEnEspera',
+            data: {fecha: fecha, sucursal: 1 },
+            type: "GET", dataType: "json",
+            async:false,
+            success: function(datos){
+                generarGrafico('echart_sedeRoca',datos, 'Sucursal','Por estación');
+            },
+            error: function(xhr, status, error) {
+                var err = eval("(" + xhr.responseText + ")");
+            }
+        });
+        
+        //Generar Grafico detallado por sucursal
+        $.ajax({
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            url: '/consultaTurnosEnEsperaPorSucursal',
+            data: {fecha: fecha },
+            type: "GET", 
+            success: function(datos){
+                generarGraficoSucursales('echart_sedes',datos,sucursales);
             }
         });
     }
-
-        /*$.ajax({
-            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-            url: '/consultaTurnosPorEstacion',
-            data: {fecha: fecha },
-            type: "GET", dataType: "json",
-            success: function(ret){
-                console.log(ret);
-                generarGrafico('echart_sedeRoca',ret,'Personas en espera','Por estación');
-                generarGraficoMin('echart_sede01',ret,'Sede 01');
-                generarGraficoMin('echart_sede02',ret,'Sede 02');
-                generarGraficoMin('echart_sede03',ret,'Sede 03');
-                generarGraficoMin('echart_sede04',ret,'Sede 04');
-            },
-            error: function(xhr, status, error) {
-              var err = eval("(" + xhr.responseText + ")");
-            }
-        }); */
     
-
     function generarGrafico(elementId, datos, titulo = '', subtitulo = ''){
         
         var titulos = datos.map(function(value,index) { return value.name; });
@@ -312,18 +293,13 @@ function init_charts() {
         tooltip: {
             trigger: 'item',
             formatter: "{b} {c} ({d}%)"
-            //formatter: "{a}: <br/>{b} {c} ({d}%)"
         },
         calculable: true,
         legend: {
             orient: 'horizontal',
             x: 'center',
             y: 'bottom',
-            /*orient: 'vertical',
-            x: 'left',
-            y: 'center',
-            itemGap: 16,*/
-            //data: ['Fotografia', 'Vision', 'Psicologia', 'Medico', 'Teorico']
+            itemWidth: 20,
             data: titulos
         },
         toolbox: {
@@ -342,8 +318,7 @@ function init_charts() {
         series: [{
             name: 'Personas en espera',
             type: 'pie',
-            radius: ['45%', '60%'],
-            //center: ['60%', 200],
+            radius: ['45%', '70%'],
             itemStyle: {
                 normal: {
                     label: {
@@ -352,7 +327,6 @@ function init_charts() {
                     }
                 },
                 emphasis: {
-                    //color: '#FF0000',
                     label: {
                         show: true,
                         textStyle: {
@@ -363,76 +337,93 @@ function init_charts() {
                 }
             },
             data: datos
-            /*data: [{
-                value: 335,
-                name: 'Fotografia'                
-                }, {
-                value: 310,
-                name: 'Vision'
-                }, {
-                value: 234,
-                name: 'Psicologia'
-                }, {
-                value: 135,
-                name: 'Medico'
-                }, {
-                value: 1548,
-                name: 'Teorico'
-            }]*/
             }]
         });
 
     }
 
-    function generarGraficoMin(elementId, datos, titulo = '', subtitulo = ''){
-        var echartDonut = echarts.init(document.getElementById(elementId), theme);
-        echartDonut.setOption({
-        title: {
-            text: titulo,
-            subtext:subtitulo
-        },
-        tooltip: {
-            trigger: 'item',
-            formatter: "{b} {d}%"
-        },
-        toolbox: {
-            show: true,
-            feature: {
-                saveAsImage: {
-                    show: true,
-                    title: "Descargar"
+
+    function generarGraficoSucursales(elementId, datos, titulos){
+        
+        var myChart = echarts.init(document.getElementById(elementId));
+        var option = null;
+        
+        //Obtener solo los id tanto de sucursales como estaciones, ordenados de forma ascedente
+        var sucursales = [...new Set(datos.map(item => item.sucursal_id).sort(function(a,b){return a - b;}))];
+        var estaciones = [...new Set(datos.map(item => item.estacion_id).sort(function(a,b){return a - b;}))];
+
+        //Mostrar solo los name de las sucursales que se encuentre en el array sucursales 
+        var days = titulos.filter(item => sucursales.includes(item.id)).map(function(value,index) { return value.name;  });
+        
+        //Obtener la descripcion de las estaciones que se generaron en datos
+        var hours = [...(new Set(datos.map(({ estacion }) => estacion)))];
+
+        option = {
+            title: [],
+            singleAxis: [],
+            series: []
+        };
+
+        echarts.util.each(days, function (day, idx) {
+            option.title.push({
+                textBaseline: 'middle',
+                top: (idx + 1) * 97 / days.length + '%',
+                text: day
+            });
+            option.singleAxis.push({
+                left: 160,
+                type: 'category',
+                boundaryGap: false,
+                data: hours,
+                top: (idx * 97 / days.length + 8) + '%',
+                height: (100 / days.length - 10) + '%',
+                axisLabel: {
+                    interval: 0
                 }
-            }
-        },        
-        series: [{
-            type: 'pie',
-            radius: ['0%', '70%'],
-            center: ['35%', 80],
-            itemStyle: {
-                normal: {
-                    label: {
-                        show: true,
-                        position:'inside',
-                        formatter: "{c}",
-                        textStyle: {
-                            fontSize: '10',
-                            fontWeight: 'normal'
+            });
+            option.series.push({
+                singleAxisIndex: idx,
+                coordinateSystem: 'singleAxis',
+                type: 'scatter',
+                data: [],
+                itemStyle: {
+                    normal: {
+                        label:{
+                            textStyle:{
+                                fontWeight:'bold',
+                                fontSize:16
+                            },
+                            show:true,
+                            position: 'inside',
+                            formatter: function(value) {
+                                return value.data[1];
+                            }
                         }
                     }
                 },
-                emphasis: {
-                    label: {
-                        show: true,
-                        formatter: "{c}",
-                        textStyle: {
-                            fontSize: '16',
-                            fontWeight: 'normal'
-                        }
-                    }
+                symbolSize: function (dataItem) {
+                    if(idx==0)
+                        return dataItem[1] * 3;
+                    else
+                        return dataItem[1] * 5;
                 }
-            },
-            data: datos
-            }]
+            });
         });
+
+        echarts.util.each(datos, function (item) {
+            //Obtener la posicion del index segun el value
+            var sucursal = sucursales.indexOf(item.sucursal_id); 
+            var estacion = estaciones.indexOf(item.estacion_id);
+            option.series[sucursal].data.push([estacion, item.cant]);
+            
+            //console.log(item.sucursal_id+' | '+sucursal+' | estacion: '+item.estacion_id+' | '+estacion);
+        }); 
+
+        if (option && typeof option === "object") {
+            //console.log('entro SingleAxis');
+            myChart.setOption(option, true);
+        }
+
     }
+
 }
