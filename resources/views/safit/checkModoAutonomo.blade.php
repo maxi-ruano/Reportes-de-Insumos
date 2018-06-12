@@ -16,42 +16,32 @@
               <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">Numero Documento<span class="required">*</span>
               </label>
               <div class="col-md-6 col-sm-6 col-xs-12">
-                <input id="nro_doc" type="text" class="form-control" name="nro_doc" aria-describedby="NumeroDeDocumento" placeholder="Ejem ... 54468798">
+                <input id="nro_doc" type="text" class="form-control" name="nro_doc" maxlength="10" aria-describedby="NumeroDeDocumento" placeholder="Ejem ... 54468798">
               </div>
             </div>
 
-            <div class="form-group">
-              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">Nacionalidad<span class="required">*</span>
-              </label>
-              <div class="col-md-6 col-sm-6 col-xs-12">
-                {!! Form::select('nacionalidad', $paises,   1, ['id'=>'nacionalidad', 'data-type'=>'text', 'class'=>'form-control  paises', 'tabindex'=>'-1', 'data-placeholder'=>'Seleccionar Cliente', 'required']) !!}
-
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">Tipo Documento<span class="required">*</span>
-              </label>
-              <div class="col-md-6 col-sm-6 col-xs-12">
-                {!! Form::select('tipo_doc', $tdoc,   null, ['id'=>'tipo_doc', 'data-type'=>'text', 'class'=>'select2_single form-control', 'tabindex'=>'-1', 'data-placeholder'=>'Seleccionar Cliente', 'required']) !!}
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">Sexo<span class="required">*</span>
-              </label>
-              <div class="col-md-6 col-sm-6 col-xs-12">
-                {!! Form::select('sexo', $sexo,   null, ['id'=>'sexo', 'data-type'=>'text', 'class'=>'select2_single form-control', 'data-placeholder'=>'Seleccionar Cliente', 'required']) !!}
-              </div>
-            </div>
-            </fieldset>
             <div class="form-group">
               <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">
               </label>
               <div class="col-md-6 col-sm-6 col-xs-12">
-                <button id="preCheckButton" type="submit" class="btn btn-primary btn-block">Buscar Boleta Pago</button>
+                <button id="buscarTramite" type="submit" class="btn btn-primary btn-block">Buscar</button>
               </div>
             </div>
+            <table id="tramites" class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Nro Documento</th>
+                  <th>Tipo Documento</th>
+                  <th>Nombre</th>
+                  <th>Apellido</th>
+                  <th>Nacionalidad</th>
+                  <th>Accion</th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+
         </div>
         <div class="clearfix"></div>
       </div>
@@ -80,11 +70,12 @@
       if(msj.validado){
         error = 'Verificado'
         type = 'success'
+        fecha_error = (msj.comprobante) ? 'Comprobante Nro. '+msj.comprobante : '';
       }else{
         var prop = 'description'
         if (msj.error){
           if(msj.error.description)
-          error =  msj.error.description
+            error =  msj.error.description
         }else
           error =  'No verificado'
 
@@ -93,13 +84,13 @@
       html = '<li>'+
         '<div class="block_precheck">'+
           '<div class="tags_precheck">'+
-            '<a class="btn btn-'+type+' btn-xs btn-block">'+
+            '<a id="buttonValidacion" class="btn btn-'+type+' btn-xs btn-block">'+
               '<span>'+msj.description+'</span>'+
             '</a>'+
           '</div>'+
           '<div class="block_content">'+
             '<h2 class="title">'+
-                '<a>'+ error +'</a>'+
+                '<a id="textoValidacion">'+ error +'</a>'+
             '</h2>'+
             '<div class="byline">'+
               '<span>'+fecha_error+'</span>'+
@@ -116,41 +107,52 @@
       $('#documento_texto').html(datosPersona.nro_doc);
       $('#fecha_nacimiento_texto').html(datosPersona.fecha_nacimiento);
       $('#nacionalidad_texto').html(datosPersona.nacionalidad);
+/*
+      if (datosPersona.fecha_paseturno == null)
+        $('#logTurno').html(' <a id="btnFechaPaseTruno" onclick="getPaseTurno('+datosPersona.id+')" class="btn btn-danger btn-block"><span>PASAR A TOMAR TURNO</span> <i class="fa fa-sign-in"></i></a> ');
+      else
+        $('#logTurno').html(' <a id="btnFechaPaseTruno" class="btn btn-success btn-block"><i class="fa fa-check-circle"></i> <span>PASO A TOMAR TURNO <b>'+datosPersona.fecha_paseturno+'</b> </span> </a> ');
+ */ 
     }
 
-    function getPreCheck(nacionalidad, nro_doc, tipo_doc, sexo){
+    function getPaseTurno(id){
       $.ajax({
-          headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-          type: "GET",
-          url: '{{ config('app.url') }}'+'/consultarPreCheck',
-          data: {
-                 nacionalidad: nacionalidad,
-                 nro_doc: nro_doc,
-                 tipo_doc: tipo_doc,
-                 sexo: sexo
-               },
-          //async:false,
-          beforeSend: function(){
-
-          },
+          type: "POST",
+          url: '/api/funciones/actualizarPaseATurno',
+          data: { id: id},
           success: function( msg ) {
-            console.log(msg);
-            if(msg){
-                mostrarPreCheck(msg.precheck)
-                mostrarDatosPersona(msg.datosPersona)
-            }else
-              mostrarMensajeError()
+            getPreCheck(id);
           },
           error: function(xhr, status, error) {
             var err = eval("(" + xhr.responseText + ")");
-            console.log(err)
-
           }
       });
     }
 
-    function mostrarMensajeError(){
-      $('#logPreCheck').append('<li><label class="btn btn-danger">El tramite no a sido iniciado por el precheck</label></li>')
+
+    function getPreCheck(id){
+      $.ajax({
+          headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+          type: "GET",
+          url: '/consultarPreCheck',
+          data: { id: id, },
+          //async:false,
+          success: function( msg ) {
+            if(msg.error){
+              mostrarMensajeError(msg.error)
+            }else if(msg){
+              mostrarPreCheck(msg.precheck)
+              mostrarDatosPersona(msg.datosPersona)
+            }
+          },
+          error: function(xhr, status, error) {
+            var err = eval("(" + xhr.responseText + ")");
+          }
+      });
+    }
+
+    function mostrarMensajeError(error){
+      $('#logPreCheck').append('<li><label class="btn btn-danger">'+error+'</label></li>')
     }
 
     function validaciones(){
@@ -165,18 +167,51 @@
       $('#logPreCheck').html("");
     }
 
-    $('#preCheckButton').on('click', function (e) {
-      if(validaciones()){
-        e.preventDefault();
-        limpiarCampos()
-        getPreCheck(
-          $('#nacionalidad').val(),
-          $('#nro_doc').val(),
-          $('#tipo_doc').val(),
-          $('#sexo').val()
-        );
-       }
+    function actualizarValidacion(type, mensaje){
+      $('#textoValidacion').html(mensaje);
+      $('#buttonValidacion').attr('class', 'btn btn-'+type+' btn-xs btn-block')
+    }
+
+    function cargarListaTramites(tramites){
+      tramites.forEach(e => {
+        $('#tramites tbody').append('<tr>'+
+                  '<th scope="row">'+e.nro_doc+'</th>'+
+                  '<td>'+e.tipo_doc+'</td>'+
+                  '<td>'+e.nombre+'</td>'+
+                  '<td>'+e.apellido+'</td>'+
+                  '<td>'+e.nacionalidad+'</td>'+
+                  '<td><button type="button" onclick="getPreCheck('+e.id+')" class="btn btn-primary btn-sm">Seleccionar</button></td>'+
+                '</tr>');
+      });
+    }
+
+    $('#buscarTramite').on('click', function (e) {
+      $.ajax({
+          headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+          type: "GET",
+          url: '/buscarTramitesPrecheck',
+          data: { nro_doc: $('#nro_doc').val(), },
+          success: function( msg ) {
+            $('#tramites tbody').empty()
+            limpiarCampos()
+            if(msg.error)
+              mostrarMensajeError(msg.error)
+            else
+              cargarListaTramites(msg.res)  
+          },
+          error: function(xhr, status, error) {
+            var err = eval("(" + xhr.responseText + ")");
+         }
+      });  
     });
+
+    $(document).on("keypress", "input", function(event){
+      var keycode = (event.keyCode ? event.keyCode : event.which);
+      if(keycode == '13'){
+        $('#buscarTramite').click();
+      }
+    });
+    
   </script>
 
   <script src="{{ asset('vendors/validator/validator.js')}}"></script>
