@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Tramites;
 use App\SysMultivalue;
+use App\Http\Controllers\TramitesController;
 
 class DashboardController extends Controller
 {
@@ -32,22 +33,11 @@ class DashboardController extends Controller
         $libredeuda             = $precheck[0]->libredeuda;
         $bui                    = $precheck[0]->bui;
 
-        //2)TOTAL TRAMITES INICIADOS CON PRECHECK OK - OFF
-        $tramites =  \DB::select("SELECT 
-                                    count(DISTINCT tramites.nro_doc) as total_tramites,
-                                    count(DISTINCT (case when tramites_a_iniciar.estado = 6 then tramites.nro_doc else null end)) as tramitesprecheck_on,
-                                    count(DISTINCT (case when tramites_a_iniciar.estado <> 6 then tramites.nro_doc else null end)) as tramitesprecheck_off
-                                FROM tramites 
-                                INNER JOIN ansv_paises ON ansv_paises.id_dgevyl = tramites.pais
-                                INNER JOIN tramites_a_iniciar ON tramites.nro_doc = CAST(tramites_a_iniciar.nro_doc AS varchar(10))
-                                    AND tramites_a_iniciar.nacionalidad = ansv_paises.id_ansv
-                                WHERE tramites.estado NOT IN('93','94') 
-                                    AND tramites_a_iniciar.sigeci_idcita IN(SELECT idcita FROM sigeci WHERE fecha = '".$fecha."')
-                                    AND CAST(tramites.fec_inicio as date) >= '".$fecha."'");
-
-        $total_tramites         = $tramites[0]->total_tramites;        
-        $tramitesprecheck_on    = $tramites[0]->tramitesprecheck_on;
-        $tramitesprecheck_off   = $tramites[0]->tramitesprecheck_off;
+        //2)TOTAL TRAMITES INICIADOS CON PRECHECK ON - OFF
+        $tramiteController = new TramitesController();
+        $total_tramites         = $tramiteController->consultarTramitesPrecheck()->count();
+        $tramitesprecheck_on    = $tramiteController->consultarTramitesPrecheck($fecha,'on')->count();
+        $tramitesprecheck_off   = $tramiteController->consultarTramitesPrecheck($fecha,'off')->count();
 
         //Preparar un array para los datos a mostrar
         $datos_precheck[0] = ['titulo' => 'TURNOS', 'subtitulo' => 'en tramites a iniciar', 'total' => $turnos, 'porc' => '100', 'ico' => 'fa fa-user'];

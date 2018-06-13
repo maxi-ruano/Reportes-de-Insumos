@@ -9,6 +9,7 @@ use App\SysMultivalue;
 use App\SigeciPaises;
 use App\TramitesAIniciarErrores;
 use App\TramitesAIniciarCheckprecheck;
+use App\Http\Controllers\TramitesController;
 
 class PreCheckController extends Controller
 {
@@ -96,6 +97,14 @@ class PreCheckController extends Controller
     }
   }
 
+  //function get para API listar los tramites iniciados con estado on ó off 
+  public function get_tramites_precheck(Request $request){
+    $tramiteController = new TramitesController();
+    return $tramiteController->consultarTramitesPrecheck($request->fecha, $request->estado);
+
+  }
+
+  //function get para API listar los errores generados en el precheck
   public function get_errores_precheck(Request $request){
     $fecha = ($request->fecha=='')?date("Y-m-d"):$request->fecha;
     
