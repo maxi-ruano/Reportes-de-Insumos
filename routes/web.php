@@ -28,6 +28,7 @@ Route::get('testCheckBoletas', ['uses' => 'TramitesAInicarController@testCheckBo
 
 //TemplateDashboard
 Route::get('consultaDashboard', ['uses' => 'DashboardController@consultaDashboard','as' => 'consultaDashboard']);
+Route::get('comparacionPrecheck', ['uses' => 'DashboardController@comparacionPrecheck','as' => 'comparacionPrecheck']);
 Route::get('consultaTurnosEnEspera', ['uses' => 'DashboardController@consultaTurnosEnEspera','as' => 'consultaTurnosEnEspera']);
 Route::get('consultaTurnosEnEsperaPorSucursal', ['uses' => 'DashboardController@consultaTurnosEnEsperaPorSucursal','as' => 'consultaTurnosEnEsperaPorSucursal']);
 Route::get('obtenerSucursales', ['uses' => 'DashboardController@obtenerSucursales','as' => 'obtenerSucursales']);

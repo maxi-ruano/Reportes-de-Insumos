@@ -126,4 +126,52 @@ class DashboardController extends Controller
         $porc = ( $valor > 0 )?round($valor*100/$base):0;
         return $porc;
     }
+
+    public function comparacionPrecheck(Request $request){
+        $fecha = isset($request->fecha)?date('Y-m-d', strtotime($request->fecha)):date('Y-m-d');
+        $tresdiasantes = date ( 'Y-m-j' , strtotime ( '-3 day' , strtotime ( $fecha ) ) );
+        $undiaantes = date ( 'Y-m-j' , strtotime ( '-1 day' , strtotime ( $fecha ) ) );
+
+        $res = $this->getCantidadErrores($fecha, $tresdiasantes);
+        $resBui = $this->getCantidadErrores($fecha, $tresdiasantes, 5);
+        $resInfracciones = $this->getCantidadErrores($fecha, $tresdiasantes, 4);
+        $resSafit = $this->getCantidadErrores($fecha, $tresdiasantes, 3);
+        $res1 = $this->getCantidadErrores($fecha, $undiaantes);
+        $res1Bui = $this->getCantidadErrores($fecha, $undiaantes, 5);
+        $res1Infracciones = $this->getCantidadErrores($fecha, $undiaantes, 4);
+        $res1Safit = $this->getCantidadErrores($fecha, $undiaantes, 3);
+
+        echo "Fecha Consulta $request->fecha <br>";
+        echo "<br>";
+        echo "Total errores 72 hrs antes ".$tresdiasantes .": ".$res." <br>";
+        echo "Total errores 24 hrs antes ".$undiaantes .": ".$res1." <br>";
+        echo "<br>";
+        echo "Detalle errores 72 hrs antes $tresdiasantes <br>";
+        echo "<br>";
+        echo "BUI : ".$resBui." <br>";
+        echo "INRFACCIONES : ".$resInfracciones." <br>";
+        echo "SAFIT : ".$resSafit." <br>";
+        echo "<br>";
+        echo "Detalle errores 24 hrs antes $undiaantes <br>";
+        echo "<br>";
+        echo "BUI : ".$res1Bui." <br>";
+        echo "INRFACCIONES : ".$res1Infracciones." <br>";
+        echo "SAFIT : ".$res1Safit." <br>";
+    }
+
+    public function getCantidadErrores($fechaTurno, $fechaCheckeo, $estado = false){
+        $sql = "SELECT e.tramites_a_iniciar_id
+                FROM tramites_a_iniciar_errores e, sigeci s
+                WHERE e.tramites_a_iniciar_id = s.tramite_a_iniciar_id
+                AND s.fecha = '$fechaTurno'
+                AND e.created_at::date = '$fechaCheckeo' ";
+        if($estado) 
+            if($estado == 3)
+                $sql.="AND ( e.estado_error = $estado OR e.estado_error = 2 )"; 
+            else    
+                $sql.="AND e.estado_error = $estado"; 
+        $sql.= " GROUP BY e.tramites_a_iniciar_id";                 
+        $res = \DB::select($sql);
+        return count($res);                            
+    }
 }
