@@ -44,54 +44,11 @@
     </div>
     <!-- /top totales -->
 
-    
-
-    <!-- /Grafica - echart_donut -->
-    <div class="col-md-5 col-sm-12 col-xs-12">
-      <div class="x_panel">
-        <div class="x_title">
-          <h2>Personas en Espera</h2>
-          <ul class="nav navbar-right panel_toolbox">
-            <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-            </li>
-            <li><a class="close-link"><i class="fa fa-close"></i></a>
-            </li>
-          </ul>
-          <div class="clearfix"></div>
-        </div>
-        <div class="x_content">
-          <div id="echart_sedeRoca" style="height:600px;"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-7 col-sm-12 col-xs-12">
-      <div class="x_panel">
-        <div class="x_title">
-          <h2>Por Sucursal</h2>
-          <ul class="nav navbar-right panel_toolbox">
-            <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-            </li>
-            <li><a class="close-link"><i class="fa fa-close"></i></a>
-            </li>
-          </ul>
-          <div class="clearfix"></div>
-        </div>
-        <div id="echart_sedes" style="height:750px;"> </div> <br><br>
-      </div>
-    </div>
-    <!-- /Grafica -->
-
-
-
     <!-- /Widget Summary - ESTADISTICAS -->
     <div class="col-md-4 col-sm-4 col-xs-12">
         <div class="x_panel tile fixed_height_350">
           <div class="x_title">
             <h2>ESTADÍSTICAS PreCheck </h2>
-            <ul class="nav navbar-right panel_toolbox">
-              <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
-            </ul>
             <div class="clearfix"></div>
           </div>
           <div class="x_content">
@@ -131,9 +88,16 @@
   <script src="{{ asset('vendors/moment/min/moment.min.js')}}"></script>
   <script src="{{ asset('vendors/bootstrap-daterangepicker/daterangepicker.js')}}"></script>
 
-  <!-- Template Gentelella ECharts - Graph -->
-  <script src="{{ asset('vendors/echarts/echarts.min.js')}}"></script>
   <script src="{{ asset('js/dashboard.js')}}"></script>
+
+  <script>
+    $(document).ready(function() {
+        //Actualizar pagina cada 10 segundos
+        setTimeout(function(){
+          window.location.href = "{{ route('consultaDashboardGraf') }}"; //using a named route
+        }, 10000);
+    });
+  </script>
 @endpush
 
 @section('css')

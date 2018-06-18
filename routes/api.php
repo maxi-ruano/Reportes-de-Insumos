@@ -24,4 +24,5 @@ Route::group(['prefix'=>'reportes', 'middleware'=>'cors'], function(){
 
 Route::group(['prefix'=>'funciones', 'middleware'=>'cors'], function(){
     Route::post('actualizarPaseATurno', 'PreCheckController@actualizarPaseATurno')->name('actualizarPaseATurno');
+    Route::post('obtenerSucursales', 'DashboardController@obtenerSucursales')->name('obtenerSucursales');
 });

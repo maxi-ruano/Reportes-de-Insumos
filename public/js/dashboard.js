@@ -12,7 +12,7 @@ $(document).ready(function() {
     });
 
     //Actualizar pagina cada 10 segundos
-   /* setTimeout(function(){
+    /*setTimeout(function(){
         window.location.reload(1);
     }, 120000);*/
 
@@ -245,9 +245,8 @@ function init_charts() {
 
         //Obtener sucursales
         $.ajax({
-            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-            url: '/obtenerSucursales',
-            type: "GET", dataType: "json",
+            url: '/api/funciones/obtenerSucursales',
+            type: "POST", dataType: "json",
             success: function(ret){
                sucursales = ret;
             }
@@ -261,7 +260,7 @@ function init_charts() {
             type: "GET", dataType: "json",
             async:false,
             success: function(datos){
-                generarGrafico('echart_sedeRoca',datos, 'Sucursal','Por estación');
+                generarGrafico('echart_sedeRoca',datos, 'Por Estación');
             },
             error: function(xhr, status, error) {
                 var err = eval("(" + xhr.responseText + ")");
@@ -367,15 +366,15 @@ function init_charts() {
         echarts.util.each(days, function (day, idx) {
             option.title.push({
                 textBaseline: 'middle',
-                top: (idx + 1) * 97 / days.length + '%',
+                top: (idx + 0.8) * 97 / days.length + '%',
                 text: day
             });
             option.singleAxis.push({
-                left: 160,
+                left: 140,
                 type: 'category',
-                boundaryGap: false,
+                boundaryGap: true,
                 data: hours,
-                top: (idx * 97 / days.length + 8) + '%',
+                top: (idx * 97 / days.length + 7.6) + '%',
                 height: (100 / days.length - 10) + '%',
                 axisLabel: {
                     interval: 0
@@ -403,7 +402,7 @@ function init_charts() {
                 },
                 symbolSize: function (dataItem) {
                     if(idx==0)
-                        return dataItem[1] * 3;
+                        return dataItem[1] * 3.5;
                     else
                         return dataItem[1] * 5;
                 }
@@ -420,7 +419,6 @@ function init_charts() {
         }); 
 
         if (option && typeof option === "object") {
-            //console.log('entro SingleAxis');
             myChart.setOption(option, true);
         }
 

@@ -57,13 +57,18 @@ class DashboardController extends Controller
         return View('safit.consultaDashboard')->with('datos_precheck',$datos_precheck)
                                               ->with('datos_tramites',$datos_tramites)
                                               ->with('fecha',$fecha);
-
+        
     }
 
+    public function consultaDashboardGraf(Request $request){
+        $fecha = isset($request->fecha)?date('Y-m-d', strtotime($request->fecha)):date('Y-m-d');
+        return View('safit.consultaDashboardGraf')->with('fecha',$fecha);
+    }
+
+    /*Consulta general para obtener el listado de sucursales */
     public function obtenerSucursales(){
         $sucursales =  SysMultivalue::select('id','description',\DB::raw("(Case When split_part(description,' ',3) = '' then split_part(description,' ',1) else split_part(description,' ',3) end) as name"))
                         ->where('type', 'SUCU')
-                        //->whereNotIn('id', ['2','3','20','80','90','101','102','104','121','150'])
                         ->orderBy('id')
                         ->get();
         return $sucursales;
