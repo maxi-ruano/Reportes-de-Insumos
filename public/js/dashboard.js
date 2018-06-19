@@ -1,7 +1,30 @@
+var myTimeout;
+var automatico = true;
+
 $(document).ready(function() {
 
-    init_charts();
+    //Control botoneraDasboard para Pausar / Start Reload
+    $("#pausarReload, #startReload").change(function () {  
+        
+        if(this.value == 'start'){
+            automatico = true;
+            myTimeout = setTimeout(reload, 5000);
+        }else{
+            automatico = false;
+            clearTimeout(myTimeout);
+        }
 
+        //alert('reload '+this.value+'  automatico: '+automatico);        
+    });
+    
+    if(automatico == true)
+        $('#startReload').click();
+    else
+        $('#pausarReload').click();
+    
+    //****end botoneraDasboard */
+
+    
     //Configuracion del datepicker
     $('#fecha').daterangepicker({
         singleDatePicker: true,
@@ -11,10 +34,7 @@ $(document).ready(function() {
         $('#btnConsultar').click();
     });
 
-    //Actualizar pagina cada 10 segundos
-    /*setTimeout(function(){
-        window.location.reload(1);
-    }, 120000);*/
+    init_charts();
 
 });
 

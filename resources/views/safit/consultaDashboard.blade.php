@@ -7,18 +7,7 @@
   <div class="right_col" role="main">
   
     {!! Form::open(['route' => 'consultaDashboard', 'id'=>'consultaDashboard', 'method' => 'get', 'class' => 'form-horizontal form-label-left', 'role' => 'form', 'files' => true ]) !!}
-      <!-- /DatePicker -->
-      <div class="form-group">
-        <div class="col-md-12 col-sm-12 col-xs-12">
-          <div class="input-group">
-            <input name="fecha" id="fecha" type="text" data-date-format='yy-mm-dd' value='{{ $fecha }}' class="form-control has-feedback-left" >
-            <span class="input-group-btn">
-                <button id="btnConsultar" type="submit" class="btn btn-primary">Consultar</button>
-            </span>
-          </div>
-        </div>
-      </div>
-      <!-- /end datePicker -->
+      @include('safit.botoneraDashboard')
     {{ Form::close() }}
 
 
@@ -83,24 +72,20 @@
   <script src="{{ asset('vendors/jquery/dist/jquery.min.js')}}"></script>
   <!-- Bootstrap -->
   <script src="{{ asset('vendors/bootstrap/dist/js/bootstrap.min.js')}}"></script>
-
   <!-- bootstrap-daterangepicker -->
   <script src="{{ asset('vendors/moment/min/moment.min.js')}}"></script>
   <script src="{{ asset('vendors/bootstrap-daterangepicker/daterangepicker.js')}}"></script>
-
   <script src="{{ asset('js/dashboard.js')}}"></script>
-
+  
   <script>
-    $(document).ready(function() {
-        //Actualizar pagina cada 10 segundos
-        setTimeout(function(){
-          window.location.href = "{{ route('consultaDashboardGraf') }}"; //using a named route
-        }, 10000);
-    });
+    function reload(){
+      window.location.href = "{{ route('consultaDashboardGraf') }}"; //using a named route
+    }
   </script>
 @endpush
 
 @section('css')
     <!-- bootstrap-daterangepicker -->
     <link href="{{ asset('vendors/bootstrap-daterangepicker/daterangepicker.css')}}" rel="stylesheet">
+    <link href="{{ asset('vendors/datatables.net-buttons-bs/css/buttons.bootstrap.min.css')}}" rel="stylesheet">
 @endsection 

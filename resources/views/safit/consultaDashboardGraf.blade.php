@@ -11,18 +11,13 @@
     <div class="form-group">
       <div class="col-md-5 col-sm-12 col-xs-12">
         {!! Form::open(['route' => 'consultaDashboardGraf', 'id'=>'consultaDashboardGraf', 'method' => 'get', 'class' => 'form-horizontal form-label-left', 'role' => 'form', 'files' => true ]) !!}
-          <div class="input-group">
-            <input name="fecha" id="fecha" type="text" data-date-format='yy-mm-dd' value='{{ $fecha }}' class="form-control has-feedback-left" >
-            <span class="input-group-btn">
-                <button id="btnConsultar" type="submit" class="btn btn-primary">Consultar</button>
-            </span>
-          </div>
+          @include('safit.botoneraDashboard')
         {{ Form::close() }}
 
         <!-- /Grafica - echart_donut -->
         <div class="x_panel">
           <div class="x_title">
-            <h2>Sucursal Roca</h2>
+            <h2>Sucursal Roca </h2>
             <ul class="nav navbar-right panel_toolbox">
               <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
               </li>
@@ -32,7 +27,7 @@
             <div class="clearfix"></div>
           </div>
           <div class="x_content">
-            <div id="echart_sedeRoca" style="height:620px;"></div>
+            <div id="echart_sedeRoca" style="height:600px;"></div>
           </div>
         </div>
       </div>
@@ -77,12 +72,9 @@
   <script src="{{ asset('js/dashboard.js')}}"></script>
 
   <script>
-    $(document).ready(function() {
-      //Actualizar pagina cada 10 segundos
-      setTimeout(function(){
-        window.location.href = "{{ route('consultaDashboard') }}"; //using a named route
-      }, 10000);
-    });
+    function reload(){
+      window.location.href = "{{ route('consultaDashboard') }}"; //using a named route
+    }
   </script>
 @endpush
 
