@@ -4,12 +4,7 @@
 
 <!-- page content -->
 
-  <div class="right_col" role="main">
-  
-    {!! Form::open(['route' => 'consultaDashboard', 'id'=>'consultaDashboard', 'method' => 'get', 'class' => 'form-horizontal form-label-left', 'role' => 'form', 'files' => true ]) !!}
-      @include('safit.botoneraDashboard')
-    {{ Form::close() }}
-
+  <div role="main">
 
     <!-- top Totales -->
     <div class="row tile_count">
@@ -34,7 +29,7 @@
     <!-- /top totales -->
 
     <!-- /Widget Summary - ESTADISTICAS -->
-    <div class="col-md-4 col-sm-4 col-xs-12">
+    <div class="col-md-12 col-sm-12 col-xs-12">
         <div class="x_panel tile fixed_height_350">
           <div class="x_title">
             <h2>ESTADÍSTICAS PreCheck </h2>
@@ -63,6 +58,14 @@
       </div>
     <!-- /end Widget Summary -->
 
+    <!-- /Form Group -->
+    <div class="col-md-3 col-sm-12 col-xs-12">
+        {!! Form::open(['route' => 'consultaDashboard', 'id'=>'consultaDashboard', 'method' => 'get', 'class' => 'form-horizontal form-label-left', 'role' => 'form', 'files' => true ]) !!}
+          @include('safit.botoneraDashboard')
+        {{ Form::close() }}
+    </div>
+    <!-- /end form-group -->
+
   </div>
 <!-- /page content -->
 
@@ -76,7 +79,7 @@
   <script src="{{ asset('vendors/moment/min/moment.min.js')}}"></script>
   <script src="{{ asset('vendors/bootstrap-daterangepicker/daterangepicker.js')}}"></script>
   <script src="{{ asset('js/dashboard.js')}}"></script>
-  
+
   <script>
     function reload(){
       window.location.href = "{{ route('consultaDashboardGraf') }}"; //using a named route

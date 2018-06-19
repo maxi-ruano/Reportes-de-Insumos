@@ -8,7 +8,7 @@ $(document).ready(function() {
         
         if(this.value == 'start'){
             automatico = true;
-            myTimeout = setTimeout(reload, 5000);
+            myTimeout = setTimeout(reload, 15000);
         }else{
             automatico = false;
             clearTimeout(myTimeout);
