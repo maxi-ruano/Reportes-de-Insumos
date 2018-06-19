@@ -84,7 +84,7 @@ class DashboardController extends Controller
                         ->whereRaw("tramites.sucursal = '".$request->sucursal."'");
                     })
                     ->whereRaw("sys_multivalue.type = 'STAT' ")
-                    ->whereRaw("sys_multivalue.id IN('1','2','3','4','5','12','13') ")
+                    ->whereRaw("sys_multivalue.id IN('1','2','3','4','5','6','12','13') ")
                     ->groupBy('sys_multivalue.id')
                     ->orderBy('sys_multivalue.id')
                     ->toSql();
@@ -108,7 +108,7 @@ class DashboardController extends Controller
                             $join->on('tramites.estado', '=', 'sys_multivalue.id')
                             ->whereRaw("sys_multivalue.type = 'STAT' ");
                         })
-                        ->whereRaw("sys_multivalue.id IN('1','2','3','4','5','12','13') ")
+                        ->whereRaw("sys_multivalue.id IN('1','2','3','4','5','6','12','13') ")
                         ->whereNotIn('tramites.sucursal', ['2','3','20','80','90','101','102','104','121','150'])
                         ->whereRaw("CAST(tramites.fec_inicio as date) = '".$fecha."'")
                         ->groupBy('tramites.sucursal','estacion_id')

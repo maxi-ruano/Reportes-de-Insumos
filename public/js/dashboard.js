@@ -315,10 +315,10 @@ function init_charts() {
         },
         calculable: true,
         legend: {
-            orient: 'horizontal',
-            x: 'center',
+            orient: 'vertical',
+            x: 'left',
             y: 'bottom',
-            itemWidth: 20,
+            //itemWidth: 12,
             data: titulos
         },
         toolbox: {
@@ -338,6 +338,7 @@ function init_charts() {
             name: 'Personas en espera',
             type: 'pie',
             radius: ['45%', '70%'],
+            center : ['50%', '40%'],
             itemStyle: {
                 normal: {
                     label: {
@@ -349,7 +350,7 @@ function init_charts() {
                     label: {
                         show: true,
                         textStyle: {
-                            fontSize: '12',
+                            fontSize: '14',
                             fontWeight: 'bold'
                         }
                     }
