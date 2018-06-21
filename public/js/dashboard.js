@@ -419,10 +419,10 @@ function init_charts() {
                     }
                 },
                 symbolSize: function (dataItem) {
-                    if(idx==0)
-                        return dataItem[1] * 3.5;
-                    else
-                        return dataItem[1] * 5;
+                    /*if(idx==0)
+                        return dataItem[1] * 4;
+                    else*/
+                        return dataItem[1] * 4;
                 }
             });
         });
