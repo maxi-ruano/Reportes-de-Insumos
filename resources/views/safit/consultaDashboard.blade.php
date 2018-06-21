@@ -59,7 +59,7 @@
     <!-- /end Widget Summary -->
 
     <!-- /Form Group -->
-    <div class="col-md-3 col-sm-12 col-xs-12">
+    <div class="col-md-5 col-sm-12 col-xs-12">
         {!! Form::open(['route' => 'consultaDashboard', 'id'=>'consultaDashboard', 'method' => 'get', 'class' => 'form-horizontal form-label-left', 'role' => 'form', 'files' => true ]) !!}
           @include('safit.botoneraDashboard')
         {{ Form::close() }}
@@ -78,6 +78,9 @@
   <!-- bootstrap-daterangepicker -->
   <script src="{{ asset('vendors/moment/min/moment.min.js')}}"></script>
   <script src="{{ asset('vendors/bootstrap-daterangepicker/daterangepicker.js')}}"></script>
+  <!-- Bootstrap-toggle -->
+  <script src="{{ asset('vendors/bootstrap-toggle/js/bootstrap-toggle.min.js')}}"></script>
+
   <script src="{{ asset('js/dashboard.js')}}"></script>
 
   <script>
@@ -90,5 +93,6 @@
 @section('css')
     <!-- bootstrap-daterangepicker -->
     <link href="{{ asset('vendors/bootstrap-daterangepicker/daterangepicker.css')}}" rel="stylesheet">
-    <link href="{{ asset('vendors/datatables.net-buttons-bs/css/buttons.bootstrap.min.css')}}" rel="stylesheet">
+    <!-- bootstrap-toggle -->
+    <link href="{{ asset('vendors/bootstrap-toggle/css/bootstrap-toggle.min.css')}}" rel="stylesheet">
 @endsection 

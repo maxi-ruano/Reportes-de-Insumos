@@ -3,25 +3,22 @@ var automatico = true;
 
 $(document).ready(function() {
 
-    //Control botoneraDasboard para Pausar / Start Reload
-    $("#pausarReload, #startReload").change(function () {  
-        
-        if(this.value == 'start'){
+    //Control botoneraDasboard para Pausar / Start
+    $("#botoneraDashboard #starPause").change(function(){
+        //alert('entro '+$(this).prop('checked'));
+        if($(this).prop('checked') == true){
             automatico = true;
             myTimeout = setTimeout(reload, 15000);
         }else{
             automatico = false;
             clearTimeout(myTimeout);
         }
-
-        //alert('reload '+this.value+'  automatico: '+automatico);        
     });
-    
+
     if(automatico == true)
-        $('#startReload').click();
+        $('#starPause').bootstrapToggle('on');
     else
-        $('#pausarReload').click();
-    
+        $('#starPause').bootstrapToggle('off');
     //****end botoneraDasboard */
 
     
