@@ -107,12 +107,12 @@
       $('#documento_texto').html(datosPersona.nro_doc);
       $('#fecha_nacimiento_texto').html(datosPersona.fecha_nacimiento);
       $('#nacionalidad_texto').html(datosPersona.nacionalidad);
-/*
+
       if (datosPersona.fecha_paseturno == null)
-        $('#logTurno').html(' <a id="btnFechaPaseTruno" onclick="getPaseTurno('+datosPersona.id+')" class="btn btn-danger btn-block"><span>PASAR A TOMAR TURNO</span> <i class="fa fa-sign-in"></i></a> ');
+        $('#logTurno').html(' <a id="btnFechaPaseTruno" onclick="getPaseTurno('+datosPersona.id+')" class="btn btn-danger btn-block"><span>SIGUIENTE SECTOR</span> <i class="fa fa-sign-in"></i></a> ');
       else
-        $('#logTurno').html(' <a id="btnFechaPaseTruno" class="btn btn-success btn-block"><i class="fa fa-check-circle"></i> <span>PASO A TOMAR TURNO <b>'+datosPersona.fecha_paseturno+'</b> </span> </a> ');
- */ 
+        $('#logTurno').html(' <a id="btnFechaPaseTruno" class="btn btn-success btn-block"><i class="fa fa-check-circle"></i> <span>PASO AL SIGUIENTE SECTOR <b>'+datosPersona.fecha_paseturno+'</b> </span> </a> ');
+  
     }
 
     function getPaseTurno(id){
