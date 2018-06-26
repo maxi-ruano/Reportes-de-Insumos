@@ -412,7 +412,7 @@ class TramitesAInicarController extends Controller
         $libreDeudaHdr = $this->guardarDatosPersonaLibreDeuda($persona, $tramite);
         $this->guardarDatosLibreDeuda($libreDeuda, $libreDeudaHdr);
         $res['res'] = true;
-        $res['comprobante'] = $libreDeuda['CODIGOBARRAS'];
+        $res['comprobante'] = $libreDeuda['NUMEROLD'];
       }
     }
     return $res;
@@ -425,7 +425,7 @@ class TramitesAInicarController extends Controller
                                   ->first();
     if(!$libreDeudaHdr)
       $libreDeudaHdr = new libreDeudaHdr();
-    $libreDeudaHdr->nro_doc = $datos['DOCUMENTO'] ? $datos['DOCUMENTO'] : "";
+    $libreDeudaHdr->nro_doc = $datos['DOCUMENTO'] ? $datos['DOCUMENTO'] : $tramite->nro_doc;
     $libreDeudaHdr->tipo_doc = $tramite->tipo_doc;
     $libreDeudaHdr->sexo = $tramite->sexo;
     $libreDeudaHdr->pais = $tramite->nacionalidad;
