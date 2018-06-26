@@ -1,13 +1,13 @@
 var myTimeout;
 
 $(document).ready(function() {
+   
+    iniciarTimeout();
 
-    myTimeout = setTimeout(reload, 15000);
-    
     //Control botoneraDasboard para Pausar / Start
     $("#botoneraDashboard #starPause").change(function(){
         if($(this).prop('checked') == true){
-            myTimeout = setTimeout(reload, 15000);
+            iniciarTimeout();
         }else{
             clearTimeout(myTimeout);
         }
@@ -32,6 +32,18 @@ $(document).ready(function() {
     init_charts();
 
 });
+
+function iniciarTimeout (){
+    var date = new Date();
+    var d = date.getDate();
+    var m = date.getMonth() + 1;
+    var y = date.getFullYear();
+    var actual = (d <= 9 ? '0' + d : d) + '-' + (m <= 9 ? '0' + m : m) + '-' + y;
+    var fecha = $("#fecha").val();
+
+    if(fecha == actual)
+        myTimeout = setTimeout(reload, 15000);
+}
 
 function init_charts() {
 
