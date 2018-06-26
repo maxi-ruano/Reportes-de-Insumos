@@ -74,13 +74,14 @@ class PreCheckController extends Controller
     $tramites = [];
     //Seleccionar solo un tramite por cada persona tomando en cuenta que exista en validaciones_precheck validado
     foreach ($personas as $key => $persona){
-      $tramites[] = TramitesAIniciar::select('tramites_a_iniciar.*')
+      $tramites[] = TramitesAIniciar::select('tramites_a_iniciar.*','sigeci.fecha','sigeci.hora')
                                   ->where([
                                     'nro_doc' => $persona->nro_doc,
                                     'tipo_doc'=> $persona->tipo_doc,
                                     'nacionalidad'=> $persona->nacionalidad
                                     ])
                                   ->leftjoin('validaciones_precheck','validaciones_precheck.tramite_a_iniciar_id','=','tramites_a_iniciar.id')
+                                  ->leftjoin('sigeci','sigeci.idcita','=','tramites_a_iniciar.sigeci_idcita')
                                   ->orderBy('validaciones_precheck.validado', 'desc')
                                   ->first();
     } 

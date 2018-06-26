@@ -35,6 +35,8 @@
                   <th>Nombre</th>
                   <th>Apellido</th>
                   <th>Nacionalidad</th>
+                  <th>Fecha Turno</th>
+                  <th>Hora Turno</th>
                   <th>Accion</th>
                 </tr>
               </thead>
@@ -173,13 +175,24 @@
     }
 
     function cargarListaTramites(tramites){
+      //var meses = new Array ("Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre");
+      //var diasSemana = new Array("Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado");
+      
       tramites.forEach(e => {
+        //var f = new Date(e.fecha);
+        //var fecha = diasSemana[f.getDay()] + ", " + f.getDate() + " de " + meses[f.getMonth()] + " de " + f.getFullYear();
+        
+        var f = e.fecha.split('-');
+        var fecha = f[2] +"/"+ f[1]+"/"+f[0];
+
         $('#tramites tbody').append('<tr>'+
                   '<th scope="row">'+e.nro_doc+'</th>'+
                   '<td>'+e.tipo_doc+'</td>'+
                   '<td>'+e.nombre+'</td>'+
                   '<td>'+e.apellido+'</td>'+
                   '<td>'+e.nacionalidad+'</td>'+
+                  '<td>'+fecha+'</td>'+
+                  '<td>'+e.hora+'</td>'+
                   '<td><button type="button" onclick="getPreCheck('+e.id+')" class="btn btn-primary btn-sm">Seleccionar</button></td>'+
                 '</tr>');
       });
@@ -197,7 +210,7 @@
             if(msg.error)
               mostrarMensajeError(msg.error)
             else
-              cargarListaTramites(msg.res)  
+              cargarListaTramites(msg.res) 
           },
           error: function(xhr, status, error) {
             var err = eval("(" + xhr.responseText + ")");
