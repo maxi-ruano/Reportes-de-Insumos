@@ -46,7 +46,7 @@
     <!-- /Grafica echart -->
     
     <!-- /Form Group -->
-    <div class="col-md-5 col-sm-12 col-xs-12">
+    <div class="col-md-12 col-sm-12 col-xs-12">
         {!! Form::open(['route' => 'consultaDashboardGraf', 'id'=>'consultaDashboardGraf', 'method' => 'get', 'class' => 'form-horizontal form-label-left', 'role' => 'form', 'files' => true ]) !!}
           @include('safit.botoneraDashboard')
         {{ Form::close() }}

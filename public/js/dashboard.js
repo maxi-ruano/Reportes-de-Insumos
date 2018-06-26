@@ -1,26 +1,24 @@
 var myTimeout;
-var automatico = true;
 
 $(document).ready(function() {
 
+    myTimeout = setTimeout(reload, 15000);
+    
     //Control botoneraDasboard para Pausar / Start
     $("#botoneraDashboard #starPause").change(function(){
-        //alert('entro '+$(this).prop('checked'));
         if($(this).prop('checked') == true){
-            automatico = true;
             myTimeout = setTimeout(reload, 15000);
         }else{
-            automatico = false;
             clearTimeout(myTimeout);
         }
     });
 
-    if(automatico == true)
-        $('#starPause').bootstrapToggle('on');
-    else
-        $('#starPause').bootstrapToggle('off');
-    //****end botoneraDasboard */
-
+    $("#botoneraDashboard #pagNext").click(function(){
+        $(this).button('loading').delay(500).queue(function(){
+            $(this).button('reset').dequeue();
+            reload();
+        });        
+    });
     
     //Configuracion del datepicker
     $('#fecha').daterangepicker({
