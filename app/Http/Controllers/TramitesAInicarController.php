@@ -568,11 +568,23 @@ class TramitesAInicarController extends Controller
 
   public function boletaUtilizada($boleta){
     $res = false;
-    $boleta = BoletaBui::where('id_boleta', $boleta->IDBoleta)
-                       ->whereNotNull('tramite_a_iniciar_id')
-                       ->first();
-    if($boleta)
+    //Buscar si existe un tramite que ya uso la boleta en s_requisitos
+    $requisito =  \DB::table('s_requisitos')
+                  ->where('requisito_id','53')
+                  ->where('valor_varchar', $NroBoleta)
+                  ->orWhere('valor_varchar',$CodBarras)
+                  ->count();
+    if($requisito){
       $res = true;
+    }else{
+      //verificar si existe la boleta ya asignado a un tramite_a_iniciar
+      $boleta = BoletaBui::where('nro_boleta', $boleta->NroBoleta)
+                    ->whereNotNull('tramite_a_iniciar_id')
+                    ->count();
+      if($boleta)
+        $res = true;
+    }
+    
     return $res;
   }
 
