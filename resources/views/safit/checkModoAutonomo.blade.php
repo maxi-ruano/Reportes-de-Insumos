@@ -105,9 +105,13 @@
     }
 
     function mostrarDatosPersona(datosPersona){
+      //Convertir fecha a dd-mm-yyyy
+      var f = datosPersona.fecha_nacimiento.split('-');
+      var fecha_nac = f[2] +"-"+ f[1]+"-"+f[0];
+
       $('#nombre_texto').html(datosPersona.nombre+' '+datosPersona.apellido);
       $('#documento_texto').html(datosPersona.nro_doc);
-      $('#fecha_nacimiento_texto').html(datosPersona.fecha_nacimiento);
+      $('#fecha_nacimiento_texto').html(fecha_nac);
       $('#nacionalidad_texto').html(datosPersona.nacionalidad);
 /*
       if (datosPersona.fecha_paseturno == null)
@@ -175,16 +179,10 @@
     }
 
     function cargarListaTramites(tramites){
-      //var meses = new Array ("Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre");
-      //var diasSemana = new Array("Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado");
-      
+
       tramites.forEach(e => {
-        //var f = new Date(e.fecha);
-        //var fecha = diasSemana[f.getDay()] + ", " + f.getDate() + " de " + meses[f.getMonth()] + " de " + f.getFullYear();
-        
         var f = e.fecha.split('-');
         var fecha = f[2] +"/"+ f[1]+"/"+f[0];
-
         $('#tramites tbody').append('<tr>'+
                   '<th scope="row">'+e.nro_doc+'</th>'+
                   '<td>'+e.tipo_doc+'</td>'+
