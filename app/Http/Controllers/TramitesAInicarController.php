@@ -570,8 +570,8 @@ class TramitesAInicarController extends Controller
     //Buscar si existe un tramite que ya uso la boleta en s_requisitos
     $requisito =  \DB::table('s_requisitos')
                   ->where('requisito_id','53')
-                  ->where('valor_varchar', $NroBoleta)
-                  ->orWhere('valor_varchar',$CodBarras)
+                  ->where('valor_varchar', $boleta->NroBoleta)
+                  ->orWhere('valor_varchar',$boleta->CodBarras)
                   ->count();
     if($requisito){
       $res = true;
