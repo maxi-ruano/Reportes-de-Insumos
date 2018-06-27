@@ -373,7 +373,6 @@ class TramitesAInicarController extends Controller
   public function verificarLibreDeuda($tramite){
     $tramite = TramitesAIniciar::find($tramite->id);
     $res = array();  
-    $res['res'] = false;
     $datos = "method=getLibreDeuda".
              "&tipoDoc=".$tramite->tipoDocLibreDeuda().
              "&numeroDoc=".$tramite->nro_doc.
@@ -385,6 +384,7 @@ class TramitesAInicarController extends Controller
       $res['error'] = 'Error en el Ws de Libre Deuda';
       $res['request'] = $datos;
       $res['response'] = null;
+      return $res;
     }else{
       $p = xml_parser_create();
       xml_parse_into_struct($p, $wsresult, $vals, $index);
@@ -400,6 +400,7 @@ class TramitesAInicarController extends Controller
           $res['error'] = ( isset($value['value'])? $value['value'] : "" );
           $res['request'] = $datos;
           $res['response'] = $array;
+          return $res;
         }
         else{
           if($value['tag'] == 'PERSONA' )
@@ -408,12 +409,10 @@ class TramitesAInicarController extends Controller
             $libreDeuda = $value['attributes'];
         }
       }
-      if(!$res['res']){
         $libreDeudaHdr = $this->guardarDatosPersonaLibreDeuda($persona, $tramite);
         $this->guardarDatosLibreDeuda($libreDeuda, $libreDeudaHdr);
         $res['res'] = true;
         $res['comprobante'] = $libreDeuda['NUMEROLD'];
-      }
     }
     return $res;
   }
