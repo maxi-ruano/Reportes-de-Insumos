@@ -185,7 +185,7 @@ class TramitesAInicarController extends Controller
     $res = array('error' => '');
     $boletas = $this->wsSafit->getBoletas($persona);
     $boleta = null;
-    if(!empty($boletas->datosBoletaPago))
+    if(!empty($boletas->datosBoletaPago->datosBoletaPagoParaPersona))
       foreach ($boletas->datosBoletaPago->datosBoletaPagoParaPersona as $key => $boletaI) {
         if($this->esBoletaValida($boletaI)){
           if(!is_null($boleta)){
