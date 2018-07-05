@@ -22,7 +22,7 @@ use App\ValidacionesPrecheck;
 class TramitesAInicarController extends Controller
 {
   private $localhost = '192.168.76.33';
-  private $diasEnAdelante = 0;
+  private $diasEnAdelante = 1;
   private $cantidadDias = 0;
   private $fecha_inicio = '';
   private $fecha_fin = '';
@@ -30,6 +30,9 @@ class TramitesAInicarController extends Controller
   private $estID = "A";
   private $estadoBoletaNoUtilizada = "N";
   private $estado_final = 6;
+  //SIGECI TURNOS
+  private $prestacionesCursos = [1604, 1543];
+
   //LIBRE deuda
   private $userLibreDeuda = "LICENCIAS01";
   private $passwordLibreDeuda = "LICWEB";
@@ -131,6 +134,7 @@ class TramitesAInicarController extends Controller
   public function getTurnos($fecha_inicio, $fecha_fin){
     $res = Sigeci::whereBetween('fecha', [$fecha_inicio, $fecha_fin])
                  ->whereNull('tramite_a_iniciar_id')
+                 ->whereNotIn('idprestacion', $this->prestacionesCursos)
                  ->get();
     return $res;
   }
@@ -156,6 +160,8 @@ class TramitesAInicarController extends Controller
       //$tramiteAIniciar->tipo_tramite = $this->getTipoTramite();
       $tramiteAIniciar->nacionalidad = $this->getIdPais($turno->nacionalidad());
       $tramiteAIniciar->fecha_nacimiento = $turno->fechaNacimiento();
+      if(!$tramiteAIniciar->fecha_nacimiento) 
+        $tramiteAIniciar->fecha_nacimiento = $turno->fechanac;
       $tramiteAIniciar->estado = $siguienteEstado;
       $tramiteAIniciar->sigeci_idcita = $turno->idcita;
       $saved = $tramiteAIniciar->save();

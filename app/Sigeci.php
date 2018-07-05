@@ -17,7 +17,9 @@ class Sigeci extends Model
   }
 
   public function fechaNacimiento(){
-    return date(json_decode($this->metadata)->FechaNacimiento);
-
+    if(isset(json_decode($this->metadata)->FechaNacimiento))
+      return date(json_decode($this->metadata)->FechaNacimiento);
+    else 
+      return null;  
   }
 }
