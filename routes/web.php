@@ -68,3 +68,7 @@ Route::group(['prefix' => 'api'], function () {
   Route::get('aviso_pago', 'SoapServerController@index')->name('aviso_pago');
   Route::post('aviso_pago', 'SoapServerController@index')->name('aviso_pago');
 });
+
+
+Route::resource('tramitesHabilitados','TramitesHabilitadosController');
+//Route::get('/tramitesHabilitados/{id}/destroy',['uses' => 'TramitesHabilitadosController@destroy','as' => 'tramitesHabilitados.destroy']);

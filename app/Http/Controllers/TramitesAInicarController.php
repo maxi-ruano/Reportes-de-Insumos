@@ -22,7 +22,7 @@ use App\ValidacionesPrecheck;
 class TramitesAInicarController extends Controller
 {
   private $localhost = '192.168.76.33';
-  private $diasEnAdelante = 0;
+  private $diasEnAdelante = 1;
   private $cantidadDias = 0;
   private $fecha_inicio = '';
   private $fecha_fin = '';
@@ -30,6 +30,9 @@ class TramitesAInicarController extends Controller
   private $estID = "A";
   private $estadoBoletaNoUtilizada = "N";
   private $estado_final = 6;
+  //SIGECI TURNOS
+  private $prestacionesCursos = [1604, 1543];
+
   //LIBRE deuda
   private $userLibreDeuda = "LICENCIAS01";
   private $passwordLibreDeuda = "LICWEB";
@@ -131,6 +134,7 @@ class TramitesAInicarController extends Controller
   public function getTurnos($fecha_inicio, $fecha_fin){
     $res = Sigeci::whereBetween('fecha', [$fecha_inicio, $fecha_fin])
                  ->whereNull('tramite_a_iniciar_id')
+                 ->whereNotIn('idprestacion', $this->prestacionesCursos)
                  ->get();
     return $res;
   }
@@ -156,6 +160,8 @@ class TramitesAInicarController extends Controller
       //$tramiteAIniciar->tipo_tramite = $this->getTipoTramite();
       $tramiteAIniciar->nacionalidad = $this->getIdPais($turno->nacionalidad());
       $tramiteAIniciar->fecha_nacimiento = $turno->fechaNacimiento();
+      if(!$tramiteAIniciar->fecha_nacimiento) 
+        $tramiteAIniciar->fecha_nacimiento = $turno->fechanac;
       $tramiteAIniciar->estado = $siguienteEstado;
       $tramiteAIniciar->sigeci_idcita = $turno->idcita;
       $saved = $tramiteAIniciar->save();
@@ -185,7 +191,7 @@ class TramitesAInicarController extends Controller
     $res = array('error' => '');
     $boletas = $this->wsSafit->getBoletas($persona);
     $boleta = null;
-    if(!empty($boletas->datosBoletaPago))
+    if(!empty($boletas->datosBoletaPago->datosBoletaPagoParaPersona))
       foreach ($boletas->datosBoletaPago->datosBoletaPagoParaPersona as $key => $boletaI) {
         if($this->esBoletaValida($boletaI)){
           if(!is_null($boleta)){
@@ -373,7 +379,6 @@ class TramitesAInicarController extends Controller
   public function verificarLibreDeuda($tramite){
     $tramite = TramitesAIniciar::find($tramite->id);
     $res = array();  
-    $res['res'] = false;
     $datos = "method=getLibreDeuda".
              "&tipoDoc=".$tramite->tipoDocLibreDeuda().
              "&numeroDoc=".$tramite->nro_doc.
@@ -385,6 +390,7 @@ class TramitesAInicarController extends Controller
       $res['error'] = 'Error en el Ws de Libre Deuda';
       $res['request'] = $datos;
       $res['response'] = null;
+      return $res;
     }else{
       $p = xml_parser_create();
       xml_parse_into_struct($p, $wsresult, $vals, $index);
@@ -400,6 +406,7 @@ class TramitesAInicarController extends Controller
           $res['error'] = ( isset($value['value'])? $value['value'] : "" );
           $res['request'] = $datos;
           $res['response'] = $array;
+          return $res;
         }
         else{
           if($value['tag'] == 'PERSONA' )
@@ -408,12 +415,10 @@ class TramitesAInicarController extends Controller
             $libreDeuda = $value['attributes'];
         }
       }
-      if(!$res['res']){
         $libreDeudaHdr = $this->guardarDatosPersonaLibreDeuda($persona, $tramite);
         $this->guardarDatosLibreDeuda($libreDeuda, $libreDeudaHdr);
         $res['res'] = true;
         $res['comprobante'] = $libreDeuda['NUMEROLD'];
-      }
     }
     return $res;
   }
@@ -568,11 +573,23 @@ class TramitesAInicarController extends Controller
 
   public function boletaUtilizada($boleta){
     $res = false;
-    $boleta = BoletaBui::where('id_boleta', $boleta->IDBoleta)
-                       ->whereNotNull('tramite_a_iniciar_id')
-                       ->first();
-    if($boleta)
+    //Buscar si existe un tramite que ya uso la boleta en s_requisitos
+    $requisito =  \DB::table('s_requisitos')
+                  ->where('requisito_id','53')
+                  ->where('valor_varchar', $boleta->NroBoleta)
+                  ->orWhere('valor_varchar',$boleta->CodBarras)
+                  ->count();
+    if($requisito){
       $res = true;
+    }else{
+      //verificar si existe la boleta ya asignado a un tramite_a_iniciar
+      $boleta = BoletaBui::where('nro_boleta', $boleta->NroBoleta)
+                    ->whereNotNull('tramite_a_iniciar_id')
+                    ->count();
+      if($boleta)
+        $res = true;
+    }
+    
     return $res;
   }
 

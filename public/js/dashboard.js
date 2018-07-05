@@ -42,7 +42,7 @@ function iniciarTimeout (){
     var fecha = $("#fecha").val();
 
     if(fecha == actual)
-        myTimeout = setTimeout(reload, 15000);
+        myTimeout = setTimeout(reload, 60000);
 }
 
 function init_charts() {
@@ -285,7 +285,6 @@ function init_charts() {
             url: '/consultaTurnosEnEspera',
             data: {fecha: fecha, sucursal: 1 },
             type: "GET", dataType: "json",
-            async:false,
             success: function(datos){
                 generarGrafico('echart_sedeRoca',datos, 'Por Estación');
             },
@@ -344,8 +343,14 @@ function init_charts() {
         series: [{
             name: 'Personas en espera',
             type: 'pie',
-            radius: ['45%', '70%'],
-            center : ['50%', '40%'],
+            radius: ['40%', '60%'],
+            center : ['50%', '45%'],
+            selectedMode:'multiple',
+            animationType: 'scale',
+            animationEasing: 'elasticOut',
+            animationDelay: function (idx) {
+                return Math.random() * 400;
+            },
             itemStyle: {
                 normal: {
                     label: {
@@ -395,10 +400,15 @@ function init_charts() {
             option.title.push({
                 textBaseline: 'middle',
                 top: (idx + 0.8) * 97 / days.length + '%',
-                text: day
+                text: day,
+                textStyle:{
+                    fontWeight:'bold',
+                    fontSize:'14'
+                            
+                }
             });
             option.singleAxis.push({
-                left: 140,
+                left: 110,
                 type: 'category',
                 boundaryGap: true,
                 data: hours,
@@ -411,7 +421,14 @@ function init_charts() {
             option.series.push({
                 singleAxisIndex: idx,
                 coordinateSystem: 'singleAxis',
-                type: 'scatter',
+                //type: 'scatter',
+                type: 'effectScatter',
+                rippleEffect:{
+                    scale:1.5
+                },
+                //symbol:'pin',
+                //symbolOffset:[0,'10%'],
+                //showEffectOn: 'emphasis',
                 data: [],
                 itemStyle: {
                     normal: {
@@ -429,10 +446,7 @@ function init_charts() {
                     }
                 },
                 symbolSize: function (dataItem) {
-                    /*if(idx==0)
-                        return dataItem[1] * 4;
-                    else*/
-                        return dataItem[1] * 4;
+                    return dataItem[1] * 4;
                 }
             });
         });

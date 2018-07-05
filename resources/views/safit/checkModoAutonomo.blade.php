@@ -35,6 +35,8 @@
                   <th>Nombre</th>
                   <th>Apellido</th>
                   <th>Nacionalidad</th>
+                  <th>Fecha Turno</th>
+                  <th>Hora Turno</th>
                   <th>Accion</th>
                 </tr>
               </thead>
@@ -103,9 +105,13 @@
     }
 
     function mostrarDatosPersona(datosPersona){
+      //Convertir fecha a dd-mm-yyyy
+      var f = datosPersona.fecha_nacimiento.split('-');
+      var fecha_nac = f[2] +"-"+ f[1]+"-"+f[0];
+
       $('#nombre_texto').html(datosPersona.nombre+' '+datosPersona.apellido);
       $('#documento_texto').html(datosPersona.nro_doc);
-      $('#fecha_nacimiento_texto').html(datosPersona.fecha_nacimiento);
+      $('#fecha_nacimiento_texto').html(fecha_nac);
       $('#nacionalidad_texto').html(datosPersona.nacionalidad);
 
       if (datosPersona.fecha_paseturno == null)
@@ -173,13 +179,18 @@
     }
 
     function cargarListaTramites(tramites){
+
       tramites.forEach(e => {
+        var f = e.fecha.split('-');
+        var fecha = f[2] +"/"+ f[1]+"/"+f[0];
         $('#tramites tbody').append('<tr>'+
                   '<th scope="row">'+e.nro_doc+'</th>'+
                   '<td>'+e.tipo_doc+'</td>'+
                   '<td>'+e.nombre+'</td>'+
                   '<td>'+e.apellido+'</td>'+
                   '<td>'+e.nacionalidad+'</td>'+
+                  '<td>'+fecha+'</td>'+
+                  '<td>'+e.hora+'</td>'+
                   '<td><button type="button" onclick="getPreCheck('+e.id+')" class="btn btn-primary btn-sm">Seleccionar</button></td>'+
                 '</tr>');
       });
@@ -197,7 +208,7 @@
             if(msg.error)
               mostrarMensajeError(msg.error)
             else
-              cargarListaTramites(msg.res)  
+              cargarListaTramites(msg.res) 
           },
           error: function(xhr, status, error) {
             var err = eval("(" + xhr.responseText + ")");
