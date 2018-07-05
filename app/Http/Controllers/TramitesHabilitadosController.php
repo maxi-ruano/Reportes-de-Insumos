@@ -18,12 +18,18 @@ class TramitesHabilitadosController extends Controller
      */
     public function index(Request $request)
     {
-        $data = TramitesHabilitados::orderBy('tramites_habilitados.id','desc')
-                            ->where(function($query) use ($request) {
-                                $query->where('nombre', 'LIKE', '%'. strtoupper($request->search) .'%')
-                                      ->orWhere('apellido', 'LIKE', '%'. strtoupper($request->search) .'%');
-                                })                            
-                            ->paginate(8);
+        $sql = TramitesHabilitados::orderBy('tramites_habilitados.fecha','desc')
+                        ->orderBy('tramites_habilitados.id','desc')
+                        ->where(function($query) use ($request) {
+                            $query->where('nombre', 'LIKE', '%'. strtoupper($request->search) .'%')
+                                ->orWhere('apellido', 'LIKE', '%'. strtoupper($request->search) .'%');
+                            });
+        
+        //Mostrar solo los registros del usuario logeado si no es administrador
+        /*if( session('usuario_rol_id') != 9 )
+            $sql = $sql->where('tramites_habilitados.user_id',session('usuario_id'));
+        */
+        $data = $sql->paginate(6);
 
         if(count($data)){
             foreach ($data as $key => $value) {

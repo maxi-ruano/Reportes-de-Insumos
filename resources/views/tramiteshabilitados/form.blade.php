@@ -13,7 +13,7 @@
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
 
             <div class="form-group">
-                <label for="fecha">Fecha</label>
+                {!! Form::label('fecha', ' Fecha para el Turno') !!}
                 <div class="input-group">
                     <div class="input-group-addon">
                         <span class="glyphicon glyphicon-calendar"></span>
@@ -25,21 +25,21 @@
             <div class="form-group">
                 {!! Form::label('tipo_doc', ' Documento') !!}
                 {!! Form::select('tipo_doc', $tdocs, isset($edit) ? $edit->tipo_doc : null, ['class' => 'form-control']) !!}
-                {!! Form::number('nro_doc', isset($edit) ? $edit->nro_doc : null, ['class' => 'form-control', 'placeholder' => 'Nro. Documento', 'required' => 'required']) !!}
+                {!! Form::number('nro_doc', isset($edit) ? $edit->nro_doc : null, ['class' => 'form-control', 'placeholder' => 'Nro. Documento', 'required' => 'required', 'min' => '0']) !!}
             </div>
 
             <div class="form-group">
-                <label for="apellido">Apellidos</label>
-                <input type="text" name="apellido" value="{{ isset($edit) ? $edit->apellido : null }}" class="form-control" placeholder="Apellidos" required="required" >
+                {!! Form::label('apellido', ' Apellidos') !!}
+                {!! Form::text('apellido', isset($edit) ? $edit->apellido : null, ['class' => 'form-control', 'placeholder' => 'Apellidos', 'required' => 'required']) !!}
             </div>
 
             <div class="form-group">
-                <label for="nombre">Nombres</label>
-                <input type="text" name="nombre" value="{{ isset($edit) ? $edit->nombre : null }}" class="form-control" placeholder="Nombres" required="required" >
+                {!! Form::label('nombre', ' Nombres') !!}
+                {!! Form::text('nombre', isset($edit) ? $edit->nombre : null, ['class' => 'form-control', 'placeholder' => 'Nombres', 'required' => 'required']) !!}
             </div>
 
-            <div class="form-group">
-                <label for="pais">Pais</label>
+            <div class="form-group">                
+                {!! Form::label('pais', ' País') !!}
                 {!! Form::select('pais', $paises, isset($edit) ? $edit->pais : 1 , ['class' => 'form-control']) !!}
             </div>
             <hr>
@@ -57,5 +57,5 @@
   <script src="{{ asset('vendors/jquery/dist/jquery.min.js')}}"></script>
   <!-- Bootstrap -->
   <script src="{{ asset('vendors/bootstrap/dist/js/bootstrap.min.js')}}"></script>
-  <script src="{{ asset('vendors/validator/validator.js')}}"></script>
+  
 @endpush
