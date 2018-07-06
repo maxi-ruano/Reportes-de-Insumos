@@ -19,10 +19,3 @@
         <button id="pagNext" type="button" class="btn btn-primary btn-group-justified" data-loading-text="Loading...">Next</button>
     </div>
 </div>
-
-<!--
-<span class="input-group-btn" >
-    <div class="btn-group btn-group-justified " data-toggle="buttons">
-        <a href="#" class="btn btn-default" onclick="$('#btnConsultar').click()" title="Actualizar"> &nbsp; <i class="fa fa-refresh"></i> &nbsp; </a>
-    </span>
--->

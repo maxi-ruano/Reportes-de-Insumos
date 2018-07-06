@@ -1,10 +1,16 @@
 @extends('layouts.templeate')
-@section('titlePage', isset($edit) ? "Editar Tramite Habilitado" : "Crear Tramite Habilitado")
+@section('titlePage', "Tramites Habilitados")
 @section('content')
 <!-- page content -->
 
 <div class="container">
+    <div class="col-md-2 col-xs-12">
+        <a href="{{route('tramitesHabilitados.index')}}" class="btn btn-info btn-group-justified"> <i class="fa fa-list"></i> Mostrar listado </a>
+    </div>
+    <br>
     <hr>
+    <h4>Crear Turno</h4>   
+    
     @if( isset($edit) ) 
         {!! Form::open(['route' => ['tramitesHabilitados.update', $edit], 'id'=>'formTramitesHabilitados', 'method' => 'PUT', 'class' => 'form-horizontal', 'role' => 'form', 'files' => true ]) !!}
     @else
@@ -13,12 +19,12 @@
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
 
             <div class="form-group">
-                {!! Form::label('fecha', ' Fecha para el Turno') !!}
+                {!! Form::label('fecha', ' Fecha') !!}
                 <div class="input-group">
                     <div class="input-group-addon">
                         <span class="glyphicon glyphicon-calendar"></span>
                     </div>
-                    <input type="date" name="fecha" value="{{ isset($edit) ? $edit->fecha : null }}" class="form-control" placeholder="Fecha" required="required" >
+                    <input type="date" name="fecha" value="{{ isset($edit) ? $edit->fecha : $fecha }}" class="form-control" required="required" readonly ="readonly" >
                 </div>
             </div>
 
@@ -43,9 +49,8 @@
                 {!! Form::select('pais', $paises, isset($edit) ? $edit->pais : 1 , ['class' => 'form-control']) !!}
             </div>
             <hr>
-            <div class="row">
-                <a href="{{route('tramitesHabilitados.index')}}" class="btn btn-info">Cancelar</a>
-                <button type="submit" class="btn btn-primary">Guardar</button>
+            <div class="col-md-2 col-xs-12">
+                <button type="submit" class="btn btn-primary btn-group-justified"> <i class="fa fa-check-square-o"></i> Enviar </button>                
             </div>
         {!! Form::close() !!}
 </div>
