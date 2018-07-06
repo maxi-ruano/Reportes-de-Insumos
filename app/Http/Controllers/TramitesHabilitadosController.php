@@ -18,18 +18,13 @@ class TramitesHabilitadosController extends Controller
      */
     public function index(Request $request)
     {
-        $sql = TramitesHabilitados::orderBy('tramites_habilitados.fecha','desc')
+        $data = TramitesHabilitados::orderBy('tramites_habilitados.fecha','desc')
                         ->orderBy('tramites_habilitados.id','desc')
                         ->where(function($query) use ($request) {
                             $query->where('nombre', 'LIKE', '%'. strtoupper($request->search) .'%')
                                 ->orWhere('apellido', 'LIKE', '%'. strtoupper($request->search) .'%');
-                            });
-        
-        //Mostrar solo los registros del usuario logeado si no es administrador
-        /*if( session('usuario_rol_id') != 9 )
-            $sql = $sql->where('tramites_habilitados.user_id',session('usuario_id'));
-        */
-        $data = $sql->paginate(6);
+                            })
+                        ->paginate(6);
 
         if(count($data)){
             foreach ($data as $key => $value) {
@@ -49,11 +44,12 @@ class TramitesHabilitadosController extends Controller
      */
     public function create()
     {
-        
+        $fecha = date('Y-m-d');
         $paises = SysMultivalue::select('id','description')->where('type','PAIS')->orderBy('description', 'asc')->pluck('description','id');
         $tdocs = SysMultivalue::select('id','description')->where('type','TDOC')->orderBy('id', 'asc')->pluck('description','id');
         
-        return view($this->path.'.form')->with('paises',$paises)
+        return view($this->path.'.form')->with('fecha',$fecha)
+                                        ->with('paises',$paises)
                                         ->with('tdocs',$tdocs);
     }
 
