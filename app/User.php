@@ -4,19 +4,19 @@ namespace App;
 
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use Notifiable;
+    use Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
-    protected $table = 'sys_users';
     protected $fillable = [
-        'username', 'password',
+        'name', 'email', 'password',
     ];
 
     /**
@@ -25,11 +25,11 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'api_token',
+        'password', 'remember_token',
     ];
 
-    public function setPasswordAttribute($value)
+    public function posts()
     {
-        $this->attributes['password'] = hash('md5', $value);
+        return $this->hasMany(Post::class);
     }
 }

@@ -10,11 +10,26 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+//WELCOME
+/*Route::get('/', function () {
+  return view('welcome');
+});*/
+
+//LOGIN
+Auth::routes();
+Route::get('/', 'HomeController@index')->name('home');
+Route::group( ['middleware' => ['auth']], function() {
+  Route::resource('users', 'UserController');
+  Route::resource('roles', 'RoleController');
+});
+
+
 Route::post('rendir_examen',['uses' => 'EtlExamenPreguntaController@getPreguntasExamen','as' => 'rendir_examen']);
 Route::get('guardar_respuesta',['uses' => 'EtlExamenPreguntaController@guardarRespuesta','as' => 'guardaRespuesta']);
 Route::post('finalizar_examen',['uses' => 'EtlExamenController@calcularYGuardarResultado','as' => 'finalizar_examen']);
 // Route::get('/address/{id}/destroy',['uses' => 'AddressesController@destroy','as' => 'sysfile.addresses.destroy']);
-Route::get('/', 'HomeController@index');
+
 Route::get('run', 'MicroservicioController@run');
 //SAFIT
 Route::get('buscarBoletaPago', 'TramitesAInicarController@buscarBoletaPago');
@@ -71,4 +86,3 @@ Route::group(['prefix' => 'api'], function () {
 
 
 Route::resource('tramitesHabilitados','TramitesHabilitadosController');
-//Route::get('/tramitesHabilitados/{id}/destroy',['uses' => 'TramitesHabilitadosController@destroy','as' => 'tramitesHabilitados.destroy']);
