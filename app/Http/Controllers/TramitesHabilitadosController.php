@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\SysMultivalue;
-use App\SysUsers;
+use App\User;
 use App\TramitesHabilitados;
 
 class TramitesHabilitadosController extends Controller
@@ -70,7 +70,7 @@ class TramitesHabilitadosController extends Controller
             $tramiteshabilitados->tipo_doc      = $request->tipo_doc;
             $tramiteshabilitados->nro_doc       = $request->nro_doc;
             $tramiteshabilitados->pais          = $request->pais;
-            $tramiteshabilitados->user_id       = session('usuario_id');
+            $tramiteshabilitados->user_id       = $request->user_id;
 
             $tramiteshabilitados->save();
             //Flash::info('El Tramite se ha creado correctamente');

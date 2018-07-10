@@ -5,12 +5,11 @@
       <div class="nav toggle">
         <a id="menu_toggle"><i class="fa fa-bars"></i></a>
       </div>
-
       <ul class="nav navbar-nav navbar-right">
         <img src="http://cdn2.buenosaires.gob.ar/campanias/2015-1/img/bac.png" class="img-responsive" style="height: 50px;display: initial;">
         <li class="">
           <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-            <b>Bienvenido {{ session('usuario_nombre') }} !</b>
+            <b>Bienvenido {{ Auth::user()->name }} !</b>
             <img src="{{ asset('production/images/user.png')}}" onerror="this.src='{{ asset('production/images/user.png')}}'" alt="">
             <span class=" fa fa-angle-down"></span>
           </a>
@@ -21,6 +20,8 @@
             </li>
           </ul>
         </li>
+
+        <!-- Mostrar Notificaciones - Alertas -->
         <!--
         <li role="presentation" class="dropdown">
           <a href="javascript:;" class="dropdown-toggle info-number" data-toggle="dropdown" aria-expanded="false">

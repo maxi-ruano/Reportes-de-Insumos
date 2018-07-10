@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Sigeci;
 use App\Tramites;
 use App\SysMultivalue;
 use App\Http\Controllers\TramitesController;
@@ -26,7 +27,7 @@ class DashboardController extends Controller
                             LEFT JOIN validaciones_precheck ON validaciones_precheck.tramite_a_iniciar_id = tramites_a_iniciar.id
                             WHERE sigeci.fecha = '".$fecha."'");
         
-        $turnos                 = $precheck[0]->turnos;
+        $turnos                 = Sigeci::where("sigeci.fecha",$fecha)->count();
         $tramitesainiciar       = $precheck[0]->tramitesainiciar;
         $tramitesainiciar_ok    = $precheck[0]->tramitesainiciar_ok;
         $safit                  = $precheck[0]->safit;
@@ -35,7 +36,7 @@ class DashboardController extends Controller
 
         //2)TOTAL TRAMITES INICIADOS CON PRECHECK ON - OFF
         $tramiteController = new TramitesController();
-        $total_tramites         = $tramiteController->consultarTramitesPrecheck()->count();
+        $total_tramites         = $tramiteController->consultarTramitesPrecheck($fecha)->count();
         $tramitesprecheck_on    = $tramiteController->consultarTramitesPrecheck($fecha,'on')->count();
         $tramitesprecheck_off   = $tramiteController->consultarTramitesPrecheck($fecha,'off')->count();
 
@@ -118,7 +119,7 @@ class DashboardController extends Controller
     }
 
     public function porcentaje($valor,$base){
-        $porc = ( $valor > 0 )?round($valor*100/$base):0;
+        $porc = ( $valor > 0 && $base >0 )?round($valor*100/$base):0;
         return $porc;
     }
 

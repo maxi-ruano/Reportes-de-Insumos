@@ -28,10 +28,10 @@ class TramitesHabilitados extends Model
     }
 
     public function userTexto(){
-        $user = SysUsers::where('id', $this->user_id)->first();
+        $user = User::where('id', $this->user_id)->first();
     
         if($user)
-            return $user->first_name.' '.$user->last_name;
+            return $user->name;
         else
             return "";  
     }

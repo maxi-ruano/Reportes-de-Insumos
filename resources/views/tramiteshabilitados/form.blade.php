@@ -17,6 +17,7 @@
         {!! Form::open(['route' => 'tramitesHabilitados.store', 'id'=>'formTramitesHabilitados', 'method' => 'POST', 'class' => 'form-horizontal', 'role' => 'form', 'files' => true ]) !!}
     @endif
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="user_id" value="{{ Auth::user()->id }}">
 
             <div class="form-group">
                 {!! Form::label('fecha', ' Fecha') !!}
