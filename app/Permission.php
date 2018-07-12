@@ -18,6 +18,12 @@ class Permission extends Model
             'add_roles',
             'edit_roles',
             'delete_roles',
+
+            'view_tramiteshabilitados',
+            'add_tramiteshabilitados',
+            'edit_tramiteshabilitados',
+            'delete_tramiteshabilitados',
+
         ];
     }
 }

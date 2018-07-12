@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.templeate')
 
 @section('title', 'Roles & Permissions')
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ config('app.locale') }}">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <!-- Meta, title, CSS, favicons, etc. -->
@@ -64,18 +64,17 @@
             </div>
           </div>
           <div class="clearfix"></div>
-          @if(count($errors)>0)
-
-            <div class="alert alert-danger">Errores
-              <ul>
-                @foreach($errors->all() as $error)
-                  <li>{{ $error }}</li>
-                @endforeach
-              </ul>
-            </div>
-          @endif
-          @yield('content')
-        </div>
+            @if(count($errors)>0)
+              <div class="alert alert-danger">Errores
+                <ul>
+                  @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                  @endforeach
+                </ul>
+              </div>
+            @endif
+            @yield('content')
+          </div>
         <!-- /page content -->
 
         <!-- footer content -->
