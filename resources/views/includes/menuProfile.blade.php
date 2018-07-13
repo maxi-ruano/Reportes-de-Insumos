@@ -6,7 +6,7 @@
   <div class="profile_info">
     <span>Bienvenido,</span>
     <h2> {{ Auth::user()->name }} </h2>
-   
+
   </div>
 </div>
 <!-- /menu profile quick info -->
