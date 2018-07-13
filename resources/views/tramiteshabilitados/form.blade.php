@@ -10,6 +10,11 @@
         </div>
         <br><br>
     @endif
+
+    <! -- /*Establecer variable para deshabilitar si es Admin o Administrador*/ -->
+    @if(!Auth::user()->hasRole('Admin') && !Auth::user()->hasRole('Administrador Tramites Habilitados'))
+        @php $disabled = 'disabled' @endphp
+    @endif
     
     <h4>Crear Turno </h4>   
     
@@ -22,12 +27,27 @@
         <input type="hidden" name="user_id" value="{{ Auth::user()->id }}">
 
         <div class="form-group">
-            {!! Form::label('fecha', ' Fecha') !!}
-            <div class="input-group">
-                <div class="input-group-addon">
-                    <span class="glyphicon glyphicon-calendar"></span>
+            <div class="col-md-3 col-xs-12">
+                {!! Form::label('fecha', ' Fecha') !!}
+                <div class="input-group">
+                    <div class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </div>
+                    @if(isset($disabled))
+                        <input type="date" name="fecha" value="{{ isset($edit) ? $edit->fecha : $fecha }}" class="form-control" required="required" disabled >
+                    @else
+                        <input type="date" name="fecha" value="{{ isset($edit) ? $edit->fecha : $fecha }}" class="form-control" required="required" >
+                    @endif
                 </div>
-                <input type="date" name="fecha" value="{{ isset($edit) ? $edit->fecha : $fecha }}" class="form-control" required="required" readonly ="readonly" >
+            </div>
+
+            <div class="col-md-9 col-xs-12">
+                {!! Form::label('sucursal', ' Sucursal') !!}
+                @if(isset($disabled))
+                    {!! Form::select('sucursal', $sucursales, isset($edit) ? $edit->sucursal : Auth::user()->sucursal , ['class' => 'form-control', 'readonly' => 'readonly', 'disabled' ]) !!}
+                @else
+                    {!! Form::select('sucursal', $sucursales, isset($edit) ? $edit->sucursal : Auth::user()->sucursal , ['class' => 'form-control' ]) !!}
+                @endif
             </div>
         </div>
 

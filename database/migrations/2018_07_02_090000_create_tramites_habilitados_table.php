@@ -24,6 +24,7 @@ class CreateTramitesHabilitadosTable extends Migration
             $table->integer('nro_doc');
             $table->integer('user_id')->nullable()->unsigned();
             $table->boolean('habilitado')->nullable()->default(true);
+            $table->integer('habilitado_user_id')->nullable()->unsigned();
             $table->timestamps();
         });
     }

@@ -6,10 +6,10 @@
     <div class="row">
         <div class="col-md-8 col-md-offset-2">
             <div class="panel panel-default">
-                <div class="panel-heading">Dashboard</div>
+                <div class="panel-heading">Dirección General de Habilitación de Conductores y Transporte</div>
 
                 <div class="panel-body">
-                    You are logged in!
+                    Tramites Habilitados
                 </div>
             </div>
         </div>

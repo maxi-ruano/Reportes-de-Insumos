@@ -20,4 +20,16 @@ class SysMultivalue extends Model
     return $sucursales;
   }
 
+  public function paises()
+  {
+    $paises = SysMultivalue::where('type','PAIS')->pluck('description', 'id');
+    return $paises;
+  }
+
+  public function tipodocs()
+  {
+    $tipodocs = SysMultivalue::where('type','TDOC')->pluck('description', 'id');
+    return $tipodocs;
+  }
+
 }

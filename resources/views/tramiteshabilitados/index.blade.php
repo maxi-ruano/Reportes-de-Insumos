@@ -97,7 +97,7 @@
                 data: {id: id, valor:valor },
                 type: "GET", 
                 success: function(ret){
-                    //window.location.href = "{{ route('tramitesHabilitados.index') }}"; //using a named route
+                    window.location.href = "{{ route('tramitesHabilitados.index') }}";
                 }
             });
         }
