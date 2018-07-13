@@ -73,6 +73,8 @@
                 </ul>
               </div>
             @endif
+
+            @include('flash::message') 
             @yield('content')
           </div>
         <!-- /page content -->
@@ -99,5 +101,8 @@
     <!-- Custom Theme Scripts -->
     <script src="{{ asset('build/js/custom.min.js')}}"></script>
 
+    $(document).ready(function(){
+      $('div.alert').delay(3000).slideUp(300);
+    });
   </body>
 </html>

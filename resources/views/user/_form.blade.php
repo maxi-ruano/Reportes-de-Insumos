@@ -19,6 +19,13 @@
     @if ($errors->has('password')) <p class="help-block">{{ $errors->first('password') }}</p> @endif
 </div>
 
+<!-- sucursal Form Input -->
+<div class="form-group @if ($errors->has('sucursal')) has-error @endif">
+    {!! Form::label('sucursal', 'Sucursal') !!}
+    {!! Form::select('sucursal', $sucursales, isset($user) ? $user->sucursal : null,  ['class' => 'form-control']) !!}
+    @if ($errors->has('sucursal')) <p class="help-block">{{ $errors->first('sucursal') }}</p> @endif
+</div>
+
 <!-- Roles Form Input -->
 <div class="form-group @if ($errors->has('roles')) has-error @endif">
     {!! Form::label('roles[]', 'Roles') !!}

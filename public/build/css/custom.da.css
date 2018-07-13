@@ -2,6 +2,14 @@
     background: rgba(51, 51, 51, 1);
 }
 
+.navbar-default {
+    background-color: #ffd300;
+}
+
+.navbar-header{
+    color:black;
+}
+
 table.jambo_table thead {
     background: rgba(51, 51, 51, 1);
     color: #ECF0F1;

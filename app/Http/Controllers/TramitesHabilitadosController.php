@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\SysMultivalue;
 use App\User;
 use App\TramitesHabilitados;
+use Laracasts\Flash\Flash;
+use Illuminate\Support\Facades\Auth;
 
 class TramitesHabilitadosController extends Controller
 {
@@ -18,23 +20,29 @@ class TramitesHabilitadosController extends Controller
      */
     public function index(Request $request)
     {
-        $data = TramitesHabilitados::orderBy('tramites_habilitados.fecha','desc')
+        //Cargar por defecto el formulario solo al Operador
+        if(Auth::user()->hasRole('Operador')){
+            return $this->create();
+        }else{
+            $data = TramitesHabilitados::orderBy('tramites_habilitados.fecha','desc')
                         ->orderBy('tramites_habilitados.id','desc')
                         ->where(function($query) use ($request) {
                             $query->where('nombre', 'LIKE', '%'. strtoupper($request->search) .'%')
-                                ->orWhere('apellido', 'LIKE', '%'. strtoupper($request->search) .'%');
+                                ->orWhere('apellido', 'LIKE', '%'. strtoupper($request->search) .'%')
+                                ->orWhereRaw("CAST(nro_doc AS text) LIKE '%$request->search%' ");
                             })
                         ->paginate(6);
 
-        if(count($data)){
-            foreach ($data as $key => $value) {
-                $buscar = TramitesHabilitados::find($value->id);
-                $value->tipo_doc = $buscar->tipoDocText();
-                $value->pais = $buscar->paisTexto();
-                $value->user_id = $buscar->userTexto();
+            if(count($data)){
+                foreach ($data as $key => $value) {
+                    $buscar = TramitesHabilitados::find($value->id);
+                    $value->tipo_doc = $buscar->tipoDocText();
+                    $value->pais = $buscar->paisTexto();
+                    $value->user_id = $buscar->userTexto();
+                }
             }
-        }
-        return view($this->path.'.index', compact('data')); 
+            return view($this->path.'.index', compact('data'));
+        } 
     }
 
     /**
@@ -73,8 +81,8 @@ class TramitesHabilitadosController extends Controller
             $tramiteshabilitados->user_id       = $request->user_id;
 
             $tramiteshabilitados->save();
-            //Flash::info('El Tramite se ha creado correctamente');
-            return redirect()->route('tramitesHabilitados.index');
+            Flash::success('El Tramite se ha creado correctamente');
+            return redirect()->route('tramitesHabilitados.create');
         }
         catch(Exception $e){   
             return "Fatal error - ".$e->getMessage();
@@ -121,7 +129,7 @@ class TramitesHabilitadosController extends Controller
         $tramitesHabilitados = TramitesHabilitados::find($id);
         $tramitesHabilitados->fill($request->all());
         $tramitesHabilitados->save();
-        //Flash::info('El Tramite se ha editado correctamente');
+        Flash::success('El Tramite se ha editado correctamente');
         return redirect()->route('tramitesHabilitados.index');
     }
 
@@ -137,11 +145,18 @@ class TramitesHabilitadosController extends Controller
         try{
             $tramiteshabilitados = TramitesHabilitados::find($id);
             $tramiteshabilitados->delete();
-            //mensaje = 'El Tramite se ha eliminado correctamente';
+            Flash::success('El Tramite se ha eliminado correctamente');
             return redirect()->route('tramitesHabilitados.index');
         }
         catch(Exception $e){   
             return "Fatal error - ".$e->getMessage();
         }
+    }
+
+    public function habilitar(Request $request)
+    {
+        return TramitesHabilitados::where("id",$request->id)->update(array('habilitado' => $request->valor));
+        //Flash::success('El Tramite ha sido habilitado correctamente, la persona puede continuar con el tramite.');
+        //return redirect()->route('tramitesHabilitados.index');
     }
 }

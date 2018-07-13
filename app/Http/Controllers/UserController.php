@@ -8,6 +8,7 @@ use App\Permission;
 use App\Authorizable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\SysMultivalue;
 
 class UserController extends Controller
 {
@@ -33,8 +34,11 @@ class UserController extends Controller
     public function create()
     {
         $roles = Role::pluck('name', 'id');
+        
+        $SysMultivalue = new SysMultivalue();        
+        $sucursales = $SysMultivalue->sucursales();
 
-        return view('user.new', compact('roles'));
+        return view('user.new', compact('roles','sucursales'));
     }
 
     /**
@@ -49,9 +53,10 @@ class UserController extends Controller
             'name' => 'bail|required|min:2',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:6',
+            'sucursal' => 'required|min:1',
             'roles' => 'required|min:1'
         ]);
-
+        
         // hash password
         $request->merge(['password' => bcrypt($request->get('password'))]);
 
@@ -91,8 +96,11 @@ class UserController extends Controller
         $user = User::find($id);
         $roles = Role::pluck('name', 'id');
         $permissions = Permission::all('name', 'id');
+        
+        $SysMultivalue = new SysMultivalue();        
+        $sucursales = $SysMultivalue->sucursales();
 
-        return view('user.edit', compact('user', 'roles', 'permissions'));
+        return view('user.edit', compact('user', 'roles', 'permissions','sucursales'));
     }
 
     /**
@@ -107,14 +115,16 @@ class UserController extends Controller
         $this->validate($request, [
             'name' => 'bail|required|min:2',
             'email' => 'required|email|unique:users,email,' . $id,
+            'sucursal' => 'required|min:1',
             'roles' => 'required|min:1'
         ]);
-
+        
         // Get the user
         $user = User::findOrFail($id);
 
         // Update user
         $user->fill($request->except('roles', 'permissions', 'password'));
+        $user->sucursal = $request->get('sucursal');
 
         // check for password change
         if($request->get('password')) {

@@ -24,9 +24,11 @@ Route::group( ['middleware' => ['auth']], function() {
   Route::resource('roles', 'RoleController');
 });
 
-
-Route::resource('tramites','TramitesHabilitadosController');
+//TRAMITES
 Route::resource('tramitesHabilitados','TramitesHabilitadosController');
+Route::get('tramitesHabilitadosHabilitar', ['uses' => 'TramitesHabilitadosController@habilitar','as' => 'tramitesHabilitados.habilitar']);
+
+//end TRAMITES
 
 //DASHBOARD
 Route::get('consultaDashboard', ['uses' => 'DashboardController@consultaDashboard','as' => 'consultaDashboard']);
