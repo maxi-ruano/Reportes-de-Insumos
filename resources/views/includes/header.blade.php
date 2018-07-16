@@ -9,7 +9,7 @@
         <img src="http://cdn2.buenosaires.gob.ar/campanias/2015-1/img/bac.png" class="img-responsive" style="height: 50px;display: initial;">
         <li class="">
           <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-            <b>Bienvenido {{ Auth::user()->name }}!</b>
+            <b>Bienvenido {{ isset(Auth::user()->name)?Auth::user()->name:'' }}!</b>
             <img src="{{ asset('production/images/user.png')}}" onerror="this.src='{{ asset('production/images/user.png')}}'" alt="">
             <span class=" fa fa-angle-down"></span>
           </a>
