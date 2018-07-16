@@ -13,7 +13,7 @@
                     Usuario: <h2> {{ Auth::user()->name }} </h2>
                     E-mail: <h2> {{ Auth::user()->email }} </h2>
                     Tipo de Usuario: <h2> {{ Auth::user()->roles->first()->name }} </h2>
-                    Sucursal: <h2> {{ Auth::user()->sucursal }} </h2>
+                    Sucursal: <h2> {{ Auth::user()->sucursalTexto() }} </h2>
                 </div>
             </div>    
         </div>

@@ -28,4 +28,12 @@ class User extends Authenticatable
         'password', 'remember_token',
     ];
 
+    public function sucursalTexto(){
+        $sucursal = SysMultivalue::where('type','SUCU')->where('id', $this->sucursal)->first();
+
+        if($sucursal)
+            return $sucursal->description;
+        else
+            return "";  
+    }
 }

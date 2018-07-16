@@ -55,10 +55,10 @@
                                 <button type="submit" class="btn btn-primary btn-group-justified">
                                     Acceder
                                 </button>
-
+                                <!--
                                 <a class="btn btn-link" href="{{ route('password.request') }}">
                                     Olvidaste tu Password?
-                                </a>
+                                </a> -->
                             </div>
                         </div>
                     </form>
