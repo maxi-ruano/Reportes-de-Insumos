@@ -15,7 +15,7 @@
                     Tipo de Usuario: <h2> {{ Auth::user()->roles->first()->name }} </h2>
                     Sucursal: <h2> {{ Auth::user()->sucursal }} </h2>
                 </div>
-            </div>
+            </div>    
         </div>
     </div>
 </div>
