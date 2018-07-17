@@ -16,11 +16,12 @@
             {!! Form::close() !!}
         </div>
 
-        @can('add_tramitesHabilitados')
         <div class="col-sm-4 col-xs-4 text-right">
-            <a href="{{route('tramitesHabilitados.create')}}" class="btn btn-primary">Nuevo <i class="glyphicon glyphicon-plus-sign"></i> </a>
-        </div>
-        @endcan
+            <a href="{{route('tramitesHabilitados.index')}}" class="btn btn-primary"> Actualizar <i class="glyphicon glyphicon-refresh"></i> </a>
+            @can('add_tramitesHabilitados')
+                <a href="{{route('tramitesHabilitados.create')}}" class="btn btn-primary">Nuevo <i class="glyphicon glyphicon-plus-sign"></i> </a>
+            @endcan
+        </div>        
     </div>
 
     <div class="table-responsive">
@@ -89,6 +90,25 @@
     <script src="{{ asset('vendors/bootstrap-toggle/js/bootstrap-toggle.min.js')}}"></script>
 
     <script>
+        $(document).ready(function() {
+            
+            @if(!isset($_GET['page']) && !isset($_GET['search']))
+                establecerTimeout();
+            @endif
+
+            @if(isset($_GET['search']))
+                @if($_GET['search'] == '')
+                    establecerTimeout();
+                @endif
+            @endif
+
+            @if(isset($_GET['page']))
+                @if($_GET['page'] == '1')
+                    establecerTimeout();
+                @endif
+            @endif
+        });
+
         function habilitarTurno(id){
             var valor = $("#habilitado"+id).prop('checked');
             $.ajax({
@@ -97,9 +117,17 @@
                 data: {id: id, valor:valor },
                 type: "GET", 
                 success: function(ret){
-                    window.location.href = "{{ route('tramitesHabilitados.index') }}";
+                    cargarPagina();
                 }
             });
+        }
+
+        function establecerTimeout(){
+            setTimeout(cargarPagina, 60000);
+        }
+
+        function cargarPagina(){
+            window.location.href = "{{ route('tramitesHabilitados.index') }}";
         }
     </script>
 @endpush

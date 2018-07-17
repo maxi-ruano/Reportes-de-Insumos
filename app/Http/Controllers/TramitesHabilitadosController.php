@@ -31,7 +31,7 @@ class TramitesHabilitadosController extends Controller
                                 ->orWhere('apellido', 'LIKE', '%'. strtoupper($request->search) .'%')
                                 ->orWhereRaw("CAST(nro_doc AS text) LIKE '%$request->search%' ");
                             })
-                        ->paginate(6);
+                        ->paginate(10);
 
             if(count($data)){
                 foreach ($data as $key => $value) {
