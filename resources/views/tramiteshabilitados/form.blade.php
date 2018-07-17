@@ -72,6 +72,11 @@
             {!! Form::label('pais', ' País') !!}
             {!! Form::select('pais', $paises, isset($edit) ? $edit->pais : 1 , ['class' => 'form-control']) !!}
         </div>
+
+        <div class="form-group">                
+            {!! Form::label('motivo_id', ' Motivo') !!}
+            {!! Form::select('motivo_id', $motivos, isset($edit) ? $edit->motivo_id : null , ['class' => 'form-control']) !!}
+        </div>
         <hr>
         
         @can('add_tramitesHabilitados', 'edit_tramitesHabilitados')

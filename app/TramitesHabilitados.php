@@ -8,7 +8,7 @@ class TramitesHabilitados extends Model
 {
     protected $table = 'tramites_habilitados';
     protected $primaryKey = 'id';
-    protected $fillable = ['fecha', 'apellido','nombre','nro_doc', 'tipo_doc','pais','user_id','sucursal'];
+    protected $fillable = ['fecha', 'apellido','nombre','nro_doc', 'tipo_doc','pais','user_id','sucursal','motivo_id'];
 
     public function tipoDocText(){
         $tipoDoc = SysMultivalue::where('type','TDOC')->where('id', $this->tipo_doc)->first();
@@ -27,12 +27,21 @@ class TramitesHabilitados extends Model
         return "";  
     }
 
-    public function userTexto(){
-        $user = User::where('id', $this->user_id)->first();
+    public function userTexto($id){
+        $user = User::where('id', $id)->first();
     
         if($user)
             return $user->name;
         else
             return "";  
     }
+
+    public function motivoTexto(){
+        $motivo = \DB::table('tramites_habilitados_motivos')->where('id', $this->motivo_id)->first();
+    
+        if($motivo)
+            return $motivo->description;
+        else
+            return "";  
+        }
 }

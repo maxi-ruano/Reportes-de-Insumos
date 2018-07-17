@@ -48,13 +48,24 @@
                     <td>{{ $row->tipo_doc }}</td>
                     <td>{{ $row->nro_doc }}</td>
                     <td>{{ $row->pais }}</td>
-                    <td>{{ $row->fecha }}</td>
+                    <td>
+                        <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="{{ $row->motivo_id }}">    
+                            
+                            {{ $row->fecha }}
+                        </span>
+                    </td>
                     <td>{{ $row->user_id }}</td>
                     <td>
                         @if($row->habilitado)
-                            <input id="habilitado{{ $row->id }}" type="checkbox" checked disabled data-toggle="toggle" data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="70" >
+                        <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="{{ $row->habilitado_user_id }}">    
+                            @if(Auth::user()->hasRole('Admin'))
+                                <input id="habilitado{{ $row->id }}" type="checkbox" checked onchange="habilitarTurno({{ $row->id }})" data-toggle="toggle" data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60">
+                            @else
+                                <input id="habilitado{{ $row->id }}" type="checkbox" checked disabled data-toggle="toggle" data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60">
+                            @endif
+                        </span> 
                         @else
-                            <input id="habilitado{{ $row->id }}" type="checkbox" onchange="habilitarTurno({{ $row->id }})" data-toggle="toggle"  data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="70" >
+                            <input id="habilitado{{ $row->id }}" type="checkbox" onchange="habilitarTurno({{ $row->id }})" data-toggle="toggle"  data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60" >
                         @endif
                     </td>                                                
                     <td>

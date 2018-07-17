@@ -38,7 +38,9 @@ class TramitesHabilitadosController extends Controller
                     $buscar = TramitesHabilitados::find($value->id);
                     $value->tipo_doc = $buscar->tipoDocText();
                     $value->pais = $buscar->paisTexto();
-                    $value->user_id = $buscar->userTexto();
+                    $value->user_id = $buscar->userTexto($value->user_id);
+                    $value->habilitado_user_id = $buscar->userTexto($value->habilitado_user_id);
+                    $value->motivo_id = $buscar->motivoTexto();
                 }
             }
             return view($this->path.'.index', compact('data'));
@@ -53,8 +55,8 @@ class TramitesHabilitadosController extends Controller
     public function create()
     {
         $fecha = date('Y-m-d');
-        //$paises = SysMultivalue::select('id','description')->where('type','PAIS')->orderBy('description', 'asc')->pluck('description','id');
-        //$tdocs = SysMultivalue::select('id','description')->where('type','TDOC')->orderBy('id', 'asc')->pluck('description','id');
+        $motivos = \DB::table('tramites_habilitados_motivos')->select('id','description')->where('activo','true')->orderBy('description', 'asc')->pluck('description','id');        
+
         $SysMultivalue = new SysMultivalue();
         $sucursales = $SysMultivalue->sucursales();
         $tdocs = $SysMultivalue->tipodocs(); 
@@ -63,7 +65,8 @@ class TramitesHabilitadosController extends Controller
         return view($this->path.'.form')->with('fecha',$fecha)
                                         ->with('sucursales',$sucursales)
                                         ->with('tdocs',$tdocs)
-                                        ->with('paises',$paises);
+                                        ->with('paises',$paises)
+                                        ->with('motivos',$motivos);
     }
 
     /**
@@ -85,6 +88,7 @@ class TramitesHabilitadosController extends Controller
             $tramiteshabilitados->pais          = $request->pais;
             $tramiteshabilitados->user_id       = $request->user_id;
             $tramiteshabilitados->sucursal      = $request->sucursal;
+            $tramiteshabilitados->motivo_id       = $request->motivo_id;
 
             if(Auth::user()->sucursal == '1') //Solo para la Sede Roca
                 $tramiteshabilitados->habilitado = false;
@@ -118,8 +122,7 @@ class TramitesHabilitadosController extends Controller
     public function edit($id)
     {
         $edit = TramitesHabilitados::find($id);
-        //$paises = SysMultivalue::select('id','description')->where('type','PAIS')->orderBy('description', 'asc')->pluck('description','id');
-        //$tdocs = SysMultivalue::select('id','description')->where('type','TDOC')->orderBy('id', 'asc')->pluck('description','id');
+        $motivos = \DB::table('tramites_habilitados_motivos')->select('id','description')->where('activo','true')->orderBy('description', 'asc')->pluck('description','id');        
         
         $SysMultivalue = new SysMultivalue();
         $sucursales = $SysMultivalue->sucursales();
@@ -129,7 +132,8 @@ class TramitesHabilitadosController extends Controller
         return view($this->path.'.form')->with('edit', $edit)
                                         ->with('sucursales',$sucursales)
                                         ->with('tdocs',$tdocs)
-                                        ->with('paises',$paises);
+                                        ->with('paises',$paises)
+                                        ->with('motivos',$motivos);
     }
 
     /**
@@ -171,7 +175,7 @@ class TramitesHabilitadosController extends Controller
     public function habilitar(Request $request)
     {
         $sql = TramitesHabilitados::where("id",$request->id)
-                                ->update(array('habilitado' => $request->valor, 'habilitado_user_id' => Auth::user()->id));
+                ->update(array('habilitado' => $request->valor, 'habilitado_user_id' => Auth::user()->id));
         return $sql;
     }
 }
