@@ -146,7 +146,7 @@ class TramitesHabilitadosController extends Controller
     public function update(Request $request, $id)
     {
         $tramitesHabilitados = TramitesHabilitados::find($id);
-        $tramitesHabilitados->fill($request->all());
+        $tramitesHabilitados->fill($request->except('user_id'));
         $tramitesHabilitados->save();
         Flash::success('El Tramite se ha editado correctamente');
         return redirect()->route('tramitesHabilitados.index');

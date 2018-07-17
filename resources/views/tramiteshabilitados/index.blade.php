@@ -35,6 +35,7 @@
                     <th class="column-title">Nro. Doc.</th>
                     <th class="column-title">Pais</th>
                     <th class="column-title">Fecha</th>
+                    <th class="column-title">Motivo</th>
                     <th class="column-title">Usuario</th>
                     <th class="column-title">Habilitado</th>
                     <th class="column-title"></th>
@@ -48,13 +49,13 @@
                     <td>{{ $row->tipo_doc }}</td>
                     <td>{{ $row->nro_doc }}</td>
                     <td>{{ $row->pais }}</td>
+                    <td>{{ $row->fecha }}</span>
+                    <td>{{ $row->motivo_id }} </td>
                     <td>
-                        <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="{{ $row->motivo_id }}">    
-                            
-                            {{ $row->fecha }}
-                        </span>
+                            <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Creado {{ $row->created_at }}">    
+                        {{ $row->user_id }}
+                            </span>
                     </td>
-                    <td>{{ $row->user_id }}</td>
                     <td>
                         @if($row->habilitado)
                         <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="{{ $row->habilitado_user_id }}">    
