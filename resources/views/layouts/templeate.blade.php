@@ -101,8 +101,13 @@
     <!-- Custom Theme Scripts -->
     <script src="{{ asset('build/js/custom.min.js')}}"></script>
 
-    $(document).ready(function(){
-      $('div.alert').delay(3000).slideUp(300);
-    });
+    <script>  
+      $(document).ready(function(){
+        setTimeout(function() {
+          $('div.alert').fadeOut('fast');
+        }, 1000); // <-- time in milliseconds
+      });
+    </script>
+  
   </body>
 </html>
