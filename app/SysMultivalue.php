@@ -22,7 +22,7 @@ class SysMultivalue extends Model
 
   public function paises()
   {
-    $paises = SysMultivalue::where('type','PAIS')->pluck('description', 'id');
+    $paises = SysMultivalue::where('type','PAIS')->orderBy('description','ASC')->pluck('description', 'id');
     return $paises;
   }
 
