@@ -78,6 +78,18 @@ class TramitesHabilitadosController extends Controller
     public function store(Request $request)
     {
         try{
+            //Validar que no exista el mismo registro
+            $existe = TramitesHabilitados::where('tipo_doc',$request->tipo_doc)
+                        ->where('nro_doc',$request->nro_doc)
+                        ->where('pais',$request->pais)
+                        ->where('fecha',$request->fecha)
+                        ->count();
+            if($existe){
+                Flash::error('Ya tiene un turno asignado para el día '.$request->fecha);
+                return back();   
+            }
+
+            //Si no existe entonces crear el registro
             $tramiteshabilitados = new TramitesHabilitados();
 
             $tramiteshabilitados->fecha         = $request->fecha;

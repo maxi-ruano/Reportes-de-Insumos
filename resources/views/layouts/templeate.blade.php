@@ -105,7 +105,7 @@
       $(document).ready(function(){
         setTimeout(function() {
           $('div.alert').fadeOut('fast');
-        }, 1000); // <-- time in milliseconds
+        }, 5000); // <-- time in milliseconds
       });
     </script>
   

@@ -52,9 +52,9 @@
                     <td>{{ $row->fecha }}</span>
                     <td>{{ $row->motivo_id }} </td>
                     <td>
-                            <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Creado {{ $row->created_at }}">    
-                        {{ $row->user_id }}
-                            </span>
+                        <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Creado {{ $row->created_at }}">    
+                            {{ $row->user_id }}
+                        </span>
                     </td>
                     <td>
                         @if($row->habilitado)
