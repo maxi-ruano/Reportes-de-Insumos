@@ -33,7 +33,11 @@ class UserController extends Controller
      */
     public function create()
     {
-        $roles = Role::pluck('name', 'id');
+        //Mostrar el rol Admin solo a los usuarios Admin
+        if(Auth::user()->hasRole('Admin'))
+            $roles = Role::pluck('name', 'id');
+        else
+            $roles = Role::where('name','<>','Admin')->pluck('name', 'id');
         
         $SysMultivalue = new SysMultivalue();        
         $sucursales = $SysMultivalue->sucursales();

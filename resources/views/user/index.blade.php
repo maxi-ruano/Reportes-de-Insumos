@@ -41,13 +41,22 @@
                     <td>{{ $item->email }}</td>
                     <td>{{ $item->roles->implode('name', ', ') }}</td>
                     <td>{{ $item->created_at->toFormattedDateString() }}</td>
-
+                    
                     @can('edit_users')
                     <td class="text-center">
-                        @include('shared._actions', [
-                            'entity' => 'users',
-                            'id' => $item->id
-                        ])
+                        @if(Auth::user()->hasRole('Admin'))
+                            @include('shared._actions', [
+                                'entity' => 'users',
+                                'id' => $item->id
+                            ])
+                        @else
+                            @if ($item->roles->first()->name != 'Admin')
+                                @include('shared._actions', [
+                                    'entity' => 'users',
+                                    'id' => $item->id
+                                ])
+                            @endif
+                        @endif
                     </td>
                     @endcan
                 </tr>
