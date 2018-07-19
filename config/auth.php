@@ -67,7 +67,7 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => App\SysUsers::class,
+            'model' => App\User::class,
         ],
 
         // 'users' => [
@@ -90,7 +90,7 @@ return [
     | they have less time to be guessed. You may change this as needed.
     |
     */
-    'table' => 'sys_users',
+
     'passwords' => [
         'users' => [
             'provider' => 'users',

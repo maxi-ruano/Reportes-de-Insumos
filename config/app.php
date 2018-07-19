@@ -163,6 +163,8 @@ return [
         Illuminate\View\ViewServiceProvider::class,
 
         // ...
+        Spatie\Permission\PermissionServiceProvider::class,        
+        Laracasts\Flash\FlashServiceProvider::class, 
         Collective\Html\HtmlServiceProvider::class,
         // ...
 

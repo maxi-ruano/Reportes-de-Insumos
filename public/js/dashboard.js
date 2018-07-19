@@ -1,7 +1,25 @@
+var myTimeout;
+
 $(document).ready(function() {
+   
+    iniciarTimeout();
 
-    init_charts();
+    //Control botoneraDasboard para Pausar / Start
+    $("#botoneraDashboard #starPause").change(function(){
+        if($(this).prop('checked') == true){
+            iniciarTimeout();
+        }else{
+            clearTimeout(myTimeout);
+        }
+    });
 
+    $("#botoneraDashboard #pagNext").click(function(){
+        $(this).button('loading').delay(500).queue(function(){
+            $(this).button('reset').dequeue();
+            reload();
+        });        
+    });
+    
     //Configuracion del datepicker
     $('#fecha').daterangepicker({
         singleDatePicker: true,
@@ -11,12 +29,21 @@ $(document).ready(function() {
         $('#btnConsultar').click();
     });
 
-    //Actualizar pagina cada 10 segundos
-   /* setTimeout(function(){
-        window.location.reload(1);
-    }, 120000);*/
+    init_charts();
 
 });
+
+function iniciarTimeout (){
+    var date = new Date();
+    var d = date.getDate();
+    var m = date.getMonth() + 1;
+    var y = date.getFullYear();
+    var actual = (d <= 9 ? '0' + d : d) + '-' + (m <= 9 ? '0' + m : m) + '-' + y;
+    var fecha = $("#fecha").val();
+
+    if(fecha == actual)
+        myTimeout = setTimeout(reload, 60000);
+}
 
 function init_charts() {
 
@@ -244,9 +271,8 @@ function init_charts() {
 
         //Obtener sucursales
         $.ajax({
-            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-            url: '/obtenerSucursales',
-            type: "GET", dataType: "json",
+            url: '/api/funciones/obtenerSucursales',
+            type: "POST", dataType: "json",
             success: function(ret){
                sucursales = ret;
             }
@@ -258,9 +284,8 @@ function init_charts() {
             url: '/consultaTurnosEnEspera',
             data: {fecha: fecha, sucursal: 1 },
             type: "GET", dataType: "json",
-            async:false,
             success: function(datos){
-                generarGrafico('echart_sedeRoca',datos, 'Sucursal','Por estación');
+                generarGrafico('echart_sedeRoca',datos, 'Por Estación');
             },
             error: function(xhr, status, error) {
                 var err = eval("(" + xhr.responseText + ")");
@@ -295,10 +320,10 @@ function init_charts() {
         },
         calculable: true,
         legend: {
-            orient: 'horizontal',
-            x: 'center',
+            orient: 'vertical',
+            x: 'left',
             y: 'bottom',
-            itemWidth: 20,
+            //itemWidth: 12,
             data: titulos
         },
         toolbox: {
@@ -317,7 +342,14 @@ function init_charts() {
         series: [{
             name: 'Personas en espera',
             type: 'pie',
-            radius: ['45%', '70%'],
+            radius: ['40%', '60%'],
+            center : ['50%', '45%'],
+            selectedMode:'multiple',
+            animationType: 'scale',
+            animationEasing: 'elasticOut',
+            animationDelay: function (idx) {
+                return Math.random() * 400;
+            },
             itemStyle: {
                 normal: {
                     label: {
@@ -329,7 +361,7 @@ function init_charts() {
                     label: {
                         show: true,
                         textStyle: {
-                            fontSize: '12',
+                            fontSize: '14',
                             fontWeight: 'bold'
                         }
                     }
@@ -366,15 +398,20 @@ function init_charts() {
         echarts.util.each(days, function (day, idx) {
             option.title.push({
                 textBaseline: 'middle',
-                top: (idx + 1) * 97 / days.length + '%',
-                text: day
+                top: (idx + 0.8) * 97 / days.length + '%',
+                text: day,
+                textStyle:{
+                    fontWeight:'bold',
+                    fontSize:'14'
+                            
+                }
             });
             option.singleAxis.push({
-                left: 160,
+                left: 110,
                 type: 'category',
-                boundaryGap: false,
+                boundaryGap: true,
                 data: hours,
-                top: (idx * 97 / days.length + 8) + '%',
+                top: (idx * 97 / days.length + 7.6) + '%',
                 height: (100 / days.length - 10) + '%',
                 axisLabel: {
                     interval: 0
@@ -383,7 +420,14 @@ function init_charts() {
             option.series.push({
                 singleAxisIndex: idx,
                 coordinateSystem: 'singleAxis',
-                type: 'scatter',
+                //type: 'scatter',
+                type: 'effectScatter',
+                rippleEffect:{
+                    scale:1.5
+                },
+                //symbol:'pin',
+                //symbolOffset:[0,'10%'],
+                //showEffectOn: 'emphasis',
                 data: [],
                 itemStyle: {
                     normal: {
@@ -401,10 +445,7 @@ function init_charts() {
                     }
                 },
                 symbolSize: function (dataItem) {
-                    if(idx==0)
-                        return dataItem[1] * 3;
-                    else
-                        return dataItem[1] * 5;
+                    return dataItem[1] * 4;
                 }
             });
         });
@@ -419,7 +460,6 @@ function init_charts() {
         }); 
 
         if (option && typeof option === "object") {
-            //console.log('entro SingleAxis');
             myChart.setOption(option, true);
         }
 

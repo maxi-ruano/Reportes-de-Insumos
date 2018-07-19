@@ -4,11 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
-use Illuminate\Http\Request;
-use App\SysUsers;
-use App\SysRoles;
-use App\SysUserRole;
-use Auth;
+
 class LoginController extends Controller
 {
     /*
@@ -29,14 +25,41 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $username = 'username';
-    //protected $redirectAfterLogout = 'public/login';
+    protected $redirectTo = '/home';
 
     /**
      * Create a new controller instance.
      *
      * @return void
      */
+    public function __construct()
+    {
+        $this->middleware('guest')->except('logout');
+    }
+    
+}
+
+/*
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
+use App\SysUsers;
+use App\SysRoles;
+use App\SysUserRole;
+use Auth;
+class LoginController extends Controller
+{
+
+
+    use AuthenticatesUsers;
+
+
+    protected $username = 'username';
+    //protected $redirectAfterLogout = 'public/login';
+
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
@@ -88,13 +111,7 @@ class LoginController extends Controller
       }else{
         return $this->sendFailedLoginResponse($request);
       }
-/*
-      if (Auth::attempt(['username' => $user->username, 'password' => $user->password], true)) {
-        dd('si');// The user is being remembered...
-      }else{
-        dd('no');
-      }
-*/
+
 
       //return redirect('/admin/bedel');
     }
@@ -123,3 +140,4 @@ class LoginController extends Controller
 
 
 }
+*/

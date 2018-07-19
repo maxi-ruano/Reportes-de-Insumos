@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ config('app.locale') }}">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <!-- Meta, title, CSS, favicons, etc. -->
@@ -7,7 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Sistema de Licencias | </title>
+    <title>{{ config('app.name', 'Laravel') }}</title>
 
     <!-- Bootstrap -->
     <link href="{{ asset('vendors/bootstrap/dist/css/bootstrap.min.css')}}" rel="stylesheet">
@@ -30,7 +30,7 @@
         <div class="col-md-3 left_col">
           <div class="left_col scroll-view">
             <div class="navbar nav_title" style="border: 0;">
-              <a href="index.html" class="site_title"><i class="fa fa-folder"></i> <span class="appclr">Licta</span></a>
+              <a href="{{ route('home') }}" class="site_title"><i class="fa fa-folder"></i> <span class="appclr">Licta</span></a>
             </div>
             <div class="clearfix"></div>
             <!-- menu profile quick info -->
@@ -64,18 +64,19 @@
             </div>
           </div>
           <div class="clearfix"></div>
-          @if(count($errors)>0)
+            @if(count($errors)>0)
+              <div class="alert alert-danger">Errores
+                <ul>
+                  @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                  @endforeach
+                </ul>
+              </div>
+            @endif
 
-            <div class="alert alert-danger">Errores
-              <ul>
-                @foreach($errors->all() as $error)
-                  <li>{{ $error }}</li>
-                @endforeach
-              </ul>
-            </div>
-          @endif
-          @yield('content')
-        </div>
+            @include('flash::message') 
+            @yield('content')
+          </div>
         <!-- /page content -->
 
         <!-- footer content -->
@@ -100,5 +101,8 @@
     <!-- Custom Theme Scripts -->
     <script src="{{ asset('build/js/custom.min.js')}}"></script>
 
+    $(document).ready(function(){
+      $('div.alert').delay(3000).slideUp(300);
+    });
   </body>
 </html>

@@ -10,11 +10,40 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+//WELCOME
+/*Route::get('/', function () {
+  return view('welcome');
+});*/
+
+//LOGIN
+Auth::routes();
+Route::get('/', 'HomeController@index')->name('home');
+Route::group( ['middleware' => ['auth']], function() {
+  Route::resource('users', 'UserController');
+  Route::resource('roles', 'RoleController');
+});
+
+//TRAMITES
+Route::resource('tramitesHabilitados','TramitesHabilitadosController');
+Route::get('tramitesHabilitadosHabilitar', ['uses' => 'TramitesHabilitadosController@habilitar','as' => 'tramitesHabilitados.habilitar']);
+
+//end TRAMITES
+
+//DASHBOARD
+Route::get('consultaDashboard', ['uses' => 'DashboardController@consultaDashboard','as' => 'consultaDashboard']);
+Route::get('consultaDashboardGraf', ['uses' => 'DashboardController@consultaDashboardGraf','as' => 'consultaDashboardGraf']);
+Route::get('comparacionPrecheck', ['uses' => 'DashboardController@comparacionPrecheck','as' => 'comparacionPrecheck']);
+Route::get('consultaTurnosEnEspera', ['uses' => 'DashboardController@consultaTurnosEnEspera','as' => 'consultaTurnosEnEspera']);
+Route::get('consultaTurnosEnEsperaPorSucursal', ['uses' => 'DashboardController@consultaTurnosEnEsperaPorSucursal','as' => 'consultaTurnosEnEsperaPorSucursal']);
+//end DASHBOARD
+
+
 Route::post('rendir_examen',['uses' => 'EtlExamenPreguntaController@getPreguntasExamen','as' => 'rendir_examen']);
 Route::get('guardar_respuesta',['uses' => 'EtlExamenPreguntaController@guardarRespuesta','as' => 'guardaRespuesta']);
 Route::post('finalizar_examen',['uses' => 'EtlExamenController@calcularYGuardarResultado','as' => 'finalizar_examen']);
 // Route::get('/address/{id}/destroy',['uses' => 'AddressesController@destroy','as' => 'sysfile.addresses.destroy']);
-Route::get('/', 'HomeController@index');
+
 Route::get('run', 'MicroservicioController@run');
 //SAFIT
 Route::get('buscarBoletaPago', 'TramitesAInicarController@buscarBoletaPago');
@@ -22,14 +51,9 @@ Route::post('consultarBoletaPago',['uses' => 'TramitesAInicarController@consulta
 Route::post('generarCenat', ['uses' => 'TramitesAInicarController@generarCenat','as' => 'generarCenat']);
 Route::get('checkPreCheck', ['uses' => 'PreCheckController@checkPreCheck','as' => 'checkPreCheck']);
 Route::get('consultarPreCheck', ['uses' => 'PreCheckController@consultarPreCheck','as' => 'consultarPreCheck']);
+Route::get('buscarTramitesPrecheck', ['uses' => 'PreCheckController@buscarTramitesPrecheck','as' => 'buscarTramitesPrecheck']);
+Route::get('testCheckBoletas', ['uses' => 'TramitesAInicarController@testCheckBoletas','as' => 'testCheckBoletas']);
 //END SAFIT
-
-//TemplateDashboard
-Route::get('consultaDashboard', ['uses' => 'DashboardController@consultaDashboard','as' => 'consultaDashboard']);
-Route::get('consultaTurnosEnEspera', ['uses' => 'DashboardController@consultaTurnosEnEspera','as' => 'consultaTurnosEnEspera']);
-Route::get('consultaTurnosEnEsperaPorSucursal', ['uses' => 'DashboardController@consultaTurnosEnEsperaPorSucursal','as' => 'consultaTurnosEnEsperaPorSucursal']);
-Route::get('obtenerSucursales', ['uses' => 'DashboardController@obtenerSucursales','as' => 'obtenerSucursales']);
-//end TemplateDashboard
 
 //Auth::routes();
 Route::get('computadorasMonitor', 'TeoricoPcController@computadorasMonitor');
