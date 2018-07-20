@@ -55,7 +55,7 @@
         <div class="form-group">
             {!! Form::label('tipo_doc', ' Documento') !!}
             {!! Form::select('tipo_doc', $tdocs, isset($edit) ? $edit->tipo_doc : null, ['class' => 'form-control']) !!}
-            {!! Form::number('nro_doc', isset($edit) ? $edit->nro_doc : null, ['class' => 'form-control', 'placeholder' => 'Nro. Documento', 'required' => 'required', 'min' => '0']) !!}
+            {!! Form::text('nro_doc', isset($edit) ? $edit->nro_doc : null, ['class' => 'form-control', 'placeholder' => 'Nro. Documento', 'required' => 'required' ]) !!}
         </div>
 
         <div class="form-group">

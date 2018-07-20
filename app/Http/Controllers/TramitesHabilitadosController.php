@@ -81,6 +81,13 @@ class TramitesHabilitadosController extends Controller
     public function store(Request $request)
     {
         try{
+
+            //validar nro_doc solo si es pasaporte acepte letras y numeros de lo contrario solo numeros
+            if($request->tipo_doc== '4')
+                $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^([a-zA-Z]+)(\d+)?$)/u']);
+            else
+                $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^(\d+)?$)/u']);
+
             //Validar que no exista el mismo registro
             $existe = TramitesHabilitados::where('tipo_doc',$request->tipo_doc)
                         ->where('nro_doc',$request->nro_doc)
