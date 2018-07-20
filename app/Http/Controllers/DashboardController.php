@@ -103,6 +103,8 @@ class DashboardController extends Controller
 
         $fecha = isset($request->fecha)?date('Y-m-d', strtotime($request->fecha)):date('Y-m-d');
 
+        $tramitesRetenidos =  \DB::table('tramites_log')->select('tramite_id')->where('detenido','R')->whereRaw("CAST(fec_inicio as date) = '".$fecha."'");
+
         //Nuevo array para mostrar totales en cada sede por estacion
         $consulta = SysMultivalue::selectRaw("tramites.sucursal as sucursal_id, (case when sys_multivalue.id = 1 then 2 else sys_multivalue.id end) as estacion_id, MAX(case when sys_multivalue.id = 1 then 'Fotografia' else sys_multivalue.description end) as estacion, count(tramites.tramite_id) as cant")
                         ->leftjoin('tramites',function($join)    {
@@ -112,9 +114,11 @@ class DashboardController extends Controller
                         ->whereRaw("sys_multivalue.id IN('1','2','3','4','5','6','12','13') ")
                         ->whereNotIn('tramites.sucursal', ['2','3','20','80','90','101','102','104','121','150'])
                         ->whereRaw("CAST(tramites.fec_inicio as date) = '".$fecha."'")
+                        ->whereNotIn('tramites.tramite_id', $tramitesRetenidos)
                         ->groupBy('tramites.sucursal','estacion_id')
                         ->orderBy('estacion_id')
                         ->get();
+        
         return $consulta;
     }
 
