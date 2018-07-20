@@ -20,6 +20,8 @@ class TramitesHabilitadosController extends Controller
      */
     public function index(Request $request)
     {
+        $fecha = date('Y-m-d');
+
         //Cargar por defecto el formulario solo al Operador
         if(Auth::user()->hasRole('Operador')){
             return $this->create();
@@ -31,6 +33,7 @@ class TramitesHabilitadosController extends Controller
                                 ->orWhere('apellido', 'LIKE', '%'. strtoupper($request->search) .'%')
                                 ->orWhereRaw("CAST(nro_doc AS text) LIKE '%$request->search%' ");
                             })
+                        ->where('fecha',$fecha)
                         ->paginate(10);
 
             if(count($data)){
