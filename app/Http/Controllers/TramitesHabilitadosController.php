@@ -81,7 +81,6 @@ class TramitesHabilitadosController extends Controller
     public function store(Request $request)
     {
         try{
-
             //validar nro_doc solo si es pasaporte acepte letras y numeros de lo contrario solo numeros
             if($request->tipo_doc== '4')
                 $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^([a-zA-Z]+)(\d+)?$)/u']);
@@ -106,7 +105,7 @@ class TramitesHabilitadosController extends Controller
             $tramiteshabilitados->apellido      = strtoupper($request->apellido);
             $tramiteshabilitados->nombre        = strtoupper($request->nombre);
             $tramiteshabilitados->tipo_doc      = $request->tipo_doc;
-            $tramiteshabilitados->nro_doc       = $request->nro_doc;
+            $tramiteshabilitados->nro_doc       = strtoupper($request->nro_doc);
             $tramiteshabilitados->pais          = $request->pais;
             $tramiteshabilitados->user_id       = $request->user_id;
             $tramiteshabilitados->sucursal      = $request->sucursal;
@@ -167,8 +166,19 @@ class TramitesHabilitadosController extends Controller
      */
     public function update(Request $request, $id)
     {
+        //validar nro_doc solo si es pasaporte acepte letras y numeros de lo contrario solo numeros
+        if($request->tipo_doc== '4')
+            $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^([a-zA-Z]+)(\d+)?$)/u']);
+        else
+            $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^(\d+)?$)/u']);
+
+        
         $tramitesHabilitados = TramitesHabilitados::find($id);
         $tramitesHabilitados->fill($request->except('user_id'));
+        $tramitesHabilitados->nro_doc = strtoupper($request->nro_doc);
+        $tramitesHabilitados->nombre = strtoupper($request->nombre);
+        $tramitesHabilitados->apellido = strtoupper($request->apellido);
+
         $tramitesHabilitados->save();
         Flash::success('El Tramite se ha editado correctamente');
         return redirect()->route('tramitesHabilitados.index');
