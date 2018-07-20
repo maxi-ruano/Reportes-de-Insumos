@@ -41,7 +41,7 @@ Route::get('consultaTurnosEnEspera', ['uses' => 'DashboardController@consultaTur
 Route::get('consultaTurnosEnEsperaPorSucursal', ['uses' => 'DashboardController@consultaTurnosEnEsperaPorSucursal','as' => 'consultaTurnosEnEsperaPorSucursal']);
 //end DASHBOARD
 
-/*
+
 Route::post('rendir_examen',['uses' => 'EtlExamenPreguntaController@getPreguntasExamen','as' => 'rendir_examen']);
 Route::get('guardar_respuesta',['uses' => 'EtlExamenPreguntaController@guardarRespuesta','as' => 'guardaRespuesta']);
 Route::post('finalizar_examen',['uses' => 'EtlExamenController@calcularYGuardarResultado','as' => 'finalizar_examen']);
@@ -91,4 +91,3 @@ Route::group(['prefix' => 'api'], function () {
   Route::get('aviso_pago', 'SoapServerController@index')->name('aviso_pago');
   Route::post('aviso_pago', 'SoapServerController@index')->name('aviso_pago');
 });
-*/
