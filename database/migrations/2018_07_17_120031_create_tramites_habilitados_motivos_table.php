@@ -23,45 +23,45 @@ class CreateTramitesHabilitadosMotivosTable extends Migration
         DB::table('tramites_habilitados_motivos')->insert(array(
             'id' => '1',
             'description' => 'RETOMA TURNOS',
-            'created_at' => date(),
-            'updated_at' => date()
+            'created_at' => date("Y-m-d H:i:s"),
+            'updated_at' => date("Y-m-d H:i:s")
         ));
         
         DB::table('tramites_habilitados_motivos')->insert(array(
             'id' => '2',
             'description' => 'RETOMA POR ESTUDIOS',
-            'created_at' => date(),
-            'updated_at' => date()
+            'created_at' => date("Y-m-d H:i:s"),
+            'updated_at' => date("Y-m-d H:i:s")
         ));
         DB::table('tramites_habilitados_motivos')->insert(array(
             'id' => '3',
             'description' => 'MAYOR DE 65',
-            'created_at' => date(),
-            'updated_at' => date()
+            'created_at' => date("Y-m-d H:i:s"),
+            'updated_at' => date("Y-m-d H:i:s")
         ));
         DB::table('tramites_habilitados_motivos')->insert(array(
             'id' => '4',
             'description' => 'DISCAPACITADOS',
-            'created_at' => date(),
-            'updated_at' => date()
+            'created_at' => date("Y-m-d H:i:s"),
+            'updated_at' => date("Y-m-d H:i:s")
         ));
         DB::table('tramites_habilitados_motivos')->insert(array(
             'id' => '5',
             'description' => 'EMBARAZADAS',
-            'created_at' => date(),
-            'updated_at' => date()
+            'created_at' => date("Y-m-d H:i:s"),
+            'updated_at' => date("Y-m-d H:i:s")
         ));
         DB::table('tramites_habilitados_motivos')->insert(array(
             'id' => '6',
             'description' => 'TAXIS',
-            'created_at' => date(),
-            'updated_at' => date()
+            'created_at' => date("Y-m-d H:i:s"),
+            'updated_at' => date("Y-m-d H:i:s")
         ));
         DB::table('tramites_habilitados_motivos')->insert(array(
             'id' => '7',
             'description' => 'OTRO',
-            'created_at' => date(),
-            'updated_at' => date()
+            'created_at' => date("Y-m-d H:i:s"),
+            'updated_at' => date("Y-m-d H:i:s")
         ));
     }
 

@@ -22,38 +22,38 @@ class CreateTipoDocTable extends Migration
         DB::table('tipo_doc')->insert(array(
             'id_dgevyl' => '1',
             'id_sigeci' => '1',
-            'created_at' => date(),
-            'updated_at' => date()
+            'created_at' => date("Y-m-d H:i:s"),
+            'updated_at' => date("Y-m-d H:i:s")
         ));
         DB::table('tipo_doc')->insert(array(
             'id_dgevyl' => '1',
             'id_sigeci' => '2',
-            'created_at' => date(),
-            'updated_at' => date()
+            'created_at' => date("Y-m-d H:i:s"),
+            'updated_at' => date("Y-m-d H:i:s")
         ));
         DB::table('tipo_doc')->insert(array(
             'id_dgevyl' => '1',
             'id_sigeci' => '3',
-            'created_at' => date(),
-            'updated_at' => date()
+            'created_at' => date("Y-m-d H:i:s"),
+            'updated_at' => date("Y-m-d H:i:s")
         ));
         DB::table('tipo_doc')->insert(array(
             'id_dgevyl' => '1',
             'id_sigeci' => '4',
-            'created_at' => date(),
-            'updated_at' => date()
+            'created_at' => date("Y-m-d H:i:s"),
+            'updated_at' => date("Y-m-d H:i:s")
         ));
         DB::table('tipo_doc')->insert(array(
             'id_dgevyl' => '1',
             'id_sigeci' => '5',
-            'created_at' => date(),
-            'updated_at' => date()
+            'created_at' => date("Y-m-d H:i:s"),
+            'updated_at' => date("Y-m-d H:i:s")
         ));
         DB::table('tipo_doc')->insert(array(
             'id_dgevyl' => '4',
             'id_sigeci' => '6',
-            'created_at' => date(),
-            'updated_at' => date()
+            'created_at' => date("Y-m-d H:i:s"),
+            'updated_at' => date("Y-m-d H:i:s")
         ));
     }
 
