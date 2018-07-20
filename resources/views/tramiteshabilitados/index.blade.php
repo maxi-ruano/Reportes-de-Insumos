@@ -5,18 +5,19 @@
 
 <div class="container">
     <div class="row">
-        <div class="col-sm-8 col-xs-8">
+        <div class="col-sm-8 col-xs-12">
             {!! Form::open(['method'=>'GET','url'=>'tramitesHabilitados','class'=>'navbar-form navbar-left','role'=>'search'])  !!}
             <div class="input-group">
                 <input type="text" class="form-control" name="search" placeholder="Buscar..." value="{{ Request::get('search') }}">
                 <span class="input-group-btn">
-                    <button class="btn btn-default-sm" type="submit"><i class="fa fa-search"></i></button>
+                    <input type="date" class="form-control" name="fecha" id="fecha" value={{ isset($_GET['fecha'])?$_GET['fecha']:date('Y-m-d') }}>
+                    <button id="buscar" class="btn btn-default-sm" type="submit"><i class="fa fa-search"></i></button>
                 </span>
             </div>
             {!! Form::close() !!}
         </div>
 
-        <div class="col-sm-4 col-xs-4 text-right">
+        <div class="col-sm-4 col-xs-12 text-right">
             <a href="{{route('tramitesHabilitados.index')}}" class="btn btn-primary"> Actualizar <i class="glyphicon glyphicon-refresh"></i> </a>
             @can('add_tramitesHabilitados')
                 <a href="{{route('tramitesHabilitados.create')}}" class="btn btn-primary">Nuevo <i class="glyphicon glyphicon-plus-sign"></i> </a>
