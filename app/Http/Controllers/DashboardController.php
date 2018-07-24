@@ -77,6 +77,9 @@ class DashboardController extends Controller
 
     public function consultaTurnosEnEspera(Request $request){
         $fecha = isset($request->fecha)?date('Y-m-d', strtotime($request->fecha)):date('Y-m-d');
+        $fechasiguiente = date("d-m-Y",strtotime($fecha."+ 1 day"));
+
+        $tramitesDetenidos =  \DB::table('tramites_log')->select('tramite_id')->whereRaw("detenido = 'R' AND fec_inicio >= '".$fecha."' AND fec_inicio < '".$fechasiguiente."' ");
         
         $sql = SysMultivalue::selectRaw("sys_multivalue.id, MAX(case when sys_multivalue.id = 1 then 'Fotografia' else sys_multivalue.description end) as description, count(tramites.tramite_id) as cant")
                     ->leftjoin('tramites',function($join) use($fecha, $request) {
@@ -86,6 +89,7 @@ class DashboardController extends Controller
                     })
                     ->whereRaw("sys_multivalue.type = 'STAT' ")
                     ->whereRaw("sys_multivalue.id IN('1','2','3','4','5','6','12','13') ")
+                    ->whereNotIn('tramites.tramite_id', $tramitesDetenidos)
                     ->groupBy('sys_multivalue.id')
                     ->orderBy('sys_multivalue.id')
                     ->toSql();
@@ -117,7 +121,8 @@ class DashboardController extends Controller
                         ->whereRaw("CAST(tramites.fec_inicio as date) = '".$fecha."'")
                         ->groupBy('tramites.sucursal','estacion_id')
                         ->orderBy('estacion_id');
-        
+                        
+        //Se filter solo los tramites que no esten detenidos
         $consulta = $consulta->whereNotIn('tramites.tramite_id', $tramitesDetenidos)->get();
 
         return $consulta;
