@@ -102,23 +102,24 @@ class DashboardController extends Controller
     public function consultaTurnosEnEsperaPorSucursal(Request $request){
 
         $fecha = isset($request->fecha)?date('Y-m-d', strtotime($request->fecha)):date('Y-m-d');
+        $fechasiguiente = date("d-m-Y",strtotime($fecha."+ 1 day"));
 
-        $tramitesRetenidos =  \DB::table('tramites_log')->select('tramite_id')->where('detenido','R')->whereRaw("CAST(fec_inicio as date) = '".$fecha."'");
-
+        $tramitesDetenidos =  \DB::table('tramites_log')->select('tramite_id')->whereRaw("detenido = 'R' AND fec_inicio >= '".$fecha."' AND fec_inicio < '".$fechasiguiente."' ");
+        
         //Nuevo array para mostrar totales en cada sede por estacion
-        $consulta = SysMultivalue::selectRaw("tramites.sucursal as sucursal_id, (case when sys_multivalue.id = 1 then 2 else sys_multivalue.id end) as estacion_id, MAX(case when sys_multivalue.id = 1 then 'Fotografia' else sys_multivalue.description end) as estacion, count(tramites.tramite_id) as cant")
-                        ->leftjoin('tramites',function($join)    {
+        $consulta = Tramites::selectRaw("tramites.sucursal as sucursal_id, (case when sys_multivalue.id = 1 then 2 else sys_multivalue.id end) as estacion_id, MAX(case when sys_multivalue.id = 1 then 'Fotografia' else sys_multivalue.description end) as estacion, count(tramites.tramite_id) as cant")
+                        ->leftjoin('sys_multivalue',function($join)    {
                             $join->on('tramites.estado', '=', 'sys_multivalue.id')
                             ->whereRaw("sys_multivalue.type = 'STAT' ");
                         })
                         ->whereRaw("sys_multivalue.id IN('1','2','3','4','5','6','12','13') ")
-                        ->whereNotIn('tramites.sucursal', ['2','3','20','80','90','101','102','104','121','150'])
+                        ->whereRaw("tramites.sucursal NOT IN('2','3','20','80','90','101','102','104','121','150')")
                         ->whereRaw("CAST(tramites.fec_inicio as date) = '".$fecha."'")
-                        ->whereNotIn('tramites.tramite_id', $tramitesRetenidos)
                         ->groupBy('tramites.sucursal','estacion_id')
-                        ->orderBy('estacion_id')
-                        ->get();
+                        ->orderBy('estacion_id');
         
+        $consulta = $consulta->whereNotIn('tramites.tramite_id', $tramitesDetenidos)->get();
+
         return $consulta;
     }
 
