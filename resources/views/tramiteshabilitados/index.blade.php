@@ -27,7 +27,7 @@
 
     <div class="table-responsive">
     @if($data)
-        <table class="table table-striped jambo_table">
+        <table class="table table-striped jambo_table" data-form="deleteForm">
             <thead>
                 <tr>
                     <th class="column-title">Apellido</th>
@@ -39,7 +39,7 @@
                     <th class="column-title">Motivo</th>
                     <th class="column-title">Usuario</th>
                     <th class="column-title">Habilitado</th>
-                    <th class="column-title" style="width:160px"></th>
+                    <th class="column-title"></th>
                 </tr>
             </thead>
             <tbody>
@@ -69,21 +69,16 @@
                         @else
                             <input id="habilitado{{ $row->id }}" type="checkbox" onchange="habilitarTurno({{ $row->id }})" data-toggle="toggle"  data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60" >
                         @endif
-                    </td>                                                
+                    </td>                             
                     <td>
                         @can('edit_tramitesHabilitados')
                             <a href="{{ route('tramitesHabilitados.edit', $row->id) }}" class="btn btn-success pull-right btn-xs" title="Editar"> Editar <i class="fa fa-edit"></i></a>
                         @endcan
-
                         @can('delete_tramitesHabilitados')
-                            {!! Form::open(array('route' => array('tramitesHabilitados.destroy', $row->id), 'method' => 'delete')) !!}
-                                <!-- <button class='btn btn-danger pull-right btn-xs' type="submit"> Borrar <i class="fa fa-trash"></i> </button> -->
-                                
-                                <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#deleteModal{{$row->id}}">
+                            {!! Form::open(array('route' => array('tramitesHabilitados.destroy', $row->id), 'method' => 'delete', 'class' => 'form-delete')) !!}
+                                <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete">
                                     <i class="glyphicon glyphicon-trash"></i> Borrar 
                                 </button>
-                                @php $id = $row->id @endphp
-                                @include('includes.modal')
                             {!! Form::close() !!}
                         @endcan
                     </td>

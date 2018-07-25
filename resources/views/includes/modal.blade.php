@@ -1,5 +1,5 @@
 
-<div class="modal fade" id="deleteModal{{$id}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+<div class="modal fade" id="modal-delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
         <div class="modal-header">
@@ -15,8 +15,24 @@
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-danger"> Si, borrar!</button>
+            <button type="button" class="btn btn-danger" id="delete-btn"> Si, borrar!</button>
         </div>
         </div>
     </div>
 </div>
+
+
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            //Modal delete confirmar antes de borrar
+            $('table[data-form="deleteForm"]').on('click', '.form-delete', function(e){
+                e.preventDefault();
+                var $form=$(this);
+                $('#modal-delete').on('click', '#delete-btn', function(){
+                    $form.submit();
+                });
+            });
+        });
+    </script>
+@endpush

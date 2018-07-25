@@ -20,7 +20,7 @@
     </div>
 
     <div class="result-set">
-        <table class="table table-bordered table-striped table-hover jambo_table" id="data-table">
+        <table class="table table-bordered table-striped table-hover jambo_table" id="data-table" data-form="deleteForm">
             <thead>
             <tr>
                 <th>Id</th>

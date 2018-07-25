@@ -76,7 +76,7 @@
             
             @include('flash::message')
             @yield('content')
-            
+            @include('includes.modal')
           </div>
         <!-- /page content -->
 
