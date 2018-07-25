@@ -39,7 +39,7 @@
                     <th class="column-title">Motivo</th>
                     <th class="column-title">Usuario</th>
                     <th class="column-title">Habilitado</th>
-                    <th class="column-title"></th>
+                    <th class="column-title" style="width:160px"></th>
                 </tr>
             </thead>
             <tbody>
@@ -77,7 +77,13 @@
 
                         @can('delete_tramitesHabilitados')
                             {!! Form::open(array('route' => array('tramitesHabilitados.destroy', $row->id), 'method' => 'delete')) !!}
-                                <button class='btn btn-danger pull-right btn-xs' type="submit"> Borrar <i class="fa fa-trash"></i> </button>
+                                <!-- <button class='btn btn-danger pull-right btn-xs' type="submit"> Borrar <i class="fa fa-trash"></i> </button> -->
+                                
+                                <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#deleteModal{{$row->id}}">
+                                    <i class="glyphicon glyphicon-trash"></i> Borrar 
+                                </button>
+                                @php $id = $row->id @endphp
+                                @include('includes.modal')
                             {!! Form::close() !!}
                         @endcan
                     </td>

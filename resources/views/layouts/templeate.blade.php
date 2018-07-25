@@ -73,9 +73,10 @@
                 </ul>
               </div>
             @endif
-
-            @include('flash::message') 
+            
+            @include('flash::message')
             @yield('content')
+            
           </div>
         <!-- /page content -->
 
