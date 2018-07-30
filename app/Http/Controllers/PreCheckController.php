@@ -82,8 +82,9 @@ class PreCheckController extends Controller
                                     ])
                                   ->leftjoin('validaciones_precheck','validaciones_precheck.tramite_a_iniciar_id','=','tramites_a_iniciar.id')
                                   ->leftjoin('sigeci','sigeci.idcita','=','tramites_a_iniciar.sigeci_idcita')
-                                  ->orderBy('validaciones_precheck.validado', 'desc')
+                                  ->orderBy('validaciones_precheck.validado', 'asc')
                                   ->first();
+      
     } 
 
     if(count($tramites)){
