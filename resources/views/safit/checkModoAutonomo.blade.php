@@ -78,10 +78,22 @@
         if (msj.error){
           if(msj.error.description)
             error =  msj.error.description
-        }else
+        }else{
           error =  'No verificado'
+        }
 
-        fecha_error = ((msj.error) ? msj.error.created_at : '')
+        //Si tiene un Plan de Pagos mostrar su fecha de vencimiento
+        if(error.toUpperCase().indexOf("PLAN DE PAGO") > -1){
+          var metadata = JSON.parse(msj.error.response_ws);
+          var data = metadata.filter(metadataObj => metadataObj.tag.indexOf("AUTORIZACION") > -1);
+          var fecha_vencimiento = JSON.stringify(data[0]['attributes']['FECHAVTOLICENCIA']);
+          fecha_error = '<span class="red"> Plan de Pago con Fecha Vencimiento: '+fecha_vencimiento+'</span>';
+          type = 'warning';
+
+        }else{
+          fecha_error = ((msj.error) ? msj.error.created_at : '')
+        }
+
       }
       html = '<li>'+
         '<div class="block_precheck">'+
@@ -197,14 +209,16 @@
     }
 
     $('#buscarTramite').on('click', function (e) {
+      $('#tramites tbody').empty();
+      limpiarCampos();
+      $('#logTurno').empty();
+
       $.ajax({
           headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
           type: "GET",
           url: '/buscarTramitesPrecheck',
           data: { nro_doc: $('#nro_doc').val(), },
           success: function( msg ) {
-            $('#tramites tbody').empty()
-            limpiarCampos()
             if(msg.error)
               mostrarMensajeError(msg.error)
             else

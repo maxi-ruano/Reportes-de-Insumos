@@ -55,7 +55,7 @@ class PreCheckController extends Controller
       $value->error = TramitesAIniciarErrores::whereIn('estado_error', $estado)
                              ->where('tramites_a_iniciar_id', $value->tramite_a_iniciar_id)
                              ->where('response_ws', '!=','""')
-                             ->select('description', 'id', 'created_at')
+                             ->select('description', 'id', 'created_at','response_ws')
                              ->orderBy('id', 'desc')
                              ->first();
     }
