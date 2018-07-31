@@ -5,18 +5,19 @@
 
 <div class="container">
     <div class="row">
-        <div class="col-sm-8 col-xs-8">
+        <div class="col-sm-8 col-xs-12">
             {!! Form::open(['method'=>'GET','url'=>'tramitesHabilitados','class'=>'navbar-form navbar-left','role'=>'search'])  !!}
             <div class="input-group">
                 <input type="text" class="form-control" name="search" placeholder="Buscar..." value="{{ Request::get('search') }}">
                 <span class="input-group-btn">
-                    <button class="btn btn-default-sm" type="submit"><i class="fa fa-search"></i></button>
+                    <input type="date" class="form-control" name="fecha" id="fecha" value={{ isset($_GET['fecha'])?$_GET['fecha']:date('Y-m-d') }}>
+                    <button id="buscar" class="btn btn-default-sm" type="submit"><i class="fa fa-search"></i></button>
                 </span>
             </div>
             {!! Form::close() !!}
         </div>
 
-        <div class="col-sm-4 col-xs-4 text-right">
+        <div class="col-sm-4 col-xs-12 text-right">
             <a href="{{route('tramitesHabilitados.index')}}" class="btn btn-primary"> Actualizar <i class="glyphicon glyphicon-refresh"></i> </a>
             @can('add_tramitesHabilitados')
                 <a href="{{route('tramitesHabilitados.create')}}" class="btn btn-primary">Nuevo <i class="glyphicon glyphicon-plus-sign"></i> </a>
@@ -26,7 +27,7 @@
 
     <div class="table-responsive">
     @if($data)
-        <table class="table table-striped jambo_table">
+        <table class="table table-striped jambo_table" data-form="deleteForm">
             <thead>
                 <tr>
                     <th class="column-title">Apellido</th>
@@ -68,15 +69,16 @@
                         @else
                             <input id="habilitado{{ $row->id }}" type="checkbox" onchange="habilitarTurno({{ $row->id }})" data-toggle="toggle"  data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60" >
                         @endif
-                    </td>                                                
+                    </td>                             
                     <td>
                         @can('edit_tramitesHabilitados')
                             <a href="{{ route('tramitesHabilitados.edit', $row->id) }}" class="btn btn-success pull-right btn-xs" title="Editar"> Editar <i class="fa fa-edit"></i></a>
                         @endcan
-
                         @can('delete_tramitesHabilitados')
-                            {!! Form::open(array('route' => array('tramitesHabilitados.destroy', $row->id), 'method' => 'delete')) !!}
-                                <button class='btn btn-danger pull-right btn-xs' type="submit"> Borrar <i class="fa fa-trash"></i> </button>
+                            {!! Form::open(array('route' => array('tramitesHabilitados.destroy', $row->id), 'method' => 'delete', 'class' => 'form-delete')) !!}
+                                <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete">
+                                    <i class="glyphicon glyphicon-trash"></i> Borrar 
+                                </button>
                             {!! Form::close() !!}
                         @endcan
                     </td>
