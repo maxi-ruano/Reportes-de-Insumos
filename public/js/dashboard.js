@@ -268,7 +268,6 @@ function init_charts() {
         var fecha = $("#fecha").val();
         var sucursales = [];
         var elementId = '';
-        $("#echart_sedes").empty();
 
         //Obtener sucursales
         $.ajax({
