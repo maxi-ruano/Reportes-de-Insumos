@@ -16,7 +16,7 @@ class UpdateNroDocStringInTramitesHabilitados extends Migration
         Schema::table('tramites_habilitados', function (Blueprint $table) {
             $table->string('nro_doc',10)->change();
         });
-        
+
         Schema::table('tramites_habilitados_log', function (Blueprint $table) {
             $table->string('nro_doc',10)->change();
         });
