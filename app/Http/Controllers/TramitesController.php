@@ -45,4 +45,59 @@ class TramitesController extends Controller
       return $consulta;
     }
 
+
+  //function get para API listar los tramites con licencias emitidas
+  public function get_licencias_emitidas(Request $request){
+    $estado_finalizado = '95';
+    $estado_completado = '14';
+
+    $tramites =  Tramites::selectRaw('
+                      tramites.tramite_id,
+                      tramites.nro_doc,
+                      datos_personales.apellido,
+                      datos_personales.nombre,
+                      datos_personales.sexo,
+                      licencias_otorgadas.nacionalidad,
+                      datos_personales.fec_nacimiento,
+                      datos_personales.correo,
+                      tramites.sucursal,
+                      tipo_tramites.descripcion AS tipo_tramite,
+                      tramites.estado,
+                      CAST(tramites.fec_inicio AS DATE),
+                      CAST(tramites.fec_inicio AS TIME(0)) AS hora_inicio,
+                      CAST(tramites_log.modification_date AS DATE) as fec_finalizacion,
+                      CAST(tramites_log.modification_date AS TIME(0)) as hora_finalizacion,
+                      CAST(tramites.fec_emision AS DATE),
+                      CAST(tramites.fec_vencimiento AS DATE),
+                      ansv_control.nro_control AS nro_insumo,
+                      licencias_otorgadas.clase AS categoria')
+                    ->join('licencias_otorgadas','licencias_otorgadas.tramite_id','tramites.tramite_id')
+                    ->join('tipo_tramites','tipo_tramites.tipo_tramite_id','tramites.tipo_tramite_id')
+                    ->join('datos_personales',function($join) {
+                        $join->on('datos_personales.nro_doc', '=', 'tramites.nro_doc');
+                        $join->on('datos_personales.tipo_doc', '=', 'tramites.tipo_doc');
+                        $join->on('datos_personales.sexo', '=', 'tramites.sexo');
+                    })
+                    ->join('tramites_log',function($join) use($estado_finalizado) {
+                      $join->on('tramites_log.tramite_id', 'tramites.tramite_id');
+                      $join->where('tramites_log.estado', $estado_finalizado);
+                    })
+                    ->join('ansv_control',function($join) {
+                      $join->on('ansv_control.tramite_id', '=', 'tramites.tramite_id');
+                      $join->where('ansv_control.liberado', 'false');
+                    })
+                    ->where('tramites.estado',$estado_completado)
+                    ->orderby('tramites_log.modification_date');
+    
+    if($request->vencida) 
+      $tramites->whereBetween('tramites.fec_vencimiento',[$request->desde,$request->hasta]);
+    else
+      $tramites->whereBetween('tramites.fec_emision',[$request->desde,$request->hasta]);
+
+    $consulta = $tramites->get();
+
+    return $consulta;
+
+  }
+
 }
