@@ -48,8 +48,11 @@ class TramitesController extends Controller
 
   //function get para API listar los tramites con licencias emitidas
   public function get_licencias_emitidas(Request $request){
-    $estado_finalizado = '95';
+    $estado_finalizado = '95'; 
     $estado_completado = '14';
+
+    //No limitar el limit Memory de PHP
+    ini_set('memory_limit', '-1');
 
     $tramites =  Tramites::selectRaw('
                       tramites.tramite_id,
@@ -87,14 +90,24 @@ class TramitesController extends Controller
                       $join->where('ansv_control.liberado', 'false');
                     })
                     ->where('tramites.estado',$estado_completado)
-                    ->orderby('tramites_log.modification_date');
+                    ->orderby('tramites.fec_inicio');
     
+    //validar si existen los parametros de busqueda por fecha (desde, hasta)
+    if(!isset($request->desde) || !isset($request->hasta))
+      return '<h2>Estimado usuario:</h2> Para realizar la consulta debe ingresar los parametros de búsqueda por fecha (desde,hasta). <br> Ejemplo: <h5>...api/reportes/get_licencias_emitidas?desde=2018-07-01&hasta=2018-07-31</h5>  <p>Puedes incluir tambien el parámetro de vencida para listar solo las licencias vencidas en ese rango de fechas.  <br> Ejemplo: <h5> ...api/reportes/get_licencias_emitidas?desde=2018-07-01&hasta=2018-07-31&vencida=true </h5> </p>';
+
+    //Comprobar si este el parametro de vencida para poder hacer el filtro
     if($request->vencida) 
       $tramites->whereBetween('tramites.fec_vencimiento',[$request->desde,$request->hasta]);
     else
       $tramites->whereBetween('tramites.fec_emision',[$request->desde,$request->hasta]);
 
+    //Se ejecuta la consulta final obtenida
     $consulta = $tramites->get();
+    
+    //Solo si existe el parametro para export en: xls, xlsx, txt, csv, entre otros.
+    if($request->export) 
+      $this->exportFile($consulta, $request->export, 'licenciasEmitidas');
 
     return $consulta;
 

@@ -101,22 +101,37 @@ class PreCheckController extends Controller
 
   //function get para API listar los tramites iniciados con estado on ó off 
   public function get_tramites_precheck(Request $request){
-    $tramiteController = new TramitesController();
-    return $tramiteController->consultarTramitesPrecheck($request->fecha, $request->estado);
+    
+    $fecha = ($request->fecha=='')?date("Y-m-d"):$request->fecha;
 
+    $tramiteController = new TramitesController();
+    $consulta = $tramiteController->consultarTramitesPrecheck($fecha, $request->estado);
+
+    if($request->export) 
+      $this->exportFile($consulta, $request->export, 'tramitesPrecheck'.$fecha);
+
+    return $consulta;
   }
 
   //function get para API listar los errores generados en el precheck
   public function get_errores_precheck(Request $request){
+
     $fecha = ($request->fecha=='')?date("Y-m-d"):$request->fecha;
     
+    //No limitar el limit Memory de PHP
+    ini_set('memory_limit', '-1');
+
     $errores = $this->consultar_errores_precheck($fecha);
 
-    $datos = [];
+    //Solo si existe el parametro para export en: xls, xlsx, txt, csv, entre otros.
+    $consulta = json_decode(json_encode($errores), true);
+    if($request->export) 
+      $this->exportFile($consulta, $request->export, 'erroresPrecheck'.$fecha);
     
+    //Preparar array de array - agrupando por idcita con sus errores
+    $datos = [];
     if(count($errores)){
       foreach ($errores as $key => $persona){
-        
         $datos[$persona->idcita] = ['nro_doc' => $persona->nro_doc, 'nombre' => $persona->nombre, 'apellido' => $persona->apellido, 'idcita' => $persona->idcita];
 
         foreach ($errores as $key => $error){
@@ -132,6 +147,7 @@ class PreCheckController extends Controller
     }else{
       $datos['mensaje']= "No existen registros de errores con fecha ".$fecha; 
     }
+    
     return response()->json($datos);
   }
 

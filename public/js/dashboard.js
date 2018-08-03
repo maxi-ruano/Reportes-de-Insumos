@@ -299,6 +299,32 @@ function init_charts() {
             data: {fecha: fecha },
             type: "GET", 
             success: function(datos){
+                //Solo para manejar los datos de forma manual ---Pierre
+               /* var datos = [
+                    {sucursal_id: 1, estacion_id: 2, estacion: "Fotografia", cant: 4},
+                    {sucursal_id: 1, estacion_id: 3, estacion: "Vision", cant: 1},
+                    {sucursal_id: 1, estacion_id: 4, estacion: "Audio", cant: 2},
+                    {sucursal_id: 1, estacion_id: 5, estacion: "Psicologia", cant: 11},
+                    {sucursal_id: 1, estacion_id: 6, estacion: "Medico", cant:5},
+                    {sucursal_id: 1, estacion_id: 12, estacion: "Auditoría", cant: 6},
+                    {sucursal_id: 1, estacion_id: 13, estacion: "Impresion", cant: 8},
+
+                    {sucursal_id: 10, estacion_id: 2, estacion: "Fotografia", cant: 9},
+                    {sucursal_id: 10, estacion_id: 3, estacion: "Vision", cant: 5},
+                    {sucursal_id: 10, estacion_id: 4, estacion: "Audio", cant: 6},
+                    {sucursal_id: 10, estacion_id: 5, estacion: "Psicologia", cant: 11},
+                    {sucursal_id: 10, estacion_id: 6, estacion: "Medico", cant: 4},
+                    {sucursal_id: 10, estacion_id: 12, estacion: "Auditoría", cant:3},
+                    {sucursal_id: 10, estacion_id: 13, estacion: "Impresion", cant: 2},
+
+                    {sucursal_id: 40, estacion_id: 2, estacion: "Fotografia", cant: 4},
+                    {sucursal_id: 40, estacion_id: 3, estacion: "Vision", cant: 13},
+                    {sucursal_id: 40, estacion_id: 4, estacion: "Audio", cant: 11},
+                    {sucursal_id: 40, estacion_id: 5, estacion: "Psicologia", cant: 17},
+                    {sucursal_id: 40, estacion_id: 6, estacion: "Medico", cant: 12},
+                    {sucursal_id: 40, estacion_id: 12, estacion: "Auditoría", cant: 15},
+                    {sucursal_id: 40, estacion_id: 13, estacion: "Impresion", cant: 6}
+                ];*/
                 generarGraficoSucursales('echart_sedes',datos,sucursales);
             }
         });
@@ -388,6 +414,10 @@ function init_charts() {
         
         //Obtener la descripcion de las estaciones que se generaron en datos
         var hours = [...(new Set(datos.map(({ estacion }) => estacion)))];
+
+        //Ingresar datos manualmente
+        //var hours = ['Fotográfia','Visión','Audio','Psicología','Médico','Auditoria','Impresion'];
+        
 
         option = {
             title: [],
