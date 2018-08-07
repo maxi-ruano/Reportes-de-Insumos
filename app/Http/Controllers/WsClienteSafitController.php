@@ -9,11 +9,15 @@ use App\ModoAutonomoLog;
 
 class WsClienteSafitController extends Controller
 {
-	// var $url = 'https://testing.safit.com.ar/service/s_001.php?wsdl';
-  var $url = 'https://www.safit.com.ar/service/s_001.php?wsdl';        
+  var $url = 'https://testing.safit.com.ar/service/s_001.php?wsdl';
+  var $uswID = '000004';
+  var $uswPassword = '1sdfr45g347dkf8gs0d';
+  var $uswHash = 'e10adc3949ba59abbe56e057f20f883e';
+
+/*  var $url = 'https://www.safit.com.ar/service/s_001.php?wsdl';        
   var $uswID = '000016';
   var $uswPassword = 'weporjgsdf41654';
-  var $uswHash = 'e10adc3949ba59abbe56e057f20f883e';
+  var $uswHash = 'e10adc3949ba59abbe56e057f20f883e'; */
   var $munID = '1';
   var $ingID = null;
   var $wsSafit = [];
@@ -22,10 +26,11 @@ class WsClienteSafitController extends Controller
 
   public function __construct(){
       $this->createClienteSoap();
-      $this->iniciarSesion();
+      //$this->iniciarSesion();
   }
 
   public function iniciarSesion(){
+
     $res = null;
     try {
       $res = $this->cliente->abrir_sesion( $this->uswID,
@@ -121,6 +126,10 @@ class WsClienteSafitController extends Controller
                          "codigoComprobante" => $tramiteAIniciar->bop_id);
     $res = null;
     try {
+
+      if(!$this->existeSession())
+        $this->iniciarSesion();
+
       $res = $this->cliente->obtener_certificado_virtual_pago($this->uswID,
                                                               $this->ingID,
                                                               $this->munID,
@@ -136,6 +145,13 @@ class WsClienteSafitController extends Controller
 
   public function consultarBoletaPago($bopCB, $cemID){
     try {
+
+      //Comrpbar si existe la session abierta, iniciar en caso de no estar iniciada
+      dd($this->existeSession());
+      
+      if(!$this->existeSession())
+        $this->iniciarSesion();
+
       $res = $this->cliente->consultar_boleta_pago( $this->uswID,
                                                     $this->ingID,
                                                     $this->munID,

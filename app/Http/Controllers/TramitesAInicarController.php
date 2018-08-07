@@ -671,12 +671,13 @@ class TramitesAInicarController extends Controller
   public function consultarBoletaPago(Request $request){
 	  $emision = null;
 	  if($request->bop_cb < 999999999)
-	  $emision = EmisionBoletaSafit::where('numero_boleta', $request->bop_cb)->first();
-	      if ($emision === null) {
-    $res = $this->wsSafit->consultarBoletaPago($request->bop_cb, $request->cem_id);
-    if(isset($res->rspID)){
-      if($res->rspID == 1){
-        $boleta = (object) array('nro_doc' => $res->datosBoletaPago->datosPersonaBoletaPago->oprDocumento,
+	    $emision = EmisionBoletaSafit::where('numero_boleta', $request->bop_cb)->first();
+    
+    if ($emision === null) {
+      $res = $this->wsSafit->consultarBoletaPago($request->bop_cb, $request->cem_id);
+      if(isset($res->rspID)){
+        if($res->rspID == 1){
+          $boleta = (object) array('nro_doc' => $res->datosBoletaPago->datosPersonaBoletaPago->oprDocumento,
                                  'tipo_doc' => $res->datosBoletaPago->datosPersonaBoletaPago->tdcID,
                                  'sexo' => $res->datosBoletaPago->datosPersonaBoletaPago->oprSexo,
                                  'nombre' => $res->datosBoletaPago->datosPersonaBoletaPago->oprNombre,
@@ -687,20 +688,20 @@ class TramitesAInicarController extends Controller
                                  'bop_fec_pag' => $res->datosBoletaPago->bopFecPag,
                                  'cem_id' => $request->cem_id);
 
-        return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+          return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
                                              ->with('boleta', $boleta);
-      }else{
-        return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+        }else{
+          return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
                                              ->with('error', $res->rspDescrip);
-      }
-    }else {
-      return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+        }
+      }else{
+          return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
                                            ->with('error', 'Ha ocurrido un error inesperado: '.$res);
-    }
-	      }else{
+      }
+	  }else{
 	      return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
 		                                                ->with('success', 'El Cenat ya fue emitido');
-	      }
+	  }
   }
 
   public function buscarBoletaPago(Request $request){
