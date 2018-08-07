@@ -85,7 +85,7 @@ class TramitesHabilitadosController extends Controller
         try{
             //validar nro_doc solo si es pasaporte acepte letras y numeros de lo contrario solo numeros
             if($request->tipo_doc== '4')
-                $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^([a-zA-Z]+)(\d+)?$)/u']);
+                $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/^[0-9a-zA-Z]+$/']);
             else
                 $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^(\d+)?$)/u']);
 
@@ -170,7 +170,7 @@ class TramitesHabilitadosController extends Controller
     {
         //validar nro_doc solo si es pasaporte acepte letras y numeros de lo contrario solo numeros
         if($request->tipo_doc== '4')
-            $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^([a-zA-Z]+)(\d+)?$)/u']);
+            $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/^[0-9a-zA-Z]+$/']);
         else
             $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^(\d+)?$)/u']);
 
