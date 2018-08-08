@@ -4,9 +4,17 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Tramites;
+use App\Http\Controllers\SigeciController;
 
 class TramitesController extends Controller
 {
+    //Ignore los Estado Borrado o Cancelado
+    private $estadosIgnore = ['93','94']; 
+    
+    public function __construct() {
+      $this->Sigeci = new SigeciController();
+    }
+
     public function buscarTramite(Request $request){
       $tramite = Tramites::where('nro_doc',$request->nro_doc)
                           ->where('tipo_doc',$request->tipo_doc)
@@ -26,23 +34,54 @@ class TramitesController extends Controller
                               $join->on('tramites_a_iniciar.nacionalidad', '=', 'ansv_paises.id_ansv');
                               $join->on('tramites.nro_doc', '=', \DB::raw('CAST(tramites_a_iniciar.nro_doc AS varchar(10))'));
                           })
-                          ->whereIn('tramites_a_iniciar.sigeci_idcita', function($query) use ($fecha) {
-                              $query->select('idcita')->from('sigeci')->where('fecha',$fecha);
-                          })
-                          ->whereNotIn('tramites.estado',['93','94'])
+                          ->whereIn('tramites_a_iniciar.sigeci_idcita',$this->Sigeci->getTurnos($fecha)->pluck('idcita')->toArray())
+                          ->whereNotIn('tramites.estado',$this->estadosIgnore)
                           ->whereRaw("CAST(tramites.fec_inicio as date) >= '".$fecha."' ")
                           ->groupBy('tramites.tramite_id')
                           ->orderby('tramites.nro_doc');
 
-      if($estado == 'on') 
-        $tramites->where('tramites_a_iniciar.estado','6');
+      if($estado == 'on')
+        $tramites->whereIn('tramites_a_iniciar.id',$this->TramitesAIniciarCompletados($fecha)->pluck('id')->toArray());
       
       if($estado == 'off') 
-        $tramites->where('tramites_a_iniciar.estado','!=','6');
+        $tramites->whereNotIn('tramites_a_iniciar.id',$this->TramitesAIniciarCompletados($fecha)->pluck('id')->toArray());
 
       $consulta = $tramites->get();
 
       return $consulta;
     }
+
+    public function TramitesAIniciarCompletados($fecha) {
+      $consulta = \DB::table('tramites_a_iniciar')
+                        ->join('sigeci','sigeci.idcita','tramites_a_iniciar.sigeci_idcita')
+                        ->where('sigeci.fecha',$fecha)
+                        ->whereNotIn('tramites_a_iniciar.id', function($query) use($fecha) {
+                          $query->select('validaciones_precheck.tramite_a_iniciar_id')
+                                ->from("validaciones_precheck")
+                                ->join('tramites_a_iniciar','tramites_a_iniciar.id','validaciones_precheck.tramite_a_iniciar_id')
+                                ->join('sigeci','sigeci.idcita','tramites_a_iniciar.sigeci_idcita')
+                                ->where('sigeci.fecha',$fecha)
+                                ->where('validaciones_precheck.validado','false')
+                                ->groupBy('validaciones_precheck.tramite_a_iniciar_id');  
+                        })->get();
+      return $consulta;
+      
+    }
+
+  /*
+  public function getValidacionesPrecheck($fecha, $validado='', $estado='') {
+
+      $consulta = \DB::table("validaciones_precheck")
+                      ->join('tramites_a_iniciar','tramites_a_iniciar.id','validaciones_precheck.tramite_a_iniciar_id')
+                      ->whereIn('tramites_a_iniciar.sigeci_idcita',$this->Sigeci->getTurnos($fecha)->pluck('idcita')->toArray());
+      if($estado)
+        $consulta->where('validaciones_precheck.validation_id',$estado);
+      
+      if($validado)
+        $consulta->where('validaciones_precheck.validado',$validado);
+
+    return $consulta->get();
+    
+  }*/
 
 }

@@ -5,11 +5,20 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Sigeci;
 use App\Tramites;
+use App\TramitesAIniciar;
 use App\SysMultivalue;
+use App\Http\Controllers\SigeciController;
 use App\Http\Controllers\TramitesController;
+use App\Http\Controllers\TramitesAIniciarController;
 
 class DashboardController extends Controller
 {
+    public function __construct() {
+        $this->Sigeci = new SigeciController();
+        $this->Tramites = new TramitesController();
+    }
+
+
     public function consultaDashboard(Request $request){
         
         $fecha = isset($request->fecha)?date('Y-m-d', strtotime($request->fecha)):date('Y-m-d');
@@ -18,7 +27,6 @@ class DashboardController extends Controller
         $precheck = \DB::select("SELECT
                                 count(DISTINCT sigeci.numdoc) as turnos,
                                 count (DISTINCT tramites_a_iniciar.sigeci_idcita) as tramitesainiciar,
-                                count (DISTINCT (case when tramites_a_iniciar.estado = 6 then sigeci.numdoc else null end) ) as tramitesainiciar_ok,
                                 count (case when validaciones_precheck.validation_id = 3 and validaciones_precheck.validado=true then 1 else null end) as safit,
                                 count (case when validaciones_precheck.validation_id = 4 and validaciones_precheck.validado=true then 1 else null end) as libredeuda,
                                 count (case when validaciones_precheck.validation_id = 5 and validaciones_precheck.validado=true then 1 else null end) as bui
@@ -26,19 +34,22 @@ class DashboardController extends Controller
                             LEFT JOIN tramites_a_iniciar ON tramites_a_iniciar.sigeci_idcita = sigeci.idcita
                             LEFT JOIN validaciones_precheck ON validaciones_precheck.tramite_a_iniciar_id = tramites_a_iniciar.id
                             WHERE sigeci.fecha = '".$fecha."'");
-        
-        $turnos                 = Sigeci::where("sigeci.fecha",$fecha)->count();
+    
+        $turnos                 = $this->Sigeci->getTurnos($fecha)->count();
         $tramitesainiciar       = $precheck[0]->tramitesainiciar;
-        $tramitesainiciar_ok    = $precheck[0]->tramitesainiciar_ok;
+        $tramitesainiciar_ok    = $this->Tramites->TramitesAIniciarCompletados($fecha)->count();
         $safit                  = $precheck[0]->safit;
         $libredeuda             = $precheck[0]->libredeuda;
         $bui                    = $precheck[0]->bui;
 
+        /*$safit                  = $this->Tramites->getValidacionesPrecheck($fecha,true,'3')->count();
+        $libredeuda             = $this->Tramites->getValidacionesPrecheck($fecha,true,'4')->count();
+        $bui                    = $this->Tramites->getValidacionesPrecheck($fecha,true,'5')->count();*/
+
         //2)TOTAL TRAMITES INICIADOS CON PRECHECK ON - OFF
-        $tramiteController = new TramitesController();
-        $total_tramites         = $tramiteController->consultarTramitesPrecheck($fecha)->count();
-        $tramitesprecheck_on    = $tramiteController->consultarTramitesPrecheck($fecha,'on')->count();
-        $tramitesprecheck_off   = $tramiteController->consultarTramitesPrecheck($fecha,'off')->count();
+        $total_tramites         = $this->Tramites->consultarTramitesPrecheck($fecha)->count();
+        $tramitesprecheck_on    = $this->Tramites->consultarTramitesPrecheck($fecha,'on')->count();
+        $tramitesprecheck_off   = $this->Tramites->consultarTramitesPrecheck($fecha,'off')->count();
 
         //Preparar un array para los datos a mostrar
         $datos_precheck[0] = ['titulo' => 'TURNOS', 'subtitulo' => 'en tramites a iniciar', 'total' => $turnos, 'porc' => '100', 'ico' => 'fa fa-user'];
