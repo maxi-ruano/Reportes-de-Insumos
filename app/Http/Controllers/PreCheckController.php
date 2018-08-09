@@ -132,7 +132,7 @@ class PreCheckController extends Controller
     $datos = [];
     if(count($errores)){
       foreach ($errores as $key => $persona){
-        $datos[$persona->idcita] = ['nro_doc' => $persona->nro_doc, 'nombre' => $persona->nombre, 'apellido' => $persona->apellido, 'idcita' => $persona->idcita];
+        $datos[$persona->idcita] = ['idcita' => $persona->idcita, 'tipo_doc' => $persona->tipo_doc, 'nro_doc' => $persona->nro_doc, 'nombre' => $persona->nombre, 'apellido' => $persona->apellido, 'sexo' => $persona->sexo];
 
         foreach ($errores as $key => $error){
           if($persona->idcita == $error->idcita){
@@ -153,39 +153,41 @@ class PreCheckController extends Controller
 
   public function consultar_errores_precheck($fecha){
 
-    $campos = "SELECT 
+      $campos = "SELECT 
                   sigeci_idcita as idcita, 
                   tramites_a_iniciar.nro_doc,
+                  MAX(sys_multivalue_tdoc.description) as tipo_doc,
                   MAX(tramites_a_iniciar.nombre) as nombre,
                   MAX(tramites_a_iniciar.apellido) AS apellido,
+                  MAX(tramites_a_iniciar.sexo) AS sexo,
                   tramites_a_iniciar_errores.tramites_a_iniciar_id,
                   validaciones_precheck.validation_id,
                   MAX(sys_multivalue.description) as validation_nombre,
                   MAX(tramites_a_iniciar_errores.description) as description, 
                   MAX(tramites_a_iniciar_errores.created_at) as created_at ";
-    
+
+      $table = "FROM tramites_a_iniciar_errores 
+                INNER JOIN tramites_a_iniciar ON tramites_a_iniciar.id = tramites_a_iniciar_errores.tramites_a_iniciar_id
+                INNER JOIN sigeci ON sigeci.idcita = tramites_a_iniciar.sigeci_idcita
+                LEFT JOIN sys_multivalue sys_multivalue_tdoc ON sys_multivalue_tdoc.id = tramites_a_iniciar.tipo_doc AND sys_multivalue_tdoc.type = 'TDOC'
+                 ";
+     
       //Consulta para errores de Safit con estado_errores (2,3) y validaciones precheck (3)(false)
-      $errores_safit = \DB::select($campos."
-                      FROM tramites_a_iniciar_errores
-                        INNER JOIN tramites_a_iniciar ON tramites_a_iniciar.id = tramites_a_iniciar_errores.tramites_a_iniciar_id
+      $errores_safit = \DB::select($campos.$table."
                         INNER JOIN validaciones_precheck ON validaciones_precheck.tramite_a_iniciar_id = tramites_a_iniciar.id and 
                           validaciones_precheck.validation_id = 3 and validaciones_precheck.validado = false
-                        LEFT JOIN sys_multivalue ON sys_multivalue.id = validaciones_precheck.validation_id AND type = 'VALP'
-                        INNER JOIN sigeci ON sigeci.idcita = tramites_a_iniciar.sigeci_idcita
+                        LEFT JOIN sys_multivalue ON sys_multivalue.id = validaciones_precheck.validation_id AND sys_multivalue.type = 'VALP'
                       WHERE sigeci.fecha = '".$fecha."' and tramites_a_iniciar_errores.estado_error IN('2','3') and tramites_a_iniciar_errores.response_ws <> '\"\"'
-                      GROUP BY tramites_a_iniciar.nro_doc, sigeci_idcita,  tramites_a_iniciar_errores.tramites_a_iniciar_id, validaciones_precheck.validation_id
+                      GROUP BY tramites_a_iniciar.tipo_doc, tramites_a_iniciar.nro_doc, sigeci_idcita,  tramites_a_iniciar_errores.tramites_a_iniciar_id, validaciones_precheck.validation_id
                       ORDER BY sigeci_idcita ASC ");
 
       //Consulta para errores de Libre Deuda y BUI con estado_errores (4,5) y validaciones precheck (4,5)(false)
-      $errores_ldbui = \DB::select($campos."                      
-                      FROM tramites_a_iniciar_errores
-                        INNER JOIN tramites_a_iniciar ON tramites_a_iniciar.id = tramites_a_iniciar_errores.tramites_a_iniciar_id
+      $errores_ldbui = \DB::select($campos.$table."                      
                         INNER JOIN validaciones_precheck ON validaciones_precheck.tramite_a_iniciar_id = tramites_a_iniciar.id and 
                           validaciones_precheck.validation_id = tramites_a_iniciar_errores.estado_error and validaciones_precheck.validado = false
-                        LEFT JOIN sys_multivalue ON sys_multivalue.id = validaciones_precheck.validation_id AND type = 'VALP'
-                        INNER JOIN sigeci ON sigeci.idcita = tramites_a_iniciar.sigeci_idcita
+                        LEFT JOIN sys_multivalue ON sys_multivalue.id = validaciones_precheck.validation_id AND sys_multivalue.type = 'VALP'
                       WHERE sigeci.fecha = '".$fecha."' and tramites_a_iniciar_errores.estado_error IN('4','5') and tramites_a_iniciar_errores.response_ws <> '\"\"'
-                      GROUP BY tramites_a_iniciar.nro_doc, sigeci_idcita, tramites_a_iniciar_errores.tramites_a_iniciar_id, validaciones_precheck.validation_id, tramites_a_iniciar_errores.estado_error
+                      GROUP BY tramites_a_iniciar.tipo_doc, tramites_a_iniciar.nro_doc, sigeci_idcita, tramites_a_iniciar_errores.tramites_a_iniciar_id, validaciones_precheck.validation_id, tramites_a_iniciar_errores.estado_error
                       ORDER BY sigeci_idcita ASC, tramites_a_iniciar_errores.estado_error ASC ");
 
       $consulta = array_merge($errores_safit,$errores_ldbui);
