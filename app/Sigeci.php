@@ -22,4 +22,11 @@ class Sigeci extends Model
     else 
       return null;  
   }
+
+  public function getSexo(){
+    if(isset(json_decode($this->metadata)->sexo))
+      return json_decode($this->metadata)->sexo;
+    else 
+      return null;  
+  }
 }

@@ -164,6 +164,7 @@ class TramitesAInicarController extends Controller
         $tramiteAIniciar->fecha_nacimiento = $turno->fechanac;
       $tramiteAIniciar->estado = $siguienteEstado;
       $tramiteAIniciar->sigeci_idcita = $turno->idcita;
+      $tramiteAIniciar->sexo = $turno->getSexo();
       $saved = $tramiteAIniciar->save();
       $turno->tramite_a_iniciar_id = $tramiteAIniciar->id;
       $turno->save();
