@@ -831,5 +831,24 @@ class TramitesAInicarController extends Controller
       $res = false;
     return $res;  
   }
+
+  /* 
+  FUNCIONES PARA TURNOS VENCIDOS
+  public function revisarTurnosVencidos(){
+    $last_date = date('Y-m-d', strtotime('-'.DIAS_VALIDEZ_TURNO.' days', strtotime(date('Y-m-d'))));
+    TramitesAIniciar::leftJoin('sigeci', 'tramites_a_iniciar.id', '=', 'sigeci.tramite_a_iniciar_id')
+                    ->where('sigeci.fecha', '<=', $last_date)
+                    ->where('tramites_a_iniciar.estado', '<>', VALIDACIONES_COMPLETAS)
+                    ->update(['estado' => TURNO_VENCIDO]);
+  }
+
+  public function buscarBoletaCenatEnTramitesViejos($tramite){
+    TramitesAIniciar::where('nro_doc', $tramite->nro_doc)
+                    ->where('tipo_doc', $tramite->tipo_doc)
+                    ->where('estado', TURNO_VENCIDO)
+                    ->where('tramite_a_iniciar_id', TURNO_VENCIDO)
+                    ->get();
+  }
+  */
 }
 //35355887F de otra jurisdiccion // 29543881 de CABA
