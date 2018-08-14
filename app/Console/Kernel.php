@@ -27,7 +27,8 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')
         //          ->hourly();
         $schedule->call('App\Http\Controllers\MicroservicioController@run')
-                ->dailyAt('16:00');
+                 ->weekdays()
+                 ->at('15:30');
     }
 
     /**
