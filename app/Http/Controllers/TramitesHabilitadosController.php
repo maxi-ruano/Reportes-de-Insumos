@@ -20,7 +20,6 @@ class TramitesHabilitadosController extends Controller
      */
     public function index(Request $request)
     {
-        throw new \Exception('Simulando un error');
         
         $fecha = isset($_GET['fecha'])?$_GET['fecha']:date('Y-m-d');
 
