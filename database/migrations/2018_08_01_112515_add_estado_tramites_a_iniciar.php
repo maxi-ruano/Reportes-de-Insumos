@@ -15,6 +15,14 @@ class AddEstadoTramitesAIniciar extends Migration
     {
         DB::table('sys_multivalue')->insert(array(
             'type' => 'AUTO',
+            'description' => 'Boletas de Precheck Utilizadas en un tramite',
+            'text_id' => 'PRECHEK_UTILIZADO',
+            'id' => '9',
+            'rowid' => '3939'
+        ));
+
+        DB::table('sys_multivalue')->insert(array(
+            'type' => 'AUTO',
             'description' => 'Se vencio el turno',
             'text_id' => 'TURNO_VENCIDO',
             'id' => '8',
@@ -39,5 +47,6 @@ class AddEstadoTramitesAIniciar extends Migration
     {
         DB::table('sys_multivalue')->whereIn('rowid', '3937')->delete();
         DB::table('sys_multivalue')->whereIn('rowid', '3938')->delete();
+        DB::table('sys_multivalue')->whereIn('rowid', '3939')->delete();
     }
 }
