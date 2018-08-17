@@ -14,6 +14,7 @@
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 
     <link href="{{ asset('build/css/custom.da.css')}}" rel="stylesheet">
+    <link href="{{ asset('css/hover_effects.css') }}" rel="stylesheet">
 
     <!-- Scripts -->
     <script>

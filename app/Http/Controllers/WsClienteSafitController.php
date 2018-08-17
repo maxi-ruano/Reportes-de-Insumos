@@ -6,32 +6,32 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\SoapController;
 use SoapClient;
 use App\ModoAutonomoLog;
+use App\SysConfig;
 
 class WsClienteSafitController extends Controller
 {
-	// var $url = 'https://testing.safit.com.ar/service/s_001.php?wsdl';
+  /*var $url = 'https://testing.safit.com.ar/service/s_001.php?wsdl';
+  var $uswID = '000004';
+  var $uswPassword = '1sdfr45g347dkf8gs0d';
+  var $uswHash = 'e10adc3949ba59abbe56e057f20f883e';
+  */
   var $url = 'https://www.safit.com.ar/service/s_001.php?wsdl';        
   var $uswID = '000016';
   var $uswPassword = 'weporjgsdf41654';
   var $uswHash = 'e10adc3949ba59abbe56e057f20f883e';
   var $munID = '1';
   var $ingID = null;
-  var $wsSafit = [];
   var $cliente = null;
   var $sesID = null;
-
-  public function __construct(){
-      $this->createClienteSoap();
-      $this->iniciarSesion();
-  }
-
+  
   public function iniciarSesion(){
     $res = null;
     try {
+      $this->createClienteSoap();
       $res = $this->cliente->abrir_sesion( $this->uswID,
                                            $this->uswPassword,
                                            $this->uswHash );
-      $this->sisID = $res->sesID;
+      $this->sesID = $res->sesID;
       $this->ingID = $res->ingID;
     }catch(\Exception $e) {
       ModoAutonomoLog::create(array('ws' => 'safit-abrir_sesion', 'description' => $e->getMessage()));
@@ -40,10 +40,7 @@ class WsClienteSafitController extends Controller
   }
 
   public function cerrarSesion(){
-    $parametros = array();
-    $parametros['uswID'] = $uswID;
-    $parametros['uswPassword'] = $uswPassword;
-    $parametros['uswHash'] = $uswHash;
+    $this->cliente->cerrar_sesion($this->uswID, $this->ingID);
   }
 
   public function getBoletas($persona){
@@ -66,14 +63,6 @@ class WsClienteSafitController extends Controller
       ModoAutonomoLog::create(array('ws' => 'safit-consultar_boleta_pago_persona', 'description' => $e->getMessage()));
     }
     return $res;
-  }
-
-  public function soapClienteDispoble(){
-
-  }
-
-  public function existeSession(){
-    return $this->ingID != null;
   }
 
   public function existeClienteSoap(){
@@ -147,4 +136,66 @@ class WsClienteSafitController extends Controller
     }
     return $res;
   }
+
+  public function verificarSwSafit(){
+    $res = false;
+    $this->createClienteSoap();
+    $res = $this->cliente->eco();
+    if(isset($res->safDisponible))
+      if($res->safDisponible == 1)
+        $res = true;
+    return false;
+  }
+
+  //No usado
+  /*
+  public function createClienteSoapPersistente(){
+    //Referencia https://gist.github.com/mawo/32f7ccbe60f7db42fc265899867a64aa
+    session_start();
+    $context = stream_context_create(array(
+        'ssl' => array(
+        'verify_peer' => false,
+        'verify_peer_name' => false,
+        'allow_self_signed' => true
+        )
+    ));
+    $soapClientOptions = array(
+            'stream_context' => $context,
+            'soap_version' => SOAP_1_1,
+            'cache_wsdl' => WSDL_CACHE_NONE,
+            'trace' => 1,
+            'exceptions' => true
+    );
+    $this->cliente = new SoapClient($this->url, $soapClientOptions);
+    if (isset($_SESSION['soap_cookies'])) {
+      foreach ($_SESSION['soap_cookies'] as $cookieName =>$cookieValues) {
+        $client->__setCookie($cookieName, $cookieValues[0]);
+      }
+    } else {
+      $client->hello();
+      $_SESSION['soap_cookies'] = $client->_cookies;
+    }
+
+    public function actualizarUltimoUsoSession(){
+    $config = SysConfig::where('name', 'SafitWS')
+                       ->where('param', 'ingID')
+                       ->update(['modification_date' => date("Y-m-d H:i:s")]);
+    
+  }
+  }
+  
+  public function existeSession(){
+    $res = false;
+    $config = SysConfig::where('name', 'SafitWS')
+                       ->where('param', 'ingID')
+                       ->where('modification_date', '>', date("Y-m-d H:i:s", strtotime('-1 hour')))
+                       ->first();
+    if($config){
+      $res = $config->value != null;
+      $this->ingID = $config->value;
+    }
+    
+    return $res;  
+  }
+  */
 }

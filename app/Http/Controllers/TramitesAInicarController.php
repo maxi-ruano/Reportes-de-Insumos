@@ -63,11 +63,11 @@ class TramitesAInicarController extends Controller
   }
 
   public function completarBoletasEnTramitesAIniciar($estadoActual, $siguienteEstado){
-    if(is_null($this->wsSafit->cliente))
-      return "El Ws de SAFIT no responde, por favor revise la conexion, o contactese con Nacion";
+    if(!$this->wsSafit->verificarSwSafit())
+      return "El servicio de safit no responde, por favor comuniquese con computo para hacer el reclamo";
 
     $personas = $this->getTramitesAIniciar($estadoActual, $this->fecha_inicio, $this->fecha_fin);
-
+    $this->wsSafit->iniciarSesion();
     foreach ($personas as $key => $persona)  {
       try {
         $persona = TramitesAIniciar::find($persona->id);
@@ -82,6 +82,7 @@ class TramitesAInicarController extends Controller
         $this->guardarError((object)$array, $siguienteEstado, $persona->id);
       }
     }
+    $this->wsSafit->cerrarSesion();
   }
 
   public function getTramitesAIniciar($estado, $fecha_inicio, $fecha_fin){
@@ -190,7 +191,9 @@ class TramitesAInicarController extends Controller
 
   public function getBoleta($persona){
     $res = array('error' => '');
+    $this->wsSafit->iniciarSesion();
     $boletas = $this->wsSafit->getBoletas($persona);
+    $this->wsSafit->cerrarSesion();
     $boleta = null;
     if(!empty($boletas->datosBoletaPago->datosBoletaPagoParaPersona))
       foreach ($boletas->datosBoletaPago->datosBoletaPagoParaPersona as $key => $boletaI) {
@@ -244,9 +247,8 @@ class TramitesAInicarController extends Controller
   }
 
   public function emitirBoletasVirtualPago($estadoActual, $estadoValidacion, $siguienteEstado){
-    if(is_null($this->wsSafit->cliente))
-      return "El Ws de SAFIT no responde, por favor revise la conexion, o contactese con Safit";
     $tramitesAIniciar = $this->getTramitesAIniciar($estadoActual, $this->fecha_inicio, $this->fecha_fin);
+    $this->wsSafit->iniciarSesion();
     foreach ($tramitesAIniciar as $key => $tramiteAIniciar) {
       try{
         $demorado = false;
@@ -286,6 +288,7 @@ class TramitesAInicarController extends Controller
         $this->guardarError((object)$array, $siguienteEstado, $tramiteAIniciar->id);
       }
     }
+    $this->wsSafit->cerrarSesion();
   }
 
   public function getIdPais($pais){
@@ -672,12 +675,15 @@ class TramitesAInicarController extends Controller
   public function consultarBoletaPago(Request $request){
 	  $emision = null;
 	  if($request->bop_cb < 999999999)
-	  $emision = EmisionBoletaSafit::where('numero_boleta', $request->bop_cb)->first();
-	      if ($emision === null) {
-    $res = $this->wsSafit->consultarBoletaPago($request->bop_cb, $request->cem_id);
-    if(isset($res->rspID)){
-      if($res->rspID == 1){
-        $boleta = (object) array('nro_doc' => $res->datosBoletaPago->datosPersonaBoletaPago->oprDocumento,
+	    $emision = EmisionBoletaSafit::where('numero_boleta', $request->bop_cb)->first();
+    
+    if ($emision === null) {
+      $this->wsSafit->iniciarSesion();
+      $res = $this->wsSafit->consultarBoletaPago($request->bop_cb, $request->cem_id);
+      $this->wsSafit->cerrarSesion();
+      if(isset($res->rspID)){
+        if($res->rspID == 1){
+          $boleta = (object) array('nro_doc' => $res->datosBoletaPago->datosPersonaBoletaPago->oprDocumento,
                                  'tipo_doc' => $res->datosBoletaPago->datosPersonaBoletaPago->tdcID,
                                  'sexo' => $res->datosBoletaPago->datosPersonaBoletaPago->oprSexo,
                                  'nombre' => $res->datosBoletaPago->datosPersonaBoletaPago->oprNombre,
@@ -688,20 +694,20 @@ class TramitesAInicarController extends Controller
                                  'bop_fec_pag' => $res->datosBoletaPago->bopFecPag,
                                  'cem_id' => $request->cem_id);
 
-        return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+          return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
                                              ->with('boleta', $boleta);
-      }else{
-        return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+        }else{
+          return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
                                              ->with('error', $res->rspDescrip);
-      }
-    }else {
-      return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
+        }
+      }else{
+          return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
                                            ->with('error', 'Ha ocurrido un error inesperado: '.$res);
-    }
-	      }else{
+      }
+	  }else{
 	      return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores())
 		                                                ->with('success', 'El Cenat ya fue emitido');
-	      }
+	  }
   }
 
   public function buscarBoletaPago(Request $request){
@@ -733,7 +739,9 @@ class TramitesAInicarController extends Controller
                              'cem_id' => $request->cem_id);
     $emision = EmisionBoletaSafit::where('numero_boleta', $request->bop_id)->first();
     if ($emision === null) {
+        $this->wsSafit->iniciarSesion();
         $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAInicar);
+        $this->wsSafit->cerrarSesion();
       if(isset($res->rspID)){
         if($res->rspID == 1){
     			if(isset($res->reincidencias->rspReincidente))
@@ -831,5 +839,24 @@ class TramitesAInicarController extends Controller
       $res = false;
     return $res;  
   }
+
+  /* 
+  FUNCIONES PARA TURNOS VENCIDOS
+  public function revisarTurnosVencidos(){
+    $last_date = date('Y-m-d', strtotime('-'.DIAS_VALIDEZ_TURNO.' days', strtotime(date('Y-m-d'))));
+    TramitesAIniciar::leftJoin('sigeci', 'tramites_a_iniciar.id', '=', 'sigeci.tramite_a_iniciar_id')
+                    ->where('sigeci.fecha', '<=', $last_date)
+                    ->where('tramites_a_iniciar.estado', '<>', VALIDACIONES_COMPLETAS)
+                    ->update(['estado' => TURNO_VENCIDO]);
+  }
+
+  public function buscarBoletaCenatEnTramitesViejos($tramite){
+    TramitesAIniciar::where('nro_doc', $tramite->nro_doc)
+                    ->where('tipo_doc', $tramite->tipo_doc)
+                    ->where('estado', TURNO_VENCIDO)
+                    ->where('tramite_a_iniciar_id', TURNO_VENCIDO)
+                    ->get();
+  }
+  */
 }
 //35355887F de otra jurisdiccion // 29543881 de CABA

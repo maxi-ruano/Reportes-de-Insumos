@@ -11,14 +11,10 @@
 |
 */
 
-//WELCOME
-/*Route::get('/', function () {
-  return view('welcome');
-});*/
-
 //LOGIN
 Auth::routes();
-Route::get('/', 'HomeController@index')->name('home');
+Route::get('/home', 'HomeController@index')->name('home');
+Route::get('/', function (){ return redirect('/login'); });
 Route::group( ['middleware' => ['auth']], function() {
   Route::resource('users', 'UserController');
   Route::resource('roles', 'RoleController');

@@ -64,6 +64,12 @@
                     </form>
                 </div>
             </div>
+
+            <div class="wrapper-inner-tab-backgrounds-b">
+                <div class="wrapper-inner-tab-backgrounds-second-b"><div class="sim-button-b button28" onclick="location.href='{{ url('buscarBoletaPago') }}'" ><span>Boleta CENAT</span></div></div>
+                <div class="wrapper-inner-tab-backgrounds-third-b"><div class="sim-button-b button28" onclick="location.href='{{ url('checkPreCheck') }}'" ><span> PreCheck</span></div></div>
+            </div>
+
         </div>
     </div>
 </div>

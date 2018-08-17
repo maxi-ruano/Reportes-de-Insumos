@@ -20,6 +20,7 @@ class TramitesHabilitadosController extends Controller
      */
     public function index(Request $request)
     {
+        
         $fecha = isset($_GET['fecha'])?$_GET['fecha']:date('Y-m-d');
 
         //Cargar por defecto el formulario solo al Operador
