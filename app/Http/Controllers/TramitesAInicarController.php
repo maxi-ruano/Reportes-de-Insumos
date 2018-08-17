@@ -63,11 +63,11 @@ class TramitesAInicarController extends Controller
   }
 
   public function completarBoletasEnTramitesAIniciar($estadoActual, $siguienteEstado){
-    if(is_null($this->wsSafit->cliente))
-      return "El Ws de SAFIT no responde, por favor revise la conexion, o contactese con Nacion";
+    if(!$this->wsSafit->verificarSwSafit())
+      return "El servicio de safit no responde, por favor comuniquese con computo para hacer el reclamo";
 
     $personas = $this->getTramitesAIniciar($estadoActual, $this->fecha_inicio, $this->fecha_fin);
-
+    $this->wsSafit->iniciarSesion();
     foreach ($personas as $key => $persona)  {
       try {
         $persona = TramitesAIniciar::find($persona->id);
@@ -82,6 +82,7 @@ class TramitesAInicarController extends Controller
         $this->guardarError((object)$array, $siguienteEstado, $persona->id);
       }
     }
+    $this->wsSafit->cerrarSesion();
   }
 
   public function getTramitesAIniciar($estado, $fecha_inicio, $fecha_fin){
@@ -189,7 +190,9 @@ class TramitesAInicarController extends Controller
 
   public function getBoleta($persona){
     $res = array('error' => '');
+    $this->wsSafit->iniciarSesion();
     $boletas = $this->wsSafit->getBoletas($persona);
+    $this->wsSafit->cerrarSesion();
     $boleta = null;
     if(!empty($boletas->datosBoletaPago->datosBoletaPagoParaPersona))
       foreach ($boletas->datosBoletaPago->datosBoletaPagoParaPersona as $key => $boletaI) {
@@ -243,9 +246,8 @@ class TramitesAInicarController extends Controller
   }
 
   public function emitirBoletasVirtualPago($estadoActual, $estadoValidacion, $siguienteEstado){
-    if(is_null($this->wsSafit->cliente))
-      return "El Ws de SAFIT no responde, por favor revise la conexion, o contactese con Safit";
     $tramitesAIniciar = $this->getTramitesAIniciar($estadoActual, $this->fecha_inicio, $this->fecha_fin);
+    $this->wsSafit->iniciarSesion();
     foreach ($tramitesAIniciar as $key => $tramiteAIniciar) {
       try{
         $demorado = false;
@@ -285,6 +287,7 @@ class TramitesAInicarController extends Controller
         $this->guardarError((object)$array, $siguienteEstado, $tramiteAIniciar->id);
       }
     }
+    $this->wsSafit->cerrarSesion();
   }
 
   public function getIdPais($pais){
@@ -674,7 +677,9 @@ class TramitesAInicarController extends Controller
 	    $emision = EmisionBoletaSafit::where('numero_boleta', $request->bop_cb)->first();
     
     if ($emision === null) {
+      $this->wsSafit->iniciarSesion();
       $res = $this->wsSafit->consultarBoletaPago($request->bop_cb, $request->cem_id);
+      $this->wsSafit->cerrarSesion();
       if(isset($res->rspID)){
         if($res->rspID == 1){
           $boleta = (object) array('nro_doc' => $res->datosBoletaPago->datosPersonaBoletaPago->oprDocumento,
@@ -733,7 +738,9 @@ class TramitesAInicarController extends Controller
                              'cem_id' => $request->cem_id);
     $emision = EmisionBoletaSafit::where('numero_boleta', $request->bop_id)->first();
     if ($emision === null) {
+        $this->wsSafit->iniciarSesion();
         $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAInicar);
+        $this->wsSafit->cerrarSesion();
       if(isset($res->rspID)){
         if($res->rspID == 1){
     			if(isset($res->reincidencias->rspReincidente))
