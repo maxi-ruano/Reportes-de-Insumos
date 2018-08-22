@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use App\TramitesAIniciar;
 use App\Http\Controllers\TramitesAIniciarController;
 use App\Tramites;
-use App\SysMultivalue;
 use Log;
 
 class MicroservicioController extends Controller
@@ -33,13 +32,5 @@ class MicroservicioController extends Controller
       //
     }
 
-    function cargarEstados(){
-      $constantes = SysMultivalue::where('type', 'AUTO')
-                                 ->orWhere('type', 'VALP')
-                                 ->orWhere('type', 'CONS')
-                                 ->get();
-      foreach($constantes as $value){
-        define($value->text_id,$value->id);
-      }
-    }
+  
 }

@@ -35,10 +35,10 @@ class TramitesAInicarController extends Controller
 
   //LIBRE deuda
   private $userLibreDeuda = "LICENCIAS01";
-  private $passwordLibreDeuda = "LICWEB";
-  //private $passwordLibreDeuda = "TEST1234";
-  //private $urlLibreDeuda = "https://192.168.110.245/LicenciaWS/LicenciaWS?";
-  private $urlLibreDeuda = "https://tcaba2.dgai.com.ar/LicenciaWS/LicenciaWS?";
+  //private $passwordLibreDeuda = "LICWEB";
+  private $passwordLibreDeuda = "TEST1234";
+  private $urlLibreDeuda = "https://192.168.110.245/LicenciaWS/LicenciaWS?";
+  //private $urlLibreDeuda = "https://tcaba2.dgai.com.ar/LicenciaWS/LicenciaWS?";
 
   //BUI
   private $userBui = "licenciasws";
@@ -70,19 +70,23 @@ class TramitesAInicarController extends Controller
     $this->wsSafit->iniciarSesion();
     foreach ($personas as $key => $persona)  {
       try {
-        $persona = TramitesAIniciar::find($persona->id);
-        $res = $this->getBoleta($persona);
-        if(empty($res->error))
-          $this->guardarDatosBoleta($persona, $res, $siguienteEstado);
-        else {
-          $this->guardarError($res, $siguienteEstado, $persona->id);
-        }
+        $this->gestionarBoletaSafit($persona, $siguienteEstado);
       }catch(\Exception $e){
         $array = array('error' => $e->getMessage(), 'request' => "",'response' => "");
         $this->guardarError((object)$array, $siguienteEstado, $persona->id);
       }
     }
     $this->wsSafit->cerrarSesion();
+  }
+
+  public function  gestionarBoletaSafit($persona, $siguienteEstado){
+      $persona = TramitesAIniciar::find($persona->id);
+      $res = $this->getBoleta($persona);
+      if(empty($res->error))
+        $this->guardarDatosBoleta($persona, $res, $siguienteEstado);
+      else {
+        $this->guardarError($res, $siguienteEstado, $persona->id);
+      }
   }
 
   public function getTramitesAIniciar($estado, $fecha_inicio, $fecha_fin){
@@ -149,6 +153,35 @@ class TramitesAInicarController extends Controller
         $this->guardarError((object)$array, $siguienteEstado, 1);
 		  }
     }
+  }
+
+  public function iniciarTramiteEnPrecheck($turno){
+    //1)Registrar datos en tramites_a_iniciar
+    $tramiteAIniciar = new TramitesAIniciar();
+    $tramiteAIniciar->apellido = $turno->apellido;
+    $tramiteAIniciar->nombre = $turno->nombre;
+    $tramiteAIniciar->tipo_doc = $turno->tipo_doc;
+    $tramiteAIniciar->nro_doc = $turno->nro_doc;
+    $tramiteAIniciar->sexo = $turno->sexo;
+    $tramiteAIniciar->nacionalidad = $turno->pais;
+    $tramiteAIniciar->fecha_nacimiento = $turno->fecha_nacimiento;
+    $tramiteAIniciar->estado = '1';
+    $saved = $tramiteAIniciar->save();
+
+    //Vincular tramites_a_iniciar_id en tramites_habilitados
+    $turno->tramites_a_iniciar_id = $tramiteAIniciar->id;
+    $turno->save();
+
+    //Crear registros en validaciones_precheck
+    if($saved)
+      $this->crearValidacionesPrecheck($tramiteAIniciar->id);
+    
+    //2)REAL    IZAR PRECHECK DEL TRAMITE A INICIAR CREADO
+    //$this->gestionarLibreDeuda($tramiteAIniciar, LIBRE_DEUDA, VALIDACIONES);
+    //$this->gestionarBoletaSafit($tramiteAIniciar, SAFIT);
+    
+
+    return true;
   }
 
   public function guardarTurnoEnTramitesAInicar($turno, $siguienteEstado){
@@ -362,17 +395,23 @@ class TramitesAInicarController extends Controller
     $tramites = $this->getTramitesAIniciarValidaciones($estadoActual, $estadoValidacion, $this->fecha_inicio, $this->fecha_fin);
     foreach ($tramites as $key => $tramite) {
       try{
-        $res = $this->verificarLibreDeuda($tramite);
-        if(!$res['res']){
-          $this->guardarError((object)$res, $estadoValidacion, $tramite->id);
-        }else {
-          $this->guardarValidacion($tramite, true, $estadoValidacion, $res['comprobante']);
-          $this->actualizarEstado($tramite, $siguienteEstado);
-        }
+        
+        $this->gestionarLibreDeuda($tramite, $estadoValidacion, $siguienteEstado);
+
       }catch(\Exception $e){
         $array = array('error' => $e->getMessage(), 'request' => "",'response' => "");
         $this->guardarError((object)$array, $siguienteEstado, $tramite->id);
       }
+    }
+  }
+
+  public function gestionarLibreDeuda($tramite, $estadoValidacion, $siguienteEstado){
+    $res = $this->verificarLibreDeuda($tramite);
+    if(!$res['res']){
+      $this->guardarError((object)$res, $estadoValidacion, $tramite->id);
+    }else {
+      $this->guardarValidacion($tramite, true, $estadoValidacion, $res['comprobante']);
+      $this->actualizarEstado($tramite, $siguienteEstado);
     }
   }
 

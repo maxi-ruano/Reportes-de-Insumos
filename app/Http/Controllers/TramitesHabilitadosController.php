@@ -6,8 +6,12 @@ use Illuminate\Http\Request;
 use App\SysMultivalue;
 use App\User;
 use App\TramitesHabilitados;
+use App\Http\Controllers\TramitesAInicarController;
+use App\DatosPersonales;
 use Laracasts\Flash\Flash;
 use Illuminate\Support\Facades\Auth;
+use App\TramitesAIniciar;
+use App\ValidacionesPrecheck;
 
 class TramitesHabilitadosController extends Controller
 {
@@ -97,7 +101,7 @@ class TramitesHabilitadosController extends Controller
                         ->where('fecha',$request->fecha)
                         ->count();
             if($existe){
-                Flash::error('Ya tiene un turno asignado para el día '.$request->fecha);
+                Flash::error('El Documento Nro. '.$request->nro_doc.' Ya tiene un turno asignado para el día '.$request->fecha);
                 return back();   
             }
 
@@ -109,15 +113,22 @@ class TramitesHabilitadosController extends Controller
             $tramiteshabilitados->nombre        = strtoupper($request->nombre);
             $tramiteshabilitados->tipo_doc      = $request->tipo_doc;
             $tramiteshabilitados->nro_doc       = strtoupper($request->nro_doc);
+            $tramiteshabilitados->sexo          = $request->sexo;
+            $tramiteshabilitados->fecha_nacimiento     = $request->fecha_nacimiento;
             $tramiteshabilitados->pais          = $request->pais;
             $tramiteshabilitados->user_id       = $request->user_id;
             $tramiteshabilitados->sucursal      = $request->sucursal;
-            $tramiteshabilitados->motivo_id       = $request->motivo_id;
+            $tramiteshabilitados->motivo_id     = $request->motivo_id;
 
             if(Auth::user()->sucursal == '1') //Solo para la Sede Roca
                 $tramiteshabilitados->habilitado = false;
 
             $tramiteshabilitados->save();
+
+            //Crear registro en tramitesAIniciar y procesar el Precheck
+            /*$tramitesAIniciar = new TramitesAInicarController();
+            $tramitesAIniciar->iniciarTramiteEnPrecheck($tramiteshabilitados);
+            */
             Flash::success('El Tramite se ha creado correctamente');
             return redirect()->route('tramitesHabilitados.create');
         }
@@ -174,7 +185,6 @@ class TramitesHabilitadosController extends Controller
             $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/^[0-9a-zA-Z]+$/']);
         else
             $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^(\d+)?$)/u']);
-
         
         $tramitesHabilitados = TramitesHabilitados::find($id);
         $tramitesHabilitados->fill($request->except('user_id'));
@@ -198,6 +208,11 @@ class TramitesHabilitadosController extends Controller
         echo "entro a destroy ".$id;
         try{
             $tramiteshabilitados = TramitesHabilitados::find($id);
+
+            //Borrar registros creados en tramites_a_iniciar y validaciones_precheck
+            $validacionesPrecheck = ValidacionesPrecheck::where('tramite_a_iniciar_id', $tramiteshabilitados->tramites_a_iniciar_id)->delete();
+            $tramitesAIniciar = TramitesAIniciar::where('id', $tramiteshabilitados->tramites_a_iniciar_id)->delete();
+            
             $tramiteshabilitados->delete();
             Flash::success('El Tramite se ha eliminado correctamente');
             return redirect()->route('tramitesHabilitados.index');
@@ -212,5 +227,19 @@ class TramitesHabilitadosController extends Controller
         $sql = TramitesHabilitados::where("id",$request->id)
                 ->update(array('habilitado' => $request->valor, 'habilitado_user_id' => Auth::user()->id));
         return $sql;
+    }
+
+
+    public function buscarDatosPersonales(Request $request)
+    {
+        $buscar = DatosPersonales::selectRaw('nombre, apellido, UPPER(sexo) as sexo, fec_nacimiento as fecha_nacimiento, pais')->where("tipo_doc",$request->tipo_doc)->where("nro_doc",$request->nro_doc)->orderBy('modification_date','DESC')->first();
+        
+        if(!$buscar)
+           $buscar = TramitesHabilitados::where("tipo_doc",$request->tipo_doc)->where("nro_doc",$request->nro_doc)->orderBy('id','DESC')->first();
+
+        if(!$buscar)
+           $buscar = TramitesAIniciar::where("tipo_doc",$request->tipo_doc)->where("nro_doc",$request->nro_doc)->orderBy('id','DESC')->first();
+
+        return $buscar;
     }
 }

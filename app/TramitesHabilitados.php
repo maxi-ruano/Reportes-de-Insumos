@@ -8,7 +8,7 @@ class TramitesHabilitados extends Model
 {
     protected $table = 'tramites_habilitados';
     protected $primaryKey = 'id';
-    protected $fillable = ['fecha', 'apellido','nombre','nro_doc', 'tipo_doc','pais','user_id','sucursal','motivo_id'];
+    protected $fillable = ['fecha', 'apellido','nombre','nro_doc', 'tipo_doc','fecha_nacimiento','sexo','pais','user_id','sucursal','motivo_id'];
 
     public function tipoDocText(){
         $tipoDoc = SysMultivalue::where('type','TDOC')->where('id', $this->tipo_doc)->first();

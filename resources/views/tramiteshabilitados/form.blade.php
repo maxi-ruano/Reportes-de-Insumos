@@ -68,10 +68,28 @@
             {!! Form::text('nombre', isset($edit) ? $edit->nombre : null, ['class' => 'form-control', 'placeholder' => 'Nombres', 'required' => 'required']) !!}
         </div>
 
+        <div class="form-group">
+            <div class="col-md-2 col-xs-12">
+                {!! Form::label('fecha_nacimiento', ' Fecha de Nacimiento') !!}
+                <input type="date" name="fecha_nacimiento" value="{{ isset($edit) ? $edit->fecha_nacimiento : NULL }}" class="form-control" required="required" >
+            </div>
+
+            <div class="col-md-2 col-xs-12">
+                {!! Form::label('sexo', ' Sexo') !!}
+                {!! Form::select('sexo', ['F' => 'Femenino', 'M' => 'Masculino'], isset($edit) ? $edit->sexo : 1 , ['class' => 'form-control']) !!}
+            </div>
+
+            <div class="col-md-8 col-xs-12">
+                {!! Form::label('pais', ' País') !!}
+                {!! Form::select('pais', $paises, isset($edit) ? $edit->pais : 1 , ['class' => 'form-control']) !!}
+            </div>
+        </div>
+        <!--
         <div class="form-group">                
             {!! Form::label('pais', ' País') !!}
             {!! Form::select('pais', $paises, isset($edit) ? $edit->pais : 1 , ['class' => 'form-control']) !!}
         </div>
+        -->
 
         <div class="form-group">                
             {!! Form::label('motivo_id', ' Motivo') !!}
@@ -90,3 +108,37 @@
 
 <!-- /page content -->
 @endsection
+
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            $("input[name=nro_doc]").change(function(){
+                var nro_doc = $(this).val();
+                var tipo_doc = $("select[name=tipo_doc]").val();
+                
+                //Aplicar solo si nuevo registro, si esta editando no realizara la buscqueda
+                @if(!isset($edit)) 
+                    $.ajax({
+                        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                        url: '/buscarDatosPersonales',
+                        data: {tipo_doc: tipo_doc, nro_doc: nro_doc },
+                        type: "GET", dataType: "json",
+                        success: function(ret){
+                            if(ret.nombre){
+                                $("input[name=nombre]").val(ret.nombre);
+                                $("input[name=apellido]").val(ret.apellido);
+                                $("input[name=fecha_nacimiento]").val(ret.fecha_nacimiento);
+                                $("select[name=sexo]").val(ret.sexo);
+                                $("select[name=pais]").val(ret.pais);
+                            }
+                        }
+                    });
+                @endif
+            });
+
+            @if(isset($new)) 
+                alert('Se creo el nuevo tramite habilitado con el ID {{ $new->id }}');
+            @endif
+        });
+    </script>
+@endpush
