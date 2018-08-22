@@ -840,16 +840,19 @@ class TramitesAInicarController extends Controller
     return $res;  
   }
 
-  /* 
-  FUNCIONES PARA TURNOS VENCIDOS
+  
+  //FUNCIONES PARA TURNOS VENCIDOS
   public function revisarTurnosVencidos(){
-    $last_date = date('Y-m-d', strtotime('-'.DIAS_VALIDEZ_TURNO.' days', strtotime(date('Y-m-d'))));
-    TramitesAIniciar::leftJoin('sigeci', 'tramites_a_iniciar.id', '=', 'sigeci.tramite_a_iniciar_id')
-                    ->where('sigeci.fecha', '<=', $last_date)
-                    ->where('tramites_a_iniciar.estado', '<>', VALIDACIONES_COMPLETAS)
+    //16 dias atras
+    $last_date = date('Y-m-d', strtotime('-'.(DIAS_VALIDEZ_TURNO+1).' days', strtotime(date('Y-m-d'))));
+    //26 dias atras
+    $ini_date = date('Y-m-d', strtotime('-'.(DIAS_VALIDEZ_TURNO+11).' days', strtotime(date('Y-m-d'))));
+    $res = TramitesAIniciar::leftJoin('sigeci', 'tramites_a_iniciar.id', '=', 'sigeci.tramite_a_iniciar_id')
+                    ->whereBetween('sigeci.fecha', [$ini_date, $last_date])
+                    ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
                     ->update(['estado' => TURNO_VENCIDO]);
   }
-
+/*
   public function buscarBoletaCenatEnTramitesViejos($tramite){
     TramitesAIniciar::where('nro_doc', $tramite->nro_doc)
                     ->where('tipo_doc', $tramite->tipo_doc)

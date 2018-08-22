@@ -71,7 +71,7 @@ class AddSysConfigPrecheck extends Migration
         DB::table('sys_config')->insert(array(
             'name' => 'SafitWS',
             'param' => 'ingID',
-            'value' => null,
+            'value' => '0',
             'description' => 'Ingreso ID',
             'created_by' => '2828',
             'modified_by' => '2829',
