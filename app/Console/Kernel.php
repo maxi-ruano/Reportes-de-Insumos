@@ -26,9 +26,9 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')
         //          ->hourly();
-        $schedule->call('App\Http\Controllers\MicroservicioController@run')
-                 ->weekdays()
-                 ->at('15:30');
+        $schedule->call('App\Http\Controllers\MicroservicioController@run')->weekdays()->at('15:30');
+        //Turnos Vencidos Precheck
+        $schedule->call('App\Http\Controllers\TramitesAIniciarController@revisarTurnosVencidos')->weekdays()->at('15:30');         
     }
 
     /**
