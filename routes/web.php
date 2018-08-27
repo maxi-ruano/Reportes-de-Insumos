@@ -23,12 +23,11 @@ Route::group( ['middleware' => ['auth']], function() {
   Route::post('/changePassword','Auth\ResetPasswordController@changePassword')->name('changePassword');
 });
 
-//TRAMITES
+//TRAMITES HABILITADOS
 Route::resource('tramitesHabilitados','TramitesHabilitadosController');
 Route::get('tramitesHabilitadosHabilitar', ['uses' => 'TramitesHabilitadosController@habilitar','as' => 'tramitesHabilitados.habilitar']);
 Route::get('buscarDatosPersonales', 'TramitesHabilitadosController@buscarDatosPersonales');
-
-//end TRAMITES
+//end TRAMITES HABILITADOS
 
 //DASHBOARD
 Route::get('consultaDashboard', ['uses' => 'DashboardController@consultaDashboard','as' => 'consultaDashboard']);
@@ -38,13 +37,16 @@ Route::get('consultaTurnosEnEspera', ['uses' => 'DashboardController@consultaTur
 Route::get('consultaTurnosEnEsperaPorSucursal', ['uses' => 'DashboardController@consultaTurnosEnEsperaPorSucursal','as' => 'consultaTurnosEnEsperaPorSucursal']);
 //end DASHBOARD
 
+//PRECHECK
+Route::get('run', 'MicroservicioController@run');
+Route::get('runPrecheck','MicroservicioController@runPrecheck')->name('runPrecheck');
+//end PRECHECK
 
 Route::post('rendir_examen',['uses' => 'EtlExamenPreguntaController@getPreguntasExamen','as' => 'rendir_examen']);
 Route::get('guardar_respuesta',['uses' => 'EtlExamenPreguntaController@guardarRespuesta','as' => 'guardaRespuesta']);
 Route::post('finalizar_examen',['uses' => 'EtlExamenController@calcularYGuardarResultado','as' => 'finalizar_examen']);
 // Route::get('/address/{id}/destroy',['uses' => 'AddressesController@destroy','as' => 'sysfile.addresses.destroy']);
 
-Route::get('run', 'MicroservicioController@run');
 //SAFIT
 Route::get('buscarBoletaPago', 'TramitesAInicarController@buscarBoletaPago');
 Route::post('consultarBoletaPago',['uses' => 'TramitesAInicarController@consultarBoletaPago','as' => 'consultarBoletaPago']);

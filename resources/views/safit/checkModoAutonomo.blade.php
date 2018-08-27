@@ -67,6 +67,8 @@
     }
 
     function crearMensajePrecheck(msj){
+      console.log(msj);
+
       type = 'danger'
       fecha_error = ''
       if(msj.validado){
@@ -95,10 +97,17 @@
         }
 
       }
+
+      //Colocar el metodo onclick solo si no se ha verificado (type=danger)
+      var precheckOnclick = '';
+      if(type=='danger')
+        precheckOnclick = 'onclick="runPrecheck('+msj.tramite_a_iniciar_id+','+msj.validation_id+')" ';
+
+      //Boton del Log Prec-Check con su descripcion y fecha de ejecucion o Nro. Comrpobante
       html = '<li>'+
         '<div class="block_precheck">'+
           '<div class="tags_precheck">'+
-            '<a id="buttonValidacion" class="btn btn-'+type+' btn-xs btn-block">'+
+            '<a id="buttonValidacion" '+precheckOnclick+' class="btn btn-'+type+' btn-xs btn-block">'+
               '<span>'+msj.description+'</span>'+
             '</a>'+
           '</div>'+
@@ -114,6 +123,32 @@
         '</div>'+
       '</li>';
       $('#logPreCheck').append(html)
+    }
+
+    //Funcion para ejecutar el precheck por tramite mediante el metodo onclick en cada boton
+    function runPrecheck(id, validation){
+      console.log(id+' '+validation);
+      
+      $.ajax({
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+        type: "GET",
+        url: '/runPrecheck',
+        data: { id: id, validation: validation },
+        Async:true,
+        beforeSend: function(){
+          // Handle the beforeSend event
+          $('#logPreCheck').html('<img src="/img/buffer.gif" width="200" > Verificando... ');
+        },
+        success: function( msg ) {
+          console.log('Finalizo: '+msg);
+          getPreCheck(id);
+        },
+        error: function(xhr, status, error) {
+          $('#logPreCheck').html('ocurrio un error!! Intenta de nuevo...');
+        }
+      });
+
+      console.log('continuando')
     }
 
     function mostrarDatosPersona(datosPersona){

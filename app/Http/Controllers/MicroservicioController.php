@@ -13,10 +13,10 @@ class MicroservicioController extends Controller
     private $estados = array();
     public function run(){
       ini_set('default_socket_timeout', 600);
-      $this->cargarEstados();
+      //$this->cargarEstados();
       $tramitesAIniciar = new TramitesAInicarController();
       //  pasa a estado 1
-      $tramitesAIniciar->comletarTurnosEnTramitesAIniciar( INICIO );
+      $tramitesAIniciar->completarTurnosEnTramitesAIniciar( INICIO );
       // Verificar Libre deuda, pasa a estado 4 en validaciones precheck
       $tramitesAIniciar->verificarLibreDeudaDeTramites(INICIO, LIBRE_DEUDA, VALIDACIONES); //ID validacion 4
       // pasa de estado 1 a 2 los tramites
@@ -32,5 +32,30 @@ class MicroservicioController extends Controller
       //
     }
 
-  
+    public function runPrecheck(Request $request){
+
+      ini_set('default_socket_timeout', 600);
+
+      $tramitesAIniciar = new TramitesAInicarController();
+      $tramite = TramitesAIniciar::find($request->id);
+      
+      switch ($request->validation) {
+        case 4: //LIBRE DEUDA
+          $precheck = $tramitesAIniciar->gestionarLibreDeuda($tramite, LIBRE_DEUDA, VALIDACIONES);
+        break;
+        case 5: //BUI
+          $precheck = $tramitesAIniciar->gestionarBui($tramite, BUI, VALIDACIONES);
+        break;
+        case 3: //SAFIT
+          $precheck = $tramitesAIniciar->buscarBoletaSafit($tramite, SAFIT);
+          $precheck = $tramitesAIniciar->gestionarBoletaSafit($tramite, SAFIT, VALIDACIONES);
+        break;
+        default:
+          # code...
+          $precheck = 'No se realizo ninguna operacion, validation incorrecta';
+          break;
+      }
+      return $precheck;
+    }
+    
 }
