@@ -106,11 +106,12 @@
     <script>
         $(document).ready(function() {
             
+            //Actualizar la pagina automaticamente solo si no han realizado busqueda o cambiado de paginacion
             @if(!isset($_GET['page']) && !isset($_GET['search']))
                 establecerTimeout();
             @endif
 
-            @if(isset($_GET['search']))
+            @if(isset($_GET['search']) && !isset($_GET['fecha']))
                 @if($_GET['search'] == '')
                     establecerTimeout();
                 @endif
