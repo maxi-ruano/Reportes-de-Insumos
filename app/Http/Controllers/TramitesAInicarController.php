@@ -23,7 +23,7 @@ class TramitesAInicarController extends Controller
 {
   private $localhost = '192.168.76.33';
   private $diasEnAdelante = 1;
-  private $cantidadDias = 0;
+  private $cantidadDias = 3;
   private $fecha_inicio = '';
   private $fecha_fin = '';
   private $munID = 1;
@@ -326,11 +326,7 @@ class TramitesAInicarController extends Controller
   * MicroservicioController: 3) Metodos asociados para completarBoletasEnTramitesAIniciar
   */
   public function completarBoletasEnTramitesAIniciar($estadoActual, $siguienteEstado){
-    if(!$this->wsSafit->verificarSwSafit())
-      return "El servicio de safit no responde, por favor comuniquese con computo para hacer el reclamo";
-
     $personas = $this->getTramitesAIniciar($estadoActual, $this->fecha_inicio, $this->fecha_fin);
-    $this->wsSafit->iniciarSesion();
     foreach ($personas as $key => $persona)  {
       try {
         $this->buscarBoletaSafit($persona, $siguienteEstado);
@@ -339,7 +335,6 @@ class TramitesAInicarController extends Controller
         $this->guardarError((object)$array, $siguienteEstado, $persona->id);
       }
     }
-    $this->wsSafit->cerrarSesion();
   }
 
   public function  buscarBoletaSafit($persona, $siguienteEstado){
@@ -358,7 +353,7 @@ class TramitesAInicarController extends Controller
     $boletas = $this->wsSafit->getBoletas($persona);
     $this->wsSafit->cerrarSesion();
     $boleta = null;
-    if(!empty($boletas->datosBoletaPago->datosBoletaPagoParaPersona))
+    if(!empty($boletas->datosBoletaPago->datosBoletaPagoParaPersona)){
       foreach ($boletas->datosBoletaPago->datosBoletaPagoParaPersona as $key => $boletaI) {
         if($this->esBoletaValida($boletaI)){
           if(!is_null($boleta)){
@@ -370,7 +365,7 @@ class TramitesAInicarController extends Controller
           $res['error'] = "No existe ninguna boleta valida para esta persona";
         }
       }
-    else {
+    }else {
       if($boletas!=null)
         $res['error'] = $boletas->rspDescrip;
       else
@@ -383,9 +378,14 @@ class TramitesAInicarController extends Controller
       $persona->save();
       $res = $boleta;
     }else{
-      $res['request'] = $persona;
-      $res['response'] = $boletas;
-      $res = (object)$res;
+      if($boleta = $this->buscarBoletaSafitEnTurnosVencidos($persona)){
+        $res['error'] = '';
+        $res = $boleta;
+      }else{
+        $res['request'] = $persona;
+        $res['response'] = $boletas;
+        $res = (object)$res;
+      }
     }
 
     return $res;
@@ -927,14 +927,23 @@ class TramitesAInicarController extends Controller
                     ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
                     ->update(['estado' => TURNO_VENCIDO]);
   }
-/*
-  public function buscarBoletaCenatEnTramitesViejos($tramite){
-    TramitesAIniciar::where('nro_doc', $tramite->nro_doc)
-                    ->where('tipo_doc', $tramite->tipo_doc)
-                    ->where('estado', TURNO_VENCIDO)
-                    ->where('tramite_a_iniciar_id', TURNO_VENCIDO)
-                    ->get();
+
+  public function buscarBoletaSafitEnTurnosVencidos($tramiteAIniciar){
+    $fecha_minima_pago = date('Y-m-d', strtotime('-'.(DIAS_VENCIMIENTO_BOLETA_SAFIT).' days', strtotime(date('Y-m-d'))));
+    $encontrado = null;
+    $res = TramitesAIniciar::where('estado', TURNO_VENCIDO)
+                    ->where('bop_fec_pag', '>', $fecha_minima_pago)
+                    ->where('nacionalidad', $tramiteAIniciar->nacionalidad)
+                    ->where('nro_doc', $tramiteAIniciar->nro_doc)
+                    ->where('tipo_doc', $tramiteAIniciar->tipo_doc)
+                    //->where('sexo', $tramiteAIniciar->sexo)
+                    ->first();
+    if($res)
+      $encontrado = (object) array( 'bopCB' => $res->bop_cb,
+                                    'bopMonto' => $res->bop_monto,
+                                    'bopFecPag' => $res->bop_fec_pag,
+                                    'bopID' => $res->bop_id,
+                                    'cemID' => $res->cem_id);
+    return  $encontrado;
   }
-  */
 }
-//35355887F de otra jurisdiccion // 29543881 de CABA
