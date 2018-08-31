@@ -12,6 +12,7 @@ use Laracasts\Flash\Flash;
 use Illuminate\Support\Facades\Auth;
 use App\TramitesAIniciar;
 use App\ValidacionesPrecheck;
+use App\Jobs\ProcessPrecheck;
 
 class TramitesHabilitadosController extends Controller
 {
@@ -126,8 +127,9 @@ class TramitesHabilitadosController extends Controller
             $tramiteshabilitados->save();
 
             //Crear registro en tramitesAIniciar y procesar el Precheck
-            $tramitesAIniciar = new TramitesAInicarController();
-            $tramitesAIniciar->iniciarTramiteEnPrecheck($tramiteshabilitados);
+            //$tramitesAIniciar = new TramitesAInicarController();
+            //$tramitesAIniciar->iniciarTramiteEnPrecheck($tramiteshabilitados);
+            ProcessPrecheck::dispatch($tramiteshabilitados);
             
             Flash::success('El Tramite se ha creado correctamente');
             return redirect()->route('tramitesHabilitados.create');

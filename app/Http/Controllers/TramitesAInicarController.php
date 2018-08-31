@@ -113,7 +113,7 @@ class TramitesAInicarController extends Controller
     $tramiteAIniciar->tipo_doc = $turno->tipo_doc;
     $tramiteAIniciar->nro_doc = $turno->nro_doc;
     $tramiteAIniciar->sexo = $turno->sexo;
-    $tramiteAIniciar->nacionalidad = $turno->pais;
+    $tramiteAIniciar->nacionalidad = AnsvPaises::where('id_dgevyl', $turno->pais)->first()->id_ansv; 
     $tramiteAIniciar->fecha_nacimiento = $turno->fecha_nacimiento;
     $tramiteAIniciar->estado = '1';
     $saved = $tramiteAIniciar->save();
@@ -129,6 +129,15 @@ class TramitesAInicarController extends Controller
     //2)REALIZAR PRECHECK DEL TRAMITE A INICIAR CREADO
     /**por culminar, se debe ejecutar de forma Async
      * el usuario no debe esperar el tiempo de repuesta */
+    \Log::info('['.date('h:i:s').'] '.'gestionarLibreDeuda()');
+    $this->gestionarLibreDeuda($tramiteAIniciar, LIBRE_DEUDA, VALIDACIONES);
+    \Log::info('['.date('h:i:s').'] '.'gestionarBui()');
+    $this->gestionarBui($tramiteAIniciar, BUI, VALIDACIONES);
+    \Log::info('['.date('h:i:s').'] '.'buscarBoletaSafit()');
+    $this->buscarBoletaSafit($tramiteAIniciar, SAFIT);
+    \Log::info('['.date('h:i:s').'] '.'gestionarBoletaSafit()');
+    $this->gestionarBoletaSafit($tramiteAIniciar, SAFIT, VALIDACIONES);
+    \Log::info('['.date('h:i:s').'] '.'fin validaciones background()');
 
     return true;
   }
