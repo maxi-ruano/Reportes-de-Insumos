@@ -53,6 +53,8 @@ class TramitesController extends Controller
 
   //function get para API listar los tramites con licencias emitidas
   public function get_licencias_emitidas(Request $request){
+    $ip = $request->ip();
+    if($ip == '10.67.51.55' || $ip == '10.67.51.58' || $ip == '10.67.51.59' || $ip == '10.67.51.60'){	  
     $estado_finalizado = '95'; 
     $estado_completado = '14';
 
@@ -114,6 +116,9 @@ class TramitesController extends Controller
     if($request->export) 
       $this->exportFile($consulta, $request->export, 'licenciasEmitidas');
 
+    }else{
+    	$consulta = "Acceso denegado: IP no permitida!..";
+    }
     return $consulta;
 
   }
