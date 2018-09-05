@@ -207,7 +207,7 @@ class TramitesHabilitadosController extends Controller
      */
     public function destroy($id)
     {
-        echo "entro a destroy ".$id;
+        //echo "entro a destroy ".$id;
         try{
             $tramiteshabilitados = TramitesHabilitados::find($id);
 

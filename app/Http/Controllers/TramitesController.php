@@ -52,75 +52,75 @@ class TramitesController extends Controller
     }
 
   //function get para API listar los tramites con licencias emitidas
-  public function get_licencias_emitidas(Request $request){
-    $ip = $request->ip();
-    if($ip == '10.67.51.55' || $ip == '10.67.51.58' || $ip == '10.67.51.59' || $ip == '10.67.51.60'){	  
-    $estado_finalizado = '95'; 
-    $estado_completado = '14';
+    public function get_licencias_emitidas(Request $request){
+	    $ip = $request->ip();
+    if($ip == '10.67.51.55' || $ip == '10.67.51.58' || $ip == '10.67.51.59' || $ip == '10.67.51.60'){
 
-    //No limitar el limit Memory de PHP
-    ini_set('memory_limit', '-1');
+      $estado_finalizado = '95'; 
+      $estado_completado = '14';
 
-    $tramites =  Tramites::selectRaw('
-                      tramites.tramite_id,
-                      tramites.nro_doc,
-                      datos_personales.apellido,
-                      datos_personales.nombre,
-                      datos_personales.sexo,
-                      licencias_otorgadas.nacionalidad,
-                      datos_personales.fec_nacimiento,
-                      datos_personales.correo,
-                      tramites.sucursal,
-                      tipo_tramites.descripcion AS tipo_tramite,
-                      tramites.estado,
-                      CAST(tramites.fec_inicio AS DATE),
-                      CAST(tramites.fec_inicio AS TIME(0)) AS hora_inicio,
-                      CAST(tramites_log.modification_date AS DATE) as fec_finalizacion,
-                      CAST(tramites_log.modification_date AS TIME(0)) as hora_finalizacion,
-                      CAST(tramites.fec_emision AS DATE),
-                      CAST(tramites.fec_vencimiento AS DATE),
-                      ansv_control.nro_control AS nro_insumo,
-                      licencias_otorgadas.clase AS categoria')
-                    ->join('licencias_otorgadas','licencias_otorgadas.tramite_id','tramites.tramite_id')
-                    ->join('tipo_tramites','tipo_tramites.tipo_tramite_id','tramites.tipo_tramite_id')
-                    ->join('datos_personales',function($join) {
-                        $join->on('datos_personales.nro_doc', '=', 'tramites.nro_doc');
-                        $join->on('datos_personales.tipo_doc', '=', 'tramites.tipo_doc');
-                        $join->on('datos_personales.sexo', '=', 'tramites.sexo');
-                    })
-                    ->join('tramites_log',function($join) use($estado_finalizado) {
-                      $join->on('tramites_log.tramite_id', 'tramites.tramite_id');
-                      $join->where('tramites_log.estado', $estado_finalizado);
-                    })
-                    ->join('ansv_control',function($join) {
-                      $join->on('ansv_control.tramite_id', '=', 'tramites.tramite_id');
-                      $join->where('ansv_control.liberado', 'false');
-                    })
-                    ->where('tramites.estado',$estado_completado)
-                    ->orderby('tramites.fec_inicio');
+      //No limitar el limit Memory de PHP
+      ini_set('memory_limit', '-1');
+
+      $tramites =  Tramites::selectRaw('
+                        tramites.tramite_id,
+                        tramites.nro_doc,
+                        datos_personales.apellido,
+                        datos_personales.nombre,
+                        datos_personales.sexo,
+                        licencias_otorgadas.nacionalidad,
+                        datos_personales.fec_nacimiento,
+                        datos_personales.correo,
+                        tramites.sucursal,
+                        tipo_tramites.descripcion AS tipo_tramite,
+                        tramites.estado,
+                        CAST(tramites.fec_inicio AS DATE),
+                        CAST(tramites.fec_inicio AS TIME(0)) AS hora_inicio,
+                        CAST(tramites_log.modification_date AS DATE) as fec_finalizacion,
+                        CAST(tramites_log.modification_date AS TIME(0)) as hora_finalizacion,
+                        CAST(tramites.fec_emision AS DATE),
+                        CAST(tramites.fec_vencimiento AS DATE),
+                        ansv_control.nro_control AS nro_insumo,
+                        licencias_otorgadas.clase AS categoria')
+                      ->join('licencias_otorgadas','licencias_otorgadas.tramite_id','tramites.tramite_id')
+                      ->join('tipo_tramites','tipo_tramites.tipo_tramite_id','tramites.tipo_tramite_id')
+                      ->join('datos_personales',function($join) {
+                          $join->on('datos_personales.nro_doc', '=', 'tramites.nro_doc');
+                          $join->on('datos_personales.tipo_doc', '=', 'tramites.tipo_doc');
+                          $join->on('datos_personales.sexo', '=', 'tramites.sexo');
+                      })
+                      ->join('tramites_log',function($join) use($estado_finalizado) {
+                        $join->on('tramites_log.tramite_id', 'tramites.tramite_id');
+                        $join->where('tramites_log.estado', $estado_finalizado);
+                      })
+                      ->join('ansv_control',function($join) {
+                        $join->on('ansv_control.tramite_id', '=', 'tramites.tramite_id');
+                        $join->where('ansv_control.liberado', 'false');
+                      })
+                      ->where('tramites.estado',$estado_completado)
+                      ->orderby('tramites.fec_inicio');
+      
+      //validar si existen los parametros de busqueda por fecha (desde, hasta)
+      if(!isset($request->desde) || !isset($request->hasta))
+        return '<h2>Estimado usuario:</h2> Para realizar la consulta debe ingresar los parametros de búsqueda por fecha (desde,hasta). <br> Ejemplo: <h5>...api/reportes/get_licencias_emitidas?desde=2018-07-01&hasta=2018-07-31</h5>  <p>Puedes incluir tambien el parámetro de vencida para listar solo las licencias vencidas en ese rango de fechas.  <br> Ejemplo: <h5> ...api/reportes/get_licencias_emitidas?desde=2018-07-01&hasta=2018-07-31&vencida=true </h5> </p>';
+
+      //Comprobar si este el parametro de vencida para poder hacer el filtro
+      if($request->vencida) 
+        $tramites->whereBetween('tramites.fec_vencimiento',[$request->desde,$request->hasta]);
+      else
+        $tramites->whereBetween('tramites.fec_emision',[$request->desde,$request->hasta]);
+
+      //Se ejecuta la consulta final obtenida
+      $consulta = $tramites->get();
+      
+      //Solo si existe el parametro para export en: xls, xlsx, txt, csv, entre otros.
+      if($request->export) 
+        $this->exportFile($consulta, $request->export, 'licenciasEmitidas');
     
-    //validar si existen los parametros de busqueda por fecha (desde, hasta)
-    if(!isset($request->desde) || !isset($request->hasta))
-      return '<h2>Estimado usuario:</h2> Para realizar la consulta debe ingresar los parametros de búsqueda por fecha (desde,hasta). <br> Ejemplo: <h5>...api/reportes/get_licencias_emitidas?desde=2018-07-01&hasta=2018-07-31</h5>  <p>Puedes incluir tambien el parámetro de vencida para listar solo las licencias vencidas en ese rango de fechas.  <br> Ejemplo: <h5> ...api/reportes/get_licencias_emitidas?desde=2018-07-01&hasta=2018-07-31&vencida=true </h5> </p>';
-
-    //Comprobar si este el parametro de vencida para poder hacer el filtro
-    if($request->vencida) 
-      $tramites->whereBetween('tramites.fec_vencimiento',[$request->desde,$request->hasta]);
-    else
-      $tramites->whereBetween('tramites.fec_emision',[$request->desde,$request->hasta]);
-
-    //Se ejecuta la consulta final obtenida
-    $consulta = $tramites->get();
-    
-    //Solo si existe el parametro para export en: xls, xlsx, txt, csv, entre otros.
-    if($request->export) 
-      $this->exportFile($consulta, $request->export, 'licenciasEmitidas');
-
     }else{
-    	$consulta = "Acceso denegado: IP no permitida!..";
+      $consulta = "Acceso denegado: IP no permitida!..";
     }
     return $consulta;
-
   }
 
     public function TramitesAIniciarCompletados($fecha) {

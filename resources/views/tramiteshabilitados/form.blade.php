@@ -76,24 +76,18 @@
 
             <div class="col-md-2 col-xs-12">
                 {!! Form::label('sexo', ' Sexo') !!}
-                {!! Form::select('sexo', ['F' => 'Femenino', 'M' => 'Masculino'], isset($edit) ? $edit->sexo : 1 , ['class' => 'form-control']) !!}
+                {!! Form::select('sexo', ['F' => 'Femenino', 'M' => 'Masculino'], isset($edit) ? $edit->sexo : 'M' , ['class' => 'form-control', 'required' => 'required']) !!}
             </div>
 
             <div class="col-md-8 col-xs-12">
                 {!! Form::label('pais', ' País') !!}
-                {!! Form::select('pais', $paises, isset($edit) ? $edit->pais : 1 , ['class' => 'form-control']) !!}
+                {!! Form::select('pais', $paises, isset($edit) ? $edit->pais : 1 , ['class' => 'form-control', 'placeholder' => 'Seleccione', 'required' => 'required']) !!}
             </div>
         </div>
-        <!--
-        <div class="form-group">                
-            {!! Form::label('pais', ' País') !!}
-            {!! Form::select('pais', $paises, isset($edit) ? $edit->pais : 1 , ['class' => 'form-control']) !!}
-        </div>
-        -->
 
         <div class="form-group">                
             {!! Form::label('motivo_id', ' Motivo') !!}
-            {!! Form::select('motivo_id', $motivos, isset($edit) ? $edit->motivo_id : null , ['class' => 'form-control']) !!}
+            {!! Form::select('motivo_id', $motivos, isset($edit) ? $edit->motivo_id : null , ['class' => 'form-control', 'placeholder' => 'Seleccione', 'required' => 'required']) !!}
         </div>
         <hr>
         
@@ -118,19 +112,20 @@
                 
                 //Aplicar solo si nuevo registro, si esta editando no realizara la buscqueda
                 @if(!isset($edit)) 
+                    $("input[name=nombre], input[name=apellido], input[name=fecha_nacimiento]").val('');
+                    $("select[name=pais]").val(1);
+            
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                         url: '/buscarDatosPersonales',
                         data: {tipo_doc: tipo_doc, nro_doc: nro_doc },
                         type: "GET", dataType: "json",
                         success: function(ret){
-                            if(ret.nombre){
-                                $("input[name=nombre]").val(ret.nombre);
-                                $("input[name=apellido]").val(ret.apellido);
-                                $("input[name=fecha_nacimiento]").val(ret.fecha_nacimiento);
-                                $("select[name=sexo]").val(ret.sexo);
-                                $("select[name=pais]").val(ret.pais);
-                            }
+                            $("input[name=nombre]").val(ret.nombre);
+                            $("input[name=apellido]").val(ret.apellido);
+                            $("input[name=fecha_nacimiento]").val(ret.fecha_nacimiento);
+                            $("select[name=sexo]").val(ret.sexo);
+                            $("select[name=pais]").val(ret.pais);
                         }
                     });
                 @endif

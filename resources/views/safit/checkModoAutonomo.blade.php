@@ -205,7 +205,7 @@
     }
 
     function mostrarMensajeError(error){
-      $('#logPreCheck').append('<li><label class="btn btn-danger">'+error+'</label></li>')
+      $('#logPreCheck').html('<li><label class="btn btn-danger">'+error+'</label></li>')
     }
 
     function validaciones(){
