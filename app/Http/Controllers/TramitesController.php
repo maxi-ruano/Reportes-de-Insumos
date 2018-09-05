@@ -52,9 +52,12 @@ class TramitesController extends Controller
     }
 
   //function get para API listar los tramites con licencias emitidas
-    public function get_licencias_emitidas(Request $request){
-	    $ip = $request->ip();
-    if($ip == '10.67.51.55' || $ip == '10.67.51.58' || $ip == '10.67.51.59' || $ip == '10.67.51.60'){
+  public function get_licencias_emitidas(Request $request){
+    $ip = $request->ip();
+    //IP permitidas para realizar la consulta: Daniela / Juan Ojeda / Pierre / Secretaria de Atencion Ciudadana
+    $autorizadas = ['192.168.76.136','192.168.76.215','192.168.76.230','10.67.51.55','10.67.51.58','10.67.51.59','10.67.51.60'];
+    
+    if(in_array($ip, $autorizadas)){ 
 
       $estado_finalizado = '95'; 
       $estado_completado = '14';
@@ -63,7 +66,6 @@ class TramitesController extends Controller
       ini_set('memory_limit', '-1');
 
       $tramites =  Tramites::selectRaw('
-                        tramites.tramite_id,
                         tramites.nro_doc,
                         datos_personales.apellido,
                         datos_personales.nombre,
@@ -80,7 +82,6 @@ class TramitesController extends Controller
                         CAST(tramites_log.modification_date AS TIME(0)) as hora_finalizacion,
                         CAST(tramites.fec_emision AS DATE),
                         CAST(tramites.fec_vencimiento AS DATE),
-                        ansv_control.nro_control AS nro_insumo,
                         licencias_otorgadas.clase AS categoria')
                       ->join('licencias_otorgadas','licencias_otorgadas.tramite_id','tramites.tramite_id')
                       ->join('tipo_tramites','tipo_tramites.tipo_tramite_id','tramites.tipo_tramite_id')
@@ -92,10 +93,6 @@ class TramitesController extends Controller
                       ->join('tramites_log',function($join) use($estado_finalizado) {
                         $join->on('tramites_log.tramite_id', 'tramites.tramite_id');
                         $join->where('tramites_log.estado', $estado_finalizado);
-                      })
-                      ->join('ansv_control',function($join) {
-                        $join->on('ansv_control.tramite_id', '=', 'tramites.tramite_id');
-                        $join->where('ansv_control.liberado', 'false');
                       })
                       ->where('tramites.estado',$estado_completado)
                       ->orderby('tramites.fec_inicio');
