@@ -127,9 +127,9 @@ class TramitesHabilitadosController extends Controller
             $tramiteshabilitados->save();
 
             //Crear registro en tramitesAIniciar y procesar el Precheck
-            //$tramitesAIniciar = new TramitesAInicarController();
-            //$tramitesAIniciar->iniciarTramiteEnPrecheck($tramiteshabilitados);
             ProcessPrecheck::dispatch($tramiteshabilitados);
+            /*$TramitesAIniciar = new TramitesAInicarController();
+            $TramitesAIniciar->iniciarTramiteEnPrecheck($tramiteshabilitados);*/
             
             Flash::success('El Tramite se ha creado correctamente');
             return redirect()->route('tramitesHabilitados.create');

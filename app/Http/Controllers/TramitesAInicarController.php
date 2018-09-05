@@ -106,42 +106,88 @@ class TramitesAInicarController extends Controller
 
   //Por culminar por method async fallido
   public function iniciarTramiteEnPrecheck($turno){
-    //1)Registrar datos en tramites_a_iniciar
-    $tramiteAIniciar = new TramitesAIniciar();
-    $tramiteAIniciar->apellido = $turno->apellido;
-    $tramiteAIniciar->nombre = $turno->nombre;
-    $tramiteAIniciar->tipo_doc = $turno->tipo_doc;
-    $tramiteAIniciar->nro_doc = $turno->nro_doc;
-    $tramiteAIniciar->sexo = $turno->sexo;
-    $tramiteAIniciar->nacionalidad = AnsvPaises::where('id_dgevyl', $turno->pais)->first()->id_ansv; 
-    $tramiteAIniciar->fecha_nacimiento = $turno->fecha_nacimiento;
-    $tramiteAIniciar->estado = '1';
-    $saved = $tramiteAIniciar->save();
+    \Log::info('['.date('h:i:s').'] '.'daniela1 iniciarTramiteEnPrecheck(), '.$turno->id);
+    //Verificar si existe un precheck realizado recientemente para vincular con este tramite habilitado
+    $existePrecheck = $this->existeTramiteAIniciarConPrecheck($turno);
+    \Log::info('['.date('h:i:s').'] '.' resultado existePrecheck: '.$existePrecheck->id);
+    if($existePrecheck){
+        \Log::info('['.date('h:i:s').'] '.'se vincula con un tramiteAIniciar que existe, '.$turno->id);
+        $turno->tramites_a_iniciar_id = $existePrecheck->id;
+        $turno->save();
+    }else{
+      \Log::info('['.date('h:i:s').'] '.'se creo en tramiteAIniciar, '.$turno->id);
+      //1)Registrar datos en tramites_a_iniciar
+      $tramiteAIniciar = new TramitesAIniciar();
+      $tramiteAIniciar->apellido = $turno->apellido;
+      $tramiteAIniciar->nombre = $turno->nombre;
+      $tramiteAIniciar->tipo_doc = $turno->tipo_doc;
+      $tramiteAIniciar->nro_doc = $turno->nro_doc;
+      $tramiteAIniciar->sexo = $turno->sexo;
+      $tramiteAIniciar->nacionalidad = AnsvPaises::where('id_dgevyl', $turno->pais)->first()->id_ansv; 
+      $tramiteAIniciar->fecha_nacimiento = $turno->fecha_nacimiento;
+      $tramiteAIniciar->estado = '1';
+      $saved = $tramiteAIniciar->save();
 
-    //Vincular tramites_a_iniciar_id en tramites_habilitados
-    $turno->tramites_a_iniciar_id = $tramiteAIniciar->id;
-    $turno->save();
+      //Vincular tramites_a_iniciar_id en tramites_habilitados
+      $turno->tramites_a_iniciar_id = $tramiteAIniciar->id;
+      $turno->save();
 
-    //Crear registros en validaciones_precheck
-    if($saved)
-      $this->crearValidacionesPrecheck($tramiteAIniciar->id);
+      //Crear registros en validaciones_precheck
+      if($saved)
+        $this->crearValidacionesPrecheck($tramiteAIniciar->id);
+        
+    }
     
     //2)REALIZAR PRECHECK DEL TRAMITE A INICIAR CREADO
-    /**por culminar, se debe ejecutar de forma Async
-     * el usuario no debe esperar el tiempo de repuesta */
-    \Log::info('['.date('h:i:s').'] '.'gestionarLibreDeuda()');
-    $this->gestionarLibreDeuda($tramiteAIniciar, LIBRE_DEUDA, VALIDACIONES);
-    \Log::info('['.date('h:i:s').'] '.'gestionarBui()');
-    $this->gestionarBui($tramiteAIniciar, BUI, VALIDACIONES);
-    \Log::info('['.date('h:i:s').'] '.'buscarBoletaSafit()');
-    $this->buscarBoletaSafit($tramiteAIniciar, SAFIT);
-    \Log::info('['.date('h:i:s').'] '.'gestionarBoletaSafit()');
-    $this->gestionarBoletaSafit($tramiteAIniciar, SAFIT, VALIDACIONES);
-    \Log::info('['.date('h:i:s').'] '.'fin validaciones background()');
+    /**Se ejecuta de forma Async el usuario no debe esperar el tiempo de repuesta */
+    \Log::info('['.date('h:i:s').'] '.'inicio validaciones precheck');
 
+      if(!$this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,LIBRE_DEUDA)){
+        \Log::info('['.date('h:i:s').'] '.'> > > gestionarLibreDeuda() tramiteAIniciar = '.$turno->id);
+        $this->gestionarLibreDeuda($tramiteAIniciar, LIBRE_DEUDA, VALIDACIONES);
+      }
+
+      if(!$this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,BUI)){
+        \Log::info('['.date('h:i:s').'] '.'> > > gestionarBui() tramiteAIniciar = '.$turno->id);
+        $this->gestionarBui($tramiteAIniciar, BUI, VALIDACIONES);
+      }
+
+      if(!$this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,SAFIT)){
+        \Log::info('['.date('h:i:s').'] '.'> > > buscarBoletaSafit() tramiteAIniciar = '.$turno->id);
+        $this->buscarBoletaSafit($tramiteAIniciar, SAFIT);
+        \Log::info('['.date('h:i:s').'] '.'> > > gestionarBoletaSafit() tramiteAIniciar = '.$turno->id);
+        $this->gestionarBoletaSafit($tramiteAIniciar, SAFIT, VALIDACIONES);     
+      }
+
+    \Log::info('['.date('h:i:s').'] '.'fin validaciones precheck');
+    
     return true;
   }
 
+  public function existeTramiteAIniciarConPrecheck($persona){
+    $encontrado = TramitesAIniciar::select('tramites_a_iniciar.*')
+                    ->leftjoin('tramites','tramites.tramite_id','tramites_a_iniciar.tramite_dgevyl_id')
+                    ->join('ansv_paises','ansv_paises.id_ansv','tramites_a_iniciar.nacionalidad')
+                    ->where('ansv_paises.id_dgevyl',$persona->pais)
+                    ->where('tramites_a_iniciar.nro_doc',$persona->nro_doc)
+                    ->where('tramites_a_iniciar.tipo_doc',$persona->tipo_doc)
+                    ->where('tramites_a_iniciar.estado', '!=','8')
+                    ->where(function ($query) {
+                        $query->where('tramites.estado', '93')
+                            ->orWhereNull('tramites.estado');
+                    })
+                    ->orderBy('tramites_a_iniciar.created_at','DESC')
+                    ->first();                
+    return $encontrado;
+  }
+
+  public function estaValidadoEnValidacionesPrecheck($tramiteAIniciar, $validation_id){    
+    $consulta = ValidacionesPrecheck::select('validado')
+                    ->where('tramite_a_iniciar_id',$tramiteAIniciar->id)
+                    ->where('validation_id',$validation_id)
+                    ->first();
+    return $consulta->validado;
+  }
 
   /**
    * MicroservicioController: 1) Metodos asociados para completarTurnosEnTramitesAIniciar
