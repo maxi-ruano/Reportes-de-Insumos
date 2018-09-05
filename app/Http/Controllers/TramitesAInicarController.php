@@ -109,7 +109,6 @@ class TramitesAInicarController extends Controller
     \Log::info('['.date('h:i:s').'] '.'daniela1 iniciarTramiteEnPrecheck(), '.$turno->id);
     //Verificar si existe un precheck realizado recientemente para vincular con este tramite habilitado
     $existePrecheck = $this->existeTramiteAIniciarConPrecheck($turno);
-    \Log::info('['.date('h:i:s').'] '.' resultado existePrecheck: '.$existePrecheck->id);
     if($existePrecheck){
         \Log::info('['.date('h:i:s').'] '.'se vincula con un tramiteAIniciar que existe, '.$turno->id);
         $turno->tramites_a_iniciar_id = $existePrecheck->id;
@@ -152,6 +151,7 @@ class TramitesAInicarController extends Controller
         $this->gestionarBui($tramiteAIniciar, BUI, VALIDACIONES);
       }
 
+      //Pendiente: ejecutar gestionarBoletaSafit() solo si encuenctra datos en buscarBoloetaSafit()
       if(!$this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,SAFIT)){
         \Log::info('['.date('h:i:s').'] '.'> > > buscarBoletaSafit() tramiteAIniciar = '.$turno->id);
         $this->buscarBoletaSafit($tramiteAIniciar, SAFIT);

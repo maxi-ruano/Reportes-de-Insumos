@@ -210,12 +210,13 @@ class TramitesHabilitadosController extends Controller
         //echo "entro a destroy ".$id;
         try{
             $tramiteshabilitados = TramitesHabilitados::find($id);
+            $tramiteshabilitados->delete();
 
             //Borrar registros creados en tramites_a_iniciar y validaciones_precheck
-            $validacionesPrecheck = ValidacionesPrecheck::where('tramite_a_iniciar_id', $tramiteshabilitados->tramites_a_iniciar_id)->delete();
+            /*$validacionesPrecheck = ValidacionesPrecheck::where('tramite_a_iniciar_id', $tramiteshabilitados->tramites_a_iniciar_id)->delete();
             $tramitesAIniciar = TramitesAIniciar::where('id', $tramiteshabilitados->tramites_a_iniciar_id)->delete();
-            
-            $tramiteshabilitados->delete();
+            */
+           
             Flash::success('El Tramite se ha eliminado correctamente');
             return redirect()->route('tramitesHabilitados.index');
         }
