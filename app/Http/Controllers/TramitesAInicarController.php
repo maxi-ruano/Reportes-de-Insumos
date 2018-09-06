@@ -18,6 +18,7 @@ use App\BoletaBui;
 use App\AnsvCelExpedidor;
 use App\EmisionBoletaSafit;
 use App\ValidacionesPrecheck;
+use App\TramitesHabilitados;
 
 class TramitesAInicarController extends Controller
 {
@@ -112,6 +113,7 @@ class TramitesAInicarController extends Controller
         \Log::info('['.date('h:i:s').'] '.'se vincula con un tramiteAIniciar que existe, '.$turno->id);
         $turno->tramites_a_iniciar_id = $tramiteAIniciar->id;
         $turno->save();
+        $this->eliminarVinculosEnTramitesHabilitados($turno->id, $tramiteAIniciar->id);
     }else{
       \Log::info('['.date('h:i:s').'] '.'se creo en tramiteAIniciar, '.$turno->id);
       //1)Registrar datos en tramites_a_iniciar
@@ -179,6 +181,12 @@ class TramitesAInicarController extends Controller
                     ->orderBy('tramites_a_iniciar.created_at','DESC')
                     ->first();                
     return $encontrado;
+  }
+
+  public function eliminarVinculosEnTramitesHabilitados($turno_id, $tramite_id){
+    TramitesHabilitados::where('tramites_a_iniciar_id',$tramite_id)
+                        ->where('id','!=',$turno_id)
+                        ->update(['tramites_a_iniciar_id'=> null]);
   }
 
   public function estaValidadoEnValidacionesPrecheck($tramiteAIniciar, $validation_id){    
