@@ -986,7 +986,7 @@ class TramitesAInicarController extends Controller
     //26 dias atras
     $ini_date = date('Y-m-d', strtotime('-'.(DIAS_VALIDEZ_TURNO+11).' days', strtotime(date('Y-m-d'))));
     $res = TramitesAIniciar::leftJoin('sigeci', 'tramites_a_iniciar.id', '=', 'sigeci.tramite_a_iniciar_id')
-                    ->whereBetween('sigeci.fecha', [$ini_date, $last_date])
+                    ->where('sigeci.fecha', '<', $last_date)
                     ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
                     ->update(['estado' => TURNO_VENCIDO]);
   }

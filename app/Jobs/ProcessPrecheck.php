@@ -21,6 +21,7 @@ class ProcessPrecheck implements ShouldQueue
      */
 
     private $tramitesHabilitado;
+    public $tries = 1;
 
     public function __construct($tramiteshabilitados)
     {
