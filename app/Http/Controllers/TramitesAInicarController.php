@@ -36,7 +36,7 @@ class TramitesAInicarController extends Controller
   //LIBRE deuda
   private $userLibreDeuda = "LICENCIAS01";
   private $passwordLibreDeuda = "LICWEB";
-  //private $passwordLibreDeuda = "TEST1234";
+  //private $passwordLibreDeuda = "TEST1234";  //solo habilitar para Testing
   //private $urlLibreDeuda = "https://192.168.110.245/LicenciaWS/LicenciaWS?";
   private $urlLibreDeuda = "https://tcaba2.dgai.com.ar/LicenciaWS/LicenciaWS?";
 
@@ -104,14 +104,13 @@ class TramitesAInicarController extends Controller
     return $persona->save();
   }
 
-  //Por culminar por method async fallido
+  //Proceso utilizado en segundo plano mediante Queue
   public function iniciarTramiteEnPrecheck($turno){
-    \Log::info('['.date('h:i:s').'] '.'daniela1 iniciarTramiteEnPrecheck(), '.$turno->id);
     //Verificar si existe un precheck realizado recientemente para vincular con este tramite habilitado
-    $existePrecheck = $this->existeTramiteAIniciarConPrecheck($turno);
-    if($existePrecheck){
+    $tramiteAIniciar = $this->existeTramiteAIniciarConPrecheck($turno);
+    if($tramiteAIniciar){
         \Log::info('['.date('h:i:s').'] '.'se vincula con un tramiteAIniciar que existe, '.$turno->id);
-        $turno->tramites_a_iniciar_id = $existePrecheck->id;
+        $turno->tramites_a_iniciar_id = $tramiteAIniciar->id;
         $turno->save();
     }else{
       \Log::info('['.date('h:i:s').'] '.'se creo en tramiteAIniciar, '.$turno->id);
@@ -138,25 +137,26 @@ class TramitesAInicarController extends Controller
     }
     
     //2)REALIZAR PRECHECK DEL TRAMITE A INICIAR CREADO
-    /**Se ejecuta de forma Async el usuario no debe esperar el tiempo de repuesta */
-    \Log::info('['.date('h:i:s').'] '.'inicio validaciones precheck');
+    /**Se ejecuta de forma Async el usuario no debe esperar el tiempo de respuesta */
+    \Log::info('['.date('h:i:s').'] '.'inicio validaciones precheck con tramiteAIniciar ID: '.$tramiteAIniciar->id);
 
       if(!$this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,LIBRE_DEUDA)){
-        \Log::info('['.date('h:i:s').'] '.'> > > gestionarLibreDeuda() tramiteAIniciar = '.$turno->id);
+        \Log::info('['.date('h:i:s').'] '.'> > > gestionarLibreDeuda() tramites_habilitado ID = '.$turno->id);
         $this->gestionarLibreDeuda($tramiteAIniciar, LIBRE_DEUDA, VALIDACIONES);
       }
-
+      
       if(!$this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,BUI)){
-        \Log::info('['.date('h:i:s').'] '.'> > > gestionarBui() tramiteAIniciar = '.$turno->id);
-        $this->gestionarBui($tramiteAIniciar, BUI, VALIDACIONES);
+        \Log::info('['.date('h:i:s').'] '.'> > > gestionarBui('.BUI.') tramites_habilitado ID = '.$turno->id);
+        $this->gestionarBui($tramiteAIniciar, BUI, VALIDACIONES);        
       }
 
       //Pendiente: ejecutar gestionarBoletaSafit() solo si encuenctra datos en buscarBoloetaSafit()
-      if(!$this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,SAFIT)){
-        \Log::info('['.date('h:i:s').'] '.'> > > buscarBoletaSafit() tramiteAIniciar = '.$turno->id);
+      \Log::info('['.date('h:i:s').'] '.' comprobando SAFIT '.EMISION_BOLETA_SAFIT);
+      if(!$this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,EMISION_BOLETA_SAFIT)){
+        \Log::info('['.date('h:i:s').'] '.'> > > buscarBoletaSafit() tramites_habilitado ID = '.$turno->id);
         $this->buscarBoletaSafit($tramiteAIniciar, SAFIT);
-        \Log::info('['.date('h:i:s').'] '.'> > > gestionarBoletaSafit() tramiteAIniciar = '.$turno->id);
-        $this->gestionarBoletaSafit($tramiteAIniciar, SAFIT, VALIDACIONES);     
+        \Log::info('['.date('h:i:s').'] '.'> > > gestionarBoletaSafit() tramites_habilitado ID = '.$turno->id);
+        $this->gestionarBoletaSafit($tramiteAIniciar, EMISION_BOLETA_SAFIT, VALIDACIONES);     
       }
 
     \Log::info('['.date('h:i:s').'] '.'fin validaciones precheck');
@@ -252,7 +252,6 @@ class TramitesAInicarController extends Controller
       $validaciones->save();
     }
   }
-
 
   /**
   * MicroservicioController: 2) Metodos asociados para verificarLibreDeudaDeTramites
@@ -566,6 +565,9 @@ class TramitesAInicarController extends Controller
   }
 
   public function verificarBui($tramite, $concepto){
+
+    \Log::info('['.date('h:i:s').'] Se inicia verificarBui() tramiteAIniciar ID: '.$tramite->id); 
+
     $comprobante = array();
     $tramite = TramitesAIniciar::find($tramite->id);
     $data = array("TipoDocumento" => $tramite->tipoDocBui(),
@@ -574,9 +576,11 @@ class TramitesAInicarController extends Controller
                   "Ultima" => "false");
     $res = $this->peticionCurl($data, $this->urlVerificacionBui, "POST", $this->userBui, $this->passwordBui);
     $mensaje = "ha ocurrido un error inesperado";
-    if(empty($res->boletas))
-      $mensaje = $res->mensaje;
-    else {
+
+    if(empty($res->boletas)){
+      if(isset($res->mensaje))
+        $mensaje = $res->mensaje;
+    } else {
       if($boleta = $this->existeBoletaHabilitada($res->boletas)){
         if(!$this->boletaUtilizada($boleta)){
           $boletaBui = BoletaBui::create(array(
@@ -594,13 +598,17 @@ class TramitesAInicarController extends Controller
         }else{
           $mensaje = "La boleta habilitada ya a sido utilizado en el sistema de la direccion general de licencias";
         }
-      }else
+      }else{
         $mensaje = "No dispone de ninguna boleta habilitada";
+      }
     }
     if($res !== true)
       $res = array('error' => $mensaje, 'request' => $data, 'response' => $res);
     else
       $res = $comprobante;  
+
+    \Log::info('['.date('h:i:s').'] '.' se ejecuto peticionCurl(), concepto: '.$concepto[0].' mensaje: '.$mensaje); 
+
     return $res;
   }
 
