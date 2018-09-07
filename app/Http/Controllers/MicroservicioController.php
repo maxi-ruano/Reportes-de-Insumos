@@ -47,8 +47,11 @@ class MicroservicioController extends Controller
           $precheck = $tramitesAIniciar->gestionarBui($tramite, BUI, VALIDACIONES);
         break;
         case 3: //SAFIT
-          $precheck = $tramitesAIniciar->buscarBoletaSafit($tramite, SAFIT);
-          $precheck = $tramitesAIniciar->gestionarBoletaSafit($tramite, SAFIT, VALIDACIONES);
+          if($tramitesAIniciar->buscarBoletaSafit($tramite, SAFIT))
+            $precheck = $tramitesAIniciar->gestionarBoletaSafit($tramite, EMISION_BOLETA_SAFIT, VALIDACIONES);
+            //$precheck = 'Se encontro la Boleta Safit';
+          else
+            $precheck = 'No se encontro la Boleta Safit';
         break;
         default:
           # code...

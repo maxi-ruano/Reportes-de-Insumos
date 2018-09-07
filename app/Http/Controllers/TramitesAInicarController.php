@@ -152,13 +152,14 @@ class TramitesAInicarController extends Controller
         $this->gestionarBui($tramiteAIniciar, BUI, VALIDACIONES);        
       }
 
-      //Pendiente: ejecutar gestionarBoletaSafit() solo si encuenctra datos en buscarBoloetaSafit()
       \Log::info('['.date('h:i:s').'] '.' comprobando SAFIT '.EMISION_BOLETA_SAFIT);
       if(!$this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,EMISION_BOLETA_SAFIT)){
         \Log::info('['.date('h:i:s').'] '.'> > > buscarBoletaSafit() tramites_habilitado ID = '.$turno->id);
-        $this->buscarBoletaSafit($tramiteAIniciar, SAFIT);
-        \Log::info('['.date('h:i:s').'] '.'> > > gestionarBoletaSafit() tramites_habilitado ID = '.$turno->id);
-        $this->gestionarBoletaSafit($tramiteAIniciar, EMISION_BOLETA_SAFIT, VALIDACIONES);     
+        if($this->buscarBoletaSafit($tramiteAIniciar, SAFIT)){
+          //Ejecutar gestionarBoletaSafit() solo si encuenctra datos en buscarBoloetaSafit()
+          \Log::info('['.date('h:i:s').'] '.'> > > gestionarBoletaSafit() tramites_habilitado ID = '.$turno->id);
+          $this->gestionarBoletaSafit($tramiteAIniciar, EMISION_BOLETA_SAFIT, VALIDACIONES);
+        }
       }
 
     \Log::info('['.date('h:i:s').'] '.'fin validaciones precheck');
@@ -402,10 +403,12 @@ class TramitesAInicarController extends Controller
   public function  buscarBoletaSafit($persona, $siguienteEstado){
       $persona = TramitesAIniciar::find($persona->id);
       $res = $this->getBoleta($persona);
-      if(empty($res->error))
+      if(empty($res->error)){
         $this->guardarDatosBoleta($persona, $res, $siguienteEstado);
-      else {
+        return 1;
+      }else {
         $this->guardarError($res, $siguienteEstado, $persona->id);
+        return 0;
       }
   }
 
