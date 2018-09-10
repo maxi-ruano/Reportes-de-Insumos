@@ -8,13 +8,14 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Maatwebsite\Excel\Facades\Excel;
 use App\SysMultivalue;
+use App\SysConfig;
 
 class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
     public function __construct(){
-       $this->cargarEstados();
+       $this->crearConstantes();
     }
 
     //Funcion Global para Exportar un archivo en cualquier formato
@@ -39,7 +40,7 @@ class Controller extends BaseController
         })->export($type);
     }
 
-    function cargarEstados(){
+    public function crearConstantes(){
         $constantes = SysMultivalue::where('type', 'AUTO')
                                     ->orWhere('type', 'VALP')
                                     ->orWhere('type', 'CONS')
@@ -47,6 +48,13 @@ class Controller extends BaseController
         foreach($constantes as $value){
             if(!defined($value->text_id))
                 define($value->text_id,$value->id);
+        }
+
+        $constantes_sys_config = SysConfig::all();
+        foreach($constantes_sys_config as $value){
+            $const = $value->name.'_'.$value->param;
+            if(!defined($const))
+                define($const,$value->value);
         }
 
         //dd('se realizo la definicion de constantes');

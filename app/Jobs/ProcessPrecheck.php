@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use App\Http\Controllers\TramitesAInicarController;
 use App\TramitesHabilitados;
+use App\Http\Controllers\Controller;
 
 class ProcessPrecheck implements ShouldQueue
 {
@@ -36,6 +37,10 @@ class ProcessPrecheck implements ShouldQueue
     public function handle()
     {
         try {
+
+            $controller = new Controller();
+            $controller->crearConstantes();
+
             $t = TramitesHabilitados::find($this->tramitesHabilitado->id);
             \Log::info('['.date('h:i:s').'] '.'Se inicio el proceso del tramite habilitado ID: '.$t->id);
             $tramite = new TramitesAInicarController();

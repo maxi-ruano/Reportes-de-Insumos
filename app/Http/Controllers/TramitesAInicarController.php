@@ -35,18 +35,15 @@ class TramitesAInicarController extends Controller
   private $prestacionesCursos = [1604, 1543];
 
   //LIBRE deuda
-  private $userLibreDeuda = "LICENCIAS01";
-  private $passwordLibreDeuda = "LICWEB";
-  //private $passwordLibreDeuda = "TEST1234";  //solo habilitar para Testing
-  //private $urlLibreDeuda = "https://192.168.110.245/LicenciaWS/LicenciaWS?";
-  private $urlLibreDeuda = "https://tcaba2.dgai.com.ar/LicenciaWS/LicenciaWS?";
+  private $userLibreDeuda = LibreDeudaWS_userName;
+  private $passwordLibreDeuda = LibreDeudaWS_userPass;
+  private $urlLibreDeuda = LibreDeudaWS_wsdl_url;
 
   //BUI
-  private $userBui = "licenciasws";
-  private $passwordBui = "lic189";
   private $conceptoBui = [["07.02.28"], ["07.02.31"], ["07.02.32"], ["07.02.33"], ["07.02.34"], ["07.02.35"]];
-  //private $urlVerificacionBui = 'https://pagossir.buenosaires.gob.ar/api/BUI/GetResumenBoletasPagas';
-  private $urlVerificacionBui = 'http://10.73.100.42:6748/service/api/BUI/GetResumenBoletasPagas';
+  private $userBui = BuiWS_userName;
+  private $passwordBui = BuiWS_userPass;
+  private $urlVerificacionBui = BuiWS_ws_url;
 
   //SINALIC
   private $wsSinalic = null;

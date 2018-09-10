@@ -10,16 +10,11 @@ use App\SysConfig;
 
 class WsClienteSafitController extends Controller
 {
-  /*var $url = 'https://testing.safit.com.ar:443/service/s_001.php?wsdl';
-  var $uswID = '000016';
-  var $uswPassword = 'weporjgsdf41654';
-  var $uswHash = 'e10adc3949ba59abbe56e057f20f883e';*/
-  
-  var $url = 'https://www.safit.com.ar/service/s_001.php?wsdl';        
-  var $uswID = '000016';
-  var $uswPassword = 'weporjgsdf41654';
-  var $uswHash = 'e10adc3949ba59abbe56e057f20f883e';
-  var $munID = '1';
+  var $url = SafitWS_ws_url;
+  var $uswID = SafitWS_userName;
+  var $uswPassword = SafitWS_userPass;
+  var $uswHash = SafitWS_userHash;
+  var $munID = SafitWS_munID;
   var $ingID = null;
   var $cliente = null;
   var $sesID = null;
