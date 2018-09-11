@@ -10,7 +10,37 @@ use Log;
 
 class MicroservicioController extends Controller
 {
-    private $estados = array();
+    private $tramitesAIniciar;
+
+    public function __construct(){
+      ini_set('default_socket_timeout', 600);
+      $this->tramitesAIniciar = new WsClienteSafitController();
+    }
+
+    public function completarTurnosEnTramitesAIniciar(){
+      $this->tramitesAIniciar->completarTurnosEnTramitesAIniciar( INICIO );
+    }
+
+    public function verificarLibreDeudaDeTramites(){
+      $this->tramitesAIniciar->verificarLibreDeudaDeTramites(INICIO, LIBRE_DEUDA, VALIDACIONES);
+    }
+
+    public function completarBoletasEnTramitesAIniciar(){
+      $this->tramitesAIniciar->completarBoletasEnTramitesAIniciar( INICIO, SAFIT);
+    }
+
+    public function emitirBoletasVirtualPago(){
+      $this->tramitesAIniciar->emitirBoletasVirtualPago( SAFIT, EMISION_BOLETA_SAFIT,   VALIDACIONES);
+    }
+
+    public function verificarBuiTramites(){
+      $this->tramitesAIniciar->verificarBuiTramites( INICIO, BUI, VALIDACIONES);
+    }
+
+    public function revisarValidaciones(){
+      $this->tramitesAIniciar->revisarValidaciones(VALIDACIONES_COMPLETAS);
+    }
+
     public function run(){
       ini_set('default_socket_timeout', 600);
       //$this->cargarEstados();

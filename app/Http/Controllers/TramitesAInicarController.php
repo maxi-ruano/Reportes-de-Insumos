@@ -989,14 +989,19 @@ class TramitesAInicarController extends Controller
   
   //FUNCIONES PARA TURNOS VENCIDOS
   public function revisarTurnosVencidos(){
-    //16 dias atras
-    $last_date = date('Y-m-d', strtotime('-'.(DIAS_VALIDEZ_TURNO+1).' days', strtotime(date('Y-m-d'))));
-    //26 dias atras
-    $ini_date = date('Y-m-d', strtotime('-'.(DIAS_VALIDEZ_TURNO+11).' days', strtotime(date('Y-m-d'))));
-    $res = TramitesAIniciar::leftJoin('sigeci', 'tramites_a_iniciar.id', '=', 'sigeci.tramite_a_iniciar_id')
-                    ->where('sigeci.fecha', '<', $last_date)
-                    ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
-                    ->update(['estado' => TURNO_VENCIDO]);
+    try{
+      //16 dias atras
+      $last_date = date('Y-m-d', strtotime('-'.(DIAS_VALIDEZ_TURNO+1).' days', strtotime(date('Y-m-d'))));
+      //26 dias atras
+      $ini_date = date('Y-m-d', strtotime('-'.(DIAS_VALIDEZ_TURNO+11).' days', strtotime(date('Y-m-d'))));
+      $res = TramitesAIniciar::leftJoin('sigeci', 'tramites_a_iniciar.id', '=', 'sigeci.tramite_a_iniciar_id')
+                      ->where('sigeci.fecha', '<', $last_date)
+                      ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
+                      ->update(['estado' => TURNO_VENCIDO]);
+      \Log::info('['.date('h:i:s').'] revisarTurnosVencidos - Se da por TURNO_VENCIDO a los turnos menores a : '.$last_date);                     
+    }catch(\Exception $e){
+        \Log::warning('['.date('h:i:s').'] revisarTurnosVencidos Error: '.$e->getMessage()); 
+    }                    
   }
 
   public function buscarBoletaSafitEnTurnosVencidos($tramiteAIniciar){
