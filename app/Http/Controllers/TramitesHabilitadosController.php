@@ -267,14 +267,19 @@ class TramitesHabilitadosController extends Controller
 
     public function buscarDatosPersonales(Request $request)
     {
-        $buscar = DatosPersonales::selectRaw('nombre, apellido, UPPER(sexo) as sexo, fec_nacimiento as fecha_nacimiento, pais')->where("tipo_doc",$request->tipo_doc)->where("nro_doc",$request->nro_doc)->orderBy('modification_date','DESC')->first();
-        
-        if(!$buscar)
-           $buscar = TramitesHabilitados::where("tipo_doc",$request->tipo_doc)->where("nro_doc",$request->nro_doc)->orderBy('id','DESC')->first();
-
-        if(!$buscar)
-           $buscar = TramitesAIniciar::where("tipo_doc",$request->tipo_doc)->where("nro_doc",$request->nro_doc)->orderBy('id','DESC')->first();
-
+        $buscar='';
+        $sql = DatosPersonales::selectRaw('nombre, apellido, UPPER(sexo) as sexo, fec_nacimiento as fecha_nacimiento, pais')->where("tipo_doc",$request->tipo_doc)->where("nro_doc",$request->nro_doc)->orderBy('modification_date','DESC');
+        $duplicado = $sql->count();
+        //Verificar si existe una persona con el mismo numero de documento
+        if(!($duplicado>2)){
+            if($duplicado==1){
+                $buscar = $sql->first();
+            }else{
+                $buscar = TramitesHabilitados::where("tipo_doc",$request->tipo_doc)->where("nro_doc",$request->nro_doc)->orderBy('id','DESC')->first();
+                if(!$buscar)
+                    $buscar = TramitesAIniciar::where("tipo_doc",$request->tipo_doc)->where("nro_doc",$request->nro_doc)->orderBy('id','DESC')->first();
+            }
+        }
         return $buscar;
     }
 }
