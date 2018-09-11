@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\SysMultivalue;
 use App\User;
 use App\TramitesHabilitados;
-use App\Http\Controllers\TramitesAInicarController;
+use App\AnsvPaises;
 use App\DatosPersonales;
 use Laracasts\Flash\Flash;
 use Illuminate\Support\Facades\Auth;
@@ -128,9 +128,7 @@ class TramitesHabilitadosController extends Controller
 
             //Crear registro en tramitesAIniciar y procesar el Precheck
             ProcessPrecheck::dispatch($tramiteshabilitados);
-            /*$TramitesAIniciar = new TramitesAInicarController();
-            $TramitesAIniciar->iniciarTramiteEnPrecheck($tramiteshabilitados);*/
-            
+
             Flash::success('El Tramite se ha creado correctamente');
             return redirect()->route('tramitesHabilitados.create');
         }
@@ -159,18 +157,24 @@ class TramitesHabilitadosController extends Controller
     public function edit($id)
     {
         $edit = TramitesHabilitados::find($id);
-        $motivos = \DB::table('tramites_habilitados_motivos')->select('id','description')->where('activo','true')->orderBy('description', 'asc')->pluck('description','id');        
-        
-        $SysMultivalue = new SysMultivalue();
-        $sucursales = $SysMultivalue->sucursales();
-        $tdocs = $SysMultivalue->tipodocs();    
-        $paises = $SysMultivalue->paises();
-        
-        return view($this->path.'.form')->with('edit', $edit)
-                                        ->with('sucursales',$sucursales)
-                                        ->with('tdocs',$tdocs)
-                                        ->with('paises',$paises)
-                                        ->with('motivos',$motivos);
+        $inicio_tramite = TramitesAIniciar::find($edit->tramites_a_iniciar_id)->tramite_dgevyl_id;
+        //No realizar ninguna modificacion si el tramiteAIniciar inicio en Fotografia
+        if($inicio_tramite){
+            Flash::error('El Tramite ya se inicio no se puede modificar!');
+            return redirect()->route('tramitesHabilitados.index');
+        }else{
+            $motivos = \DB::table('tramites_habilitados_motivos')->select('id','description')->where('activo','true')->orderBy('description', 'asc')->pluck('description','id');
+            $SysMultivalue = new SysMultivalue();
+            $sucursales = $SysMultivalue->sucursales();
+            $tdocs = $SysMultivalue->tipodocs();
+            $paises = $SysMultivalue->paises();
+
+            return view($this->path.'.form')->with('edit', $edit)
+                                            ->with('sucursales',$sucursales)
+                                            ->with('tdocs',$tdocs)
+                                            ->with('paises',$paises)
+                                            ->with('motivos',$motivos);
+        }
     }
 
     /**
@@ -187,14 +191,42 @@ class TramitesHabilitadosController extends Controller
             $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/^[0-9a-zA-Z]+$/']);
         else
             $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^(\d+)?$)/u']);
-        
+
+        //Buscar tramites habilitado, guardarmos tipo y nro de documento actual para comparar luego si fueron modificaron
         $tramitesHabilitados = TramitesHabilitados::find($id);
+        $tipodoc = $tramitesHabilitados->tipo_doc;
+        $nrodoc = $tramitesHabilitados->nro_doc;
+        $tramitesAIniciar_id = $tramitesHabilitados->tramites_a_iniciar_id;
+
+        //Actualizar datos en TramitesHabilitados
         $tramitesHabilitados->fill($request->except('user_id'));
         $tramitesHabilitados->nro_doc = strtoupper($request->nro_doc);
         $tramitesHabilitados->nombre = strtoupper($request->nombre);
         $tramitesHabilitados->apellido = strtoupper($request->apellido);
-
         $tramitesHabilitados->save();
+
+        //Si existe un TramiteAIniciar asociado hacer lo siguiente
+        if($tramitesAIniciar_id){
+            //Si se modifico el Tipo o Nro de Documento se anula el tramiteAiniciar asociado y se crea uno nuevo
+            if( ($tipodoc != $tramitesHabilitados->tipo_doc) || ($nrodoc != $tramitesHabilitados->nro_doc)){
+                TramitesAIniciar::where('id',$tramitesAIniciar_id)
+                    ->whereNull('tramite_dgevyl_id')
+                    ->update(['estado'=> TURNO_VENCIDO]);
+                //Crear un nuevo tramitesAIniciar y procesar el Precheck
+                ProcessPrecheck::dispatch($tramitesHabilitados);
+            }else{
+                //De lo contrario se modifica en TramitesAIniciar los datos
+                $nacionalidad = AnsvPaises::where('id_dgevyl', $request->pais)->first()->id_ansv;
+                $tramiesAIniciar = TramitesAIniciar::find($tramitesAIniciar_id);
+                $tramiesAIniciar->nombre = strtoupper($request->nombre);
+                $tramiesAIniciar->apellido = strtoupper($request->apellido);
+                $tramiesAIniciar->sexo = $request->sexo;
+                $tramiesAIniciar->fecha_nacimiento = $request->fecha_nacimiento;
+                $tramiesAIniciar->nacionalidad = $nacionalidad;
+                $tramiesAIniciar->save();
+            }
+        }
+
         Flash::success('El Tramite se ha editado correctamente');
         return redirect()->route('tramitesHabilitados.index');
     }
