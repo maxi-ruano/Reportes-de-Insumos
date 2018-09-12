@@ -73,6 +73,8 @@ class TramitesController extends Controller
                         licencias_otorgadas.nacionalidad,
                         datos_personales.fec_nacimiento,
                         datos_personales.correo,
+                        datos_personales.calle as domicilio,
+                        datos_personales.numero as altura,
                         tramites.sucursal,
                         tipo_tramites.descripcion AS tipo_tramite,
                         tramites.estado,
