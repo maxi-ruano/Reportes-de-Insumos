@@ -35,15 +35,15 @@ class TramitesAInicarController extends Controller
   private $prestacionesCursos = [1604, 1543];
 
   //LIBRE deuda
-  private $userLibreDeuda = LibreDeudaWS_userName;
-  private $passwordLibreDeuda = LibreDeudaWS_userPass;
-  private $urlLibreDeuda = LibreDeudaWS_wsdl_url;
+  private $userLibreDeuda;
+  private $passwordLibreDeuda;
+  private $urlLibreDeuda;
 
   //BUI
   private $conceptoBui = [["07.02.28"], ["07.02.31"], ["07.02.32"], ["07.02.33"], ["07.02.34"], ["07.02.35"]];
-  private $userBui = BuiWS_userName;
-  private $passwordBui = BuiWS_userPass;
-  private $urlVerificacionBui = BuiWS_ws_url;
+  private $userBui;
+  private $passwordBui;
+  private $urlVerificacionBui;
 
   //SINALIC
   private $wsSinalic = null;
@@ -58,6 +58,14 @@ class TramitesAInicarController extends Controller
     //$this->wsSinalic = new WsClienteSinalicController();
     ini_set('default_socket_timeout', 600);
     $this->calcularFechas();
+    
+    $this->userLibreDeuda = LibreDeudaWS_userName;
+    $this->passwordLibreDeuda = LibreDeudaWS_userPass;
+    $this->urlLibreDeuda = LibreDeudaWS_wsdl_url;
+
+    $this->userBui = BuiWS_userName;
+    $this->passwordBui = BuiWS_userPass;
+    $this->urlVerificacionBui = BuiWS_ws_url;
   }
 
   public function getTramitesAIniciar($estado, $fecha_inicio, $fecha_fin){

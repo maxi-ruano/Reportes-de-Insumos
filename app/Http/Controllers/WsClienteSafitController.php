@@ -10,15 +10,24 @@ use App\SysConfig;
 
 class WsClienteSafitController extends Controller
 {
-  var $url = SafitWS_ws_url;
-  var $uswID = SafitWS_userName;
-  var $uswPassword = SafitWS_userPass;
-  var $uswHash = SafitWS_userHash;
-  var $munID = SafitWS_munID;
+  private $url;
+  private $uswID;
+  private $uswPassword;
+  private $uswHash;
+  private $munID;
   var $ingID = null;
   var $cliente = null;
   var $sesID = null;
   
+  public function __construct(){
+    $this->crearConstantes();
+    $this->url = SafitWS_ws_url;
+    $this->uswID = SafitWS_userName;
+    $this->uswPassword = SafitWS_userPass;
+    $this->uswHash = SafitWS_userHash;
+    $this->munID = SafitWS_munID;
+  }
+
   public function iniciarSesion(){
     $res = null;
     try {
