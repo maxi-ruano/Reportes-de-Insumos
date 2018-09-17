@@ -921,6 +921,37 @@ class TramitesAInicarController extends Controller
     return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->getCentrosEmisores());
   }
 
+  public function buscarBoletaPagoPersona(Request $request){
+    $SysMultivalue = new SysMultivalue();
+    $tipodocs = $SysMultivalue->tipodocs();
+    return View('safit.buscarBoletaPagoPersona')->with('tipodocs', $tipodocs);
+  }
+
+  public function consultarBoletaPagoPersona(Request $request){
+    $persona = TramitesAIniciar::selectRaw($request->tipo_doc.' as tipo_doc, '.$request->nro_doc.' as nro_doc')->first();
+    $this->wsSafit->iniciarSesion();
+    $boletas = $this->wsSafit->getBoletas($persona);
+    $this->wsSafit->cerrarSesion();
+    dd($boletas);
+
+    /*
+    if(!empty($boletas->datosBoletaPago->datosBoletaPagoParaPersona)){
+      foreach ($boletas->datosBoletaPago->datosBoletaPagoParaPersona as $key => $boleta) {
+        $resultado = (object) array('bop_id' => $boleta->datosBoletaPago->bopID,
+                                    'bop_descrip' => $boleta->datosBoletaPago->bopEstadoDescrip,
+                                    'bop_monto' => $boleta->datosBoletaPago->bopMonto,
+                                    'bop_fec_reg' => $boleta->datosBoletaPago->bopFecReg,
+                                    'est_descrip' => $boleta->datosBoletaPago->estDescrip);
+      }
+    }else {
+      if($boletas!=null)
+        $res['error'] = $boletas->rspDescrip;
+      else
+        $res['error'] = "existe un problema con Ws de sinalic";
+    }*/
+  
+  }
+
   public function getCentrosEmisores(){
     $centrosEmisores = AnsvCelExpedidor::whereNotNull('safit_cem_id')->get();
     foreach ($centrosEmisores as $key => $value) {
