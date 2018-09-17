@@ -10,40 +10,48 @@ use Log;
 
 class MicroservicioController extends Controller
 {
-    private $tramitesAIniciar;
-
     public function __construct(){
       ini_set('default_socket_timeout', 600);
-      $this->tramitesAIniciar = new WsClienteSafitController();
     }
 
     public function completarTurnosEnTramitesAIniciar(){
-      $this->tramitesAIniciar->completarTurnosEnTramitesAIniciar( INICIO );
+      \Log::info('['.date('h:i:s').'] '.'se inicio: completarTurnosEnTramitesAIniciar()');
+      $tramitesAIniciar = new TramitesAInicarController();
+      $tramitesAIniciar->completarTurnosEnTramitesAIniciar( INICIO );
     }
 
     public function verificarLibreDeudaDeTramites(){
-      $this->tramitesAIniciar->verificarLibreDeudaDeTramites(INICIO, LIBRE_DEUDA, VALIDACIONES);
+      \Log::info('['.date('h:i:s').'] '.'se inicio: verificarLibreDeudaDeTramites()');
+      $tramitesAIniciar = new TramitesAInicarController();
+      $tramitesAIniciar->verificarLibreDeudaDeTramites(INICIO, LIBRE_DEUDA, VALIDACIONES);
     }
 
     public function completarBoletasEnTramitesAIniciar(){
-      $this->tramitesAIniciar->completarBoletasEnTramitesAIniciar( INICIO, SAFIT);
+      \Log::info('['.date('h:i:s').'] '.'se inicio: completarBoletasEnTramitesAIniciar()');
+      $tramitesAIniciar = new TramitesAInicarController();
+      $tramitesAIniciar->completarBoletasEnTramitesAIniciar( INICIO, SAFIT);
     }
 
     public function emitirBoletasVirtualPago(){
-      $this->tramitesAIniciar->emitirBoletasVirtualPago( SAFIT, EMISION_BOLETA_SAFIT,   VALIDACIONES);
+      \Log::info('['.date('h:i:s').'] '.'se inicio: emitirBoletasVirtualPago()');
+      $tramitesAIniciar = new TramitesAInicarController();
+      $tramitesAIniciar->emitirBoletasVirtualPago( SAFIT, EMISION_BOLETA_SAFIT,   VALIDACIONES);
     }
 
     public function verificarBuiTramites(){
-      $this->tramitesAIniciar->verificarBuiTramites( INICIO, BUI, VALIDACIONES);
+      \Log::info('['.date('h:i:s').'] '.'se inicio: verificarBuiTramites()');
+      $tramitesAIniciar = new TramitesAInicarController();
+      $tramitesAIniciar->verificarBuiTramites( INICIO, BUI, VALIDACIONES);
     }
 
     public function revisarValidaciones(){
-      $this->tramitesAIniciar->revisarValidaciones(VALIDACIONES_COMPLETAS);
+      \Log::info('['.date('h:i:s').'] '.'se inicio: revisarValidaciones()');
+      $tramitesAIniciar = new TramitesAInicarController();
+      $tramitesAIniciar->revisarValidaciones(VALIDACIONES_COMPLETAS);
     }
 
     public function run(){
       ini_set('default_socket_timeout', 600);
-      //$this->cargarEstados();
       $tramitesAIniciar = new TramitesAInicarController();
       //  pasa a estado 1
       $tramitesAIniciar->completarTurnosEnTramitesAIniciar( INICIO );
@@ -68,6 +76,7 @@ class MicroservicioController extends Controller
 
       $tramitesAIniciar = new TramitesAInicarController();
       $tramite = TramitesAIniciar::find($request->id);
+      $precheck='';
       
       switch ($request->validation) {
         case 4: //LIBRE DEUDA
@@ -79,16 +88,14 @@ class MicroservicioController extends Controller
         case 3: //SAFIT
           if($tramitesAIniciar->buscarBoletaSafit($tramite, SAFIT))
             $precheck = $tramitesAIniciar->gestionarBoletaSafit($tramite, EMISION_BOLETA_SAFIT, VALIDACIONES);
-            //$precheck = 'Se encontro la Boleta Safit';
           else
             $precheck = 'No se encontro la Boleta Safit';
         break;
         default:
-          # code...
           $precheck = 'No se realizo ninguna operacion, validation incorrecta';
           break;
       }
       return $precheck;
     }
-    
+
 }

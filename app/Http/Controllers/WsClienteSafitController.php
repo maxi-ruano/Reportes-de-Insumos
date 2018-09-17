@@ -29,6 +29,8 @@ class WsClienteSafitController extends Controller
   }
 
   public function iniciarSesion(){
+    \Log::info('['.date('h:i:s').'] '.'se procede a iniciarSesion() URL: '.$this->url);
+    \Log::info('['.date('h:i:s').'] '.'se procede a iniciarSesion() '.$this->uswID.' | '.$this->uswPassword.' | '.$this->uswHash);
     $res = null;
     try {
       $this->createClienteSoap();
