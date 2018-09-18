@@ -57,7 +57,7 @@ Route::get('buscarTramitesPrecheck', ['uses' => 'PreCheckController@buscarTramit
 Route::get('testCheckBoletas', ['uses' => 'TramitesAInicarController@testCheckBoletas','as' => 'testCheckBoletas']);
 
 Route::get('buscarBoletaPagoPersona', 'TramitesAInicarController@buscarBoletaPagoPersona');
-Route::post('consultarBoletaPagoPersona',['uses' => 'TramitesAInicarController@consultarBoletaPagoPersona','as' => 'consultarBoletaPagoPersona']);
+Route::post('buscarBoletaPagoPersona',['uses' => 'TramitesAInicarController@buscarBoletaPagoPersona','as' => 'buscarBoletaPagoPersona']);
 //END SAFIT
 
 //Auth::routes();

@@ -21,6 +21,7 @@
     <!-- Custom Theme Style -->
     <link href="{{ asset('build/css/custom.min.css')}}" rel="stylesheet">
     <link href="{{ asset('build/css/custom.da.css')}}" rel="stylesheet">
+    <link href="{{ asset('css/hover_effects.css') }}" rel="stylesheet">
     @yield('favicon')
   </head>
 
