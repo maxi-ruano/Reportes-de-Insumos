@@ -120,25 +120,25 @@ body {
 }
 .wrapper-inner-tab-backgrounds { 
 	float: left;
-	height: 300px;
+	height: 80px;
 	min-width:400px;
 	width: 100%;
 }
 .wrapper-inner-tab-backgrounds-first{
 	float: left;
-	height: 300px;
+	height: 80px;
 	width: 33.33%;
 	background-color: #feb41d;
 }
 .wrapper-inner-tab-backgrounds-second{
 	float: left;
-	height: 300px;
+	height: 80px;
 	width: 33.33%;
 	background-color: #5e7c87;
 }
 .wrapper-inner-tab-backgrounds-third{
 	float: left;
-	height: 300px;
+	height: 80px;
 	width: 33.33%;
 	background-color: #4c5f6d;
 }
@@ -161,18 +161,21 @@ body {
 .wrapper-inner-tab-backgrounds-first-b{
 	float: left;
 	height: 80px;
-	width: 33.33%;
+	/*width: 33.33%;*/
+	width: 50%;
 	background-color: #feb41d;
 }
 .wrapper-inner-tab-backgrounds-second-b{
 	float: left;
 	height: 80px;
+	/*width: 33.33%;*/
 	width: 50%;
 	background-color: #5e7c87;
 }
 .wrapper-inner-tab-backgrounds-third-b{
 	float: left;
 	height: 80px;
+	/*width: 33.33%;*/
 	width: 50%;
 	background-color: #4c5f6d;
 }
