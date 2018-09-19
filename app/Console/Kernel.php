@@ -24,6 +24,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        //Turnos Vencidos Precheck
+        $schedule->call('App\Http\Controllers\MicroservicioController@revisarTurnosVencidos')->weekdays()->at('15:20');
+
         //PRECHECK
         $schedule->call('App\Http\Controllers\MicroservicioController@completarTurnosEnTramitesAIniciar')->weekdays()->at('15:30');//Turnos
         $schedule->call('App\Http\Controllers\MicroservicioController@verificarLibreDeudaDeTramites')->weekdays()->at('15:31');//Libre Deuda
@@ -32,9 +35,6 @@ class Kernel extends ConsoleKernel
         $schedule->call('App\Http\Controllers\MicroservicioController@verificarBuiTramites')->weekdays()->at('15:35');//Bui
         $schedule->call('App\Http\Controllers\MicroservicioController@revisarValidaciones')->weekdays()->at('15:36');//Turnos Vencidos
         //FIN PRECHECK
-
-        //Turnos Vencidos Precheck
-        $schedule->call('App\Http\Controllers\TramitesAIniciarController@revisarTurnosVencidos')->weekdays()->at('16:30');         
     }
 
     /**

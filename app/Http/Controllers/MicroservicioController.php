@@ -14,6 +14,12 @@ class MicroservicioController extends Controller
       ini_set('default_socket_timeout', 600);
     }
 
+    public function revisarTurnosVencidos(){
+      \Log::warning('['.date('h:i:s').'] inicio revisarTurnosVencidos()');
+      $tramitesAIniciar = new TramitesAInicarController();
+      $tramitesAIniciar->revisarTurnosVencidos();
+    }
+
     public function completarTurnosEnTramitesAIniciar(){
       \Log::info('['.date('h:i:s').'] '.'se inicio: completarTurnosEnTramitesAIniciar()');
       $tramitesAIniciar = new TramitesAInicarController();
