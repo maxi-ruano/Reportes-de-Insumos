@@ -5,6 +5,7 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use App\SigeciPrestacion;
 use App\SysMultivalue;
+use App\TramitesHabilitados;
 class TramitesAIniciar extends Model
 {
   protected $table = 'tramites_a_iniciar';
@@ -18,11 +19,15 @@ class TramitesAIniciar extends Model
   }
 
   public function tipoDocText(){
-    $tipoDocText = SysMultivalue::where('type','TDOC')->where('id', $this->tipo_doc)->first();
-    if($tipoDocText)
-      return $tipoDocText->description;
-    else
-      return "";  
+    $hablitado = TramitesHabilitados::where('tramites_a_iniciar_id',$this->id)->count();
+    if($hablitado){
+      $tdoc = SysMultivalue::where('type','TDOC')->where('id', $this->tipo_doc)->first();
+      $tipoDocText = $tdoc->description;
+    }else{
+      $tipoDocText = $this->tipoDocBui();
+    }
+    
+    return $tipoDocText;
   }
 
   public function nacionalidadTexto(){
