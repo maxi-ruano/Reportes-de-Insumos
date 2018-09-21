@@ -38,7 +38,10 @@
                     <th class="column-title">Fecha</th>
                     <th class="column-title">Motivo</th>
                     <th class="column-title">Usuario</th>
-                    <th class="column-title">Habilitado</th>
+                        <! -- /*Establecer condicion para mostrar u ocultar el boton Habilitar */ -->
+                        @if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Administrador Tramites Habilitados') ||  Auth::user()->hasRole('Soporte de Procesos'))
+                            <th class="column-title">Habilitado</th>
+                        @endif
                     <th class="column-title">Precheck</th>
                     <th class="column-title"></th>
                 </tr>
@@ -58,6 +61,7 @@
                             {{ $row->user_id }}
                         </span>
                     </td>
+                    @if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Administrador Tramites Habilitados') ||  Auth::user()->hasRole('Soporte de Procesos'))
                     <td>
                         @if($row->habilitado)
                         <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="{{ $row->habilitado_user_id }}">    
@@ -71,6 +75,7 @@
                             <input id="habilitado{{ $row->id }}" type="checkbox" onchange="habilitarTurno({{ $row->id }})" data-toggle="toggle"  data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60" >
                         @endif
                     </td>
+                    @endif
                     <td>
                         <button type="button" onclick="cargarDatosPrecheck({{ $row->tramites_a_iniciar_id }})" class="btn btn-info btn-xs" data-toggle="modal" data-target="#modal-precheck">
                             <i class="glyphicon glyphicon-check"></i> Precheck
