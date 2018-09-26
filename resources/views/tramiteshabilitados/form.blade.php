@@ -4,17 +4,12 @@
 @section('content')
 <!-- page content -->
 <div class="container">
-    @if(!Auth::user()->hasRole('Operador'))
+    @can('view_all_tramites_habilitados','view_self_tramites_habilitados')
         <div class="col-md-2 col-xs-12">
             <a href="{{route('tramitesHabilitados.index')}}" class="btn btn-info btn-group-justified"> <i class="fa fa-list"></i> Mostrar listado </a>
         </div>
         <br><br>
-    @endif
-
-    <! -- /*Establecer variable para deshabilitar si es Admin o Administrador*/ -->
-    @if(!Auth::user()->hasRole('Admin') && !Auth::user()->hasRole('Administrador Tramites Habilitados'))
-        @php $disabled = 'disabled' @endphp
-    @endif
+    @endcan
     
     <h4>Crear Turno </h4>   
     
@@ -33,22 +28,22 @@
                     <div class="input-group-addon">
                         <span class="glyphicon glyphicon-calendar"></span>
                     </div>
-                    @if(isset($disabled))
-                        <input type="date" name="fecha" value="{{ isset($edit) ? $edit->fecha : $fecha }}" class="form-control" required="required" readonly="readonly" >
+                    @can('enable_fecha_tramites_habilitados')
+                        <input type="date" name="fecha" value="{{ isset($edit) ? $edit->fecha : $fecha }}" class="form-control" required="required" >    
                     @else
-                        <input type="date" name="fecha" value="{{ isset($edit) ? $edit->fecha : $fecha }}" class="form-control" required="required" >
-                    @endif
+                        <input type="date" name="fecha" value="{{ isset($edit) ? $edit->fecha : $fecha }}" class="form-control" required="required" readonly="readonly" >
+                    @endcan
                 </div>
             </div>
 
             <div class="col-md-9 col-xs-12">
                 {!! Form::label('sucursal', ' Sucursal') !!}
-                @if(isset($disabled))
-                    {!! Form::select('sucursal', $sucursales, isset($edit) ? $edit->sucursal : Auth::user()->sucursal , ['class' => 'form-control', 'readonly' => 'readonly', 'disabled' ]) !!}
-                    <input type="hidden" name="sucursal" value="{{ isset($edit) ? $edit->sucursal : Auth::user()->sucursal }}">
-                @else
+                @can('enable_sede_tramites_habilitados')
                     {!! Form::select('sucursal', $sucursales, isset($edit) ? $edit->sucursal : Auth::user()->sucursal , ['class' => 'form-control' ]) !!}
-                @endif
+                @else
+                    {!! Form::select('sucursal', $sucursales, isset($edit) ? $edit->sucursal : Auth::user()->sucursal , ['class' => 'form-control', 'readonly' => 'readonly', 'disabled' ]) !!}
+                    <input type="hidden" name="sucursal" value="{{ isset($edit) ? $edit->sucursal : Auth::user()->sucursal }}">        
+                @endcan
             </div>
         </div>
 
@@ -91,7 +86,7 @@
         </div>
         <hr>
         
-        @can('add_tramitesHabilitados', 'edit_tramitesHabilitados')
+        @can('add_tramites_habilitados', 'edit_tramites_habilitados')
         <div class="col-md-2 col-xs-12">
             <button type="submit" class="btn btn-primary btn-group-justified"> <i class="fa fa-check-square-o"></i> Enviar </button>                
         </div>

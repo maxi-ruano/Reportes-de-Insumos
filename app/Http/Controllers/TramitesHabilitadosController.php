@@ -26,36 +26,41 @@ class TramitesHabilitadosController extends Controller
     public function index(Request $request)
     {
         
-        $fecha = isset($_GET['fecha'])?$_GET['fecha']:date('Y-m-d');
+        $fecha = isset($_GET['fecha'])?$_GET['fecha']:'';
 
-        //Cargar por defecto el formulario solo al Operador
-        if(Auth::user()->hasRole('Operador')){
-            return $this->create();
-        }else{
-            $data = TramitesHabilitados::orderBy('tramites_habilitados.fecha','desc')
-                        ->orderBy('tramites_habilitados.id','desc')
-                        ->where(function($query) use ($request) {
-                            $query->where('nombre', 'LIKE', '%'. strtoupper($request->search) .'%')
-                                ->orWhere('apellido', 'LIKE', '%'. strtoupper($request->search) .'%')
-                                ->orWhereRaw("CAST(nro_doc AS text) LIKE '%$request->search%' ");
-                            });
-            if($fecha)
-                $data = $data->where('fecha',$fecha);
+        $data = TramitesHabilitados::orderBy('tramites_habilitados.fecha','desc')
+                    ->orderBy('tramites_habilitados.id','desc')
+                    ->where(function($query) use ($request) {
+                        $query->where('nombre', 'LIKE', '%'. strtoupper($request->search) .'%')
+                            ->orWhere('apellido', 'LIKE', '%'. strtoupper($request->search) .'%')
+                            ->orWhereRaw("CAST(nro_doc AS text) LIKE '%$request->search%' ");
+                        });
+        if($fecha)
+            $data = $data->where('fecha',$fecha);
+        
+        //Verificar si tiene permisos para filtrar solo los que registro
+        $user = Auth::user();
+        if($user->hasPermissionTo('view_self_tramites_habilitados'))
+            $data = $data->where('user_id',$user->id);
+        
+        if($user->hasPermissionTo('view_sede_tramites_habilitados'))
+            $data = $data->where('sucursal',$user->sucursal);
+        
+        $data = $data->paginate(10);
 
-            $data = $data->paginate(10);
-
-            if(count($data)){
-                foreach ($data as $key => $value) {
-                    $buscar = TramitesHabilitados::find($value->id);
-                    $value->tipo_doc = $buscar->tipoDocText();
-                    $value->pais = $buscar->paisTexto();
-                    $value->user_id = $buscar->userTexto($value->user_id);
-                    $value->habilitado_user_id = $buscar->userTexto($value->habilitado_user_id);
-                    $value->motivo_id = $buscar->motivoTexto();
-                }
+        if(count($data)){
+            foreach ($data as $key => $value) {
+                $buscar = TramitesHabilitados::find($value->id);
+                $value->tipo_doc = $buscar->tipoDocText();
+                $value->pais = $buscar->paisTexto();
+                $value->user_id = $buscar->userTexto($value->user_id);
+                $value->habilitado_user_id = $buscar->userTexto($value->habilitado_user_id);
+                $value->motivo_id = $buscar->motivoTexto();
+                $value->sucursal = $buscar->sucursalTexto();
+                $value->fecha = date('d-m-Y', strtotime($value->fecha));
             }
-            return view($this->path.'.index', compact('data'));
-        } 
+        }
+        return view($this->path.'.index', compact('data'));
     }
 
     /**
@@ -120,9 +125,7 @@ class TramitesHabilitadosController extends Controller
             $tramiteshabilitados->user_id       = $request->user_id;
             $tramiteshabilitados->sucursal      = $request->sucursal;
             $tramiteshabilitados->motivo_id     = $request->motivo_id;
-
-            if(Auth::user()->sucursal == '1') //Solo para la Sede Roca
-                $tramiteshabilitados->habilitado = false;
+            $tramiteshabilitados->habilitado = false;
 
             $tramiteshabilitados->save();
 
@@ -239,15 +242,9 @@ class TramitesHabilitadosController extends Controller
      */
     public function destroy($id)
     {
-        //echo "entro a destroy ".$id;
         try{
             $tramiteshabilitados = TramitesHabilitados::find($id);
             $tramiteshabilitados->delete();
-
-            //Borrar registros creados en tramites_a_iniciar y validaciones_precheck
-            /*$validacionesPrecheck = ValidacionesPrecheck::where('tramite_a_iniciar_id', $tramiteshabilitados->tramites_a_iniciar_id)->delete();
-            $tramitesAIniciar = TramitesAIniciar::where('id', $tramiteshabilitados->tramites_a_iniciar_id)->delete();
-            */
            
             Flash::success('El Tramite se ha eliminado correctamente');
             return redirect()->route('tramitesHabilitados.index');
