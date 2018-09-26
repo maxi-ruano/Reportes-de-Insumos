@@ -82,7 +82,11 @@
 
         <div class="form-group">                
             {!! Form::label('motivo_id', ' Motivo') !!}
-            {!! Form::select('motivo_id', $motivos, isset($edit) ? $edit->motivo_id : null , ['class' => 'form-control', 'placeholder' => 'Seleccione', 'required' => 'required']) !!}
+            @if(count($motivos)==1)
+                {!! Form::select('motivo_id', $motivos, isset($edit) ? $edit->motivo_id : null , ['class' => 'form-control', 'required' => 'required']) !!}
+            @else
+                {!! Form::select('motivo_id', $motivos, isset($edit) ? $edit->motivo_id : null , ['class' => 'form-control', 'placeholder' => 'Seleccione', 'required' => 'required']) !!}
+            @endif
         </div>
         <hr>
         

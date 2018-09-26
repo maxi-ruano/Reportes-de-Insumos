@@ -71,7 +71,12 @@ class TramitesHabilitadosController extends Controller
     public function create()
     {
         $fecha = date('Y-m-d');
-        $motivos = \DB::table('tramites_habilitados_motivos')->select('id','description')->where('activo','true')->orderBy('description', 'asc')->pluck('description','id');        
+
+        $user = Auth::user();
+        if($user->hasRole('Legales'))
+            $motivos = \DB::table('tramites_habilitados_motivos')->select('id','description')->where('description','LEGALES')->orderBy('description', 'asc')->pluck('description','id');        
+        else
+            $motivos = \DB::table('tramites_habilitados_motivos')->select('id','description')->where('description','!=','LEGALES')->where('activo','true')->orderBy('description', 'asc')->pluck('description','id');        
 
         $SysMultivalue = new SysMultivalue();
         $sucursales = $SysMultivalue->sucursales();
