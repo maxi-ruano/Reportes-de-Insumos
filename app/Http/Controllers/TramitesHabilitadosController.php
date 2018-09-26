@@ -160,7 +160,8 @@ class TramitesHabilitadosController extends Controller
     public function edit($id)
     {
         $edit = TramitesHabilitados::find($id);
-        $inicio_tramite = TramitesAIniciar::find($edit->tramites_a_iniciar_id)->tramite_dgevyl_id;
+
+        $inicio_tramite = ($edit->tramites_a_iniciar_id)?TramitesAIniciar::find($edit->tramites_a_iniciar_id)->tramite_dgevyl_id:'';
         //No realizar ninguna modificacion si el tramiteAIniciar inicio en Fotografia
         if($inicio_tramite){
             Flash::error('El Tramite ya se inicio no se puede modificar!');
