@@ -75,7 +75,7 @@
                     <td>{{ $boleta->bopID }}</td>
                     <td>{{ $boleta->bopEstadoDescrip }}</td>
                     <td>{{ $boleta->bopMonto }}</td>
-                    <td>{{ date_format($boleta->bopFecReg, 'd-m-Y H:i:s') }}</td>
+                    <td>{{ $boleta->bopFecReg }}</td>
                     <td>
                       @if ($boleta->estDescrip == 'Acreditada')
                         <span style="color:forestgreen"><b> {{ $boleta->estDescrip }} </b></span> 
