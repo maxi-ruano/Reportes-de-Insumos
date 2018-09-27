@@ -29,7 +29,7 @@
                         <span class="glyphicon glyphicon-calendar"></span>
                     </div>
                     @can('enable_fecha_tramites_habilitados')
-                        <input type="date" name="fecha" value="{{ isset($edit) ? $edit->fecha : $fecha }}" class="form-control" required="required" min="{{ date('Y-m-d') }}" >    
+                        <input type="date" name="fecha" value="{{ isset($edit) ? $edit->fecha : $fecha }}" class="form-control" required="required" min="{{ $fecha }}" >    
                     @else
                         <input type="date" name="fecha" value="{{ isset($edit) ? $edit->fecha : $fecha }}" class="form-control" required="required" readonly="readonly" >
                     @endcan

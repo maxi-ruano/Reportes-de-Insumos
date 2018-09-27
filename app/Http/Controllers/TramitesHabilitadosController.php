@@ -70,8 +70,9 @@ class TramitesHabilitadosController extends Controller
      */
     public function create()
     {
-        $fecha = date('Y-m-d');
+        $fecha = $this->calcularFecha();
 
+        //Se valida para el Rol Legales se muestre solo el motivo LEGALES
         $user = Auth::user();
         if($user->hasRole('Legales'))
             $motivos = \DB::table('tramites_habilitados_motivos')->select('id','description')->where('description','LEGALES')->orderBy('description', 'asc')->pluck('description','id');        
@@ -164,6 +165,8 @@ class TramitesHabilitadosController extends Controller
      */
     public function edit($id)
     {
+        $fecha = $this->calcularFecha();
+
         $edit = TramitesHabilitados::find($id);
 
         $inicio_tramite = ($edit->tramites_a_iniciar_id)?TramitesAIniciar::find($edit->tramites_a_iniciar_id)->tramite_dgevyl_id:'';
@@ -179,6 +182,7 @@ class TramitesHabilitadosController extends Controller
             $paises = $SysMultivalue->paises();
 
             return view($this->path.'.form')->with('edit', $edit)
+                                            ->with('fecha',$fecha)
                                             ->with('sucursales',$sucursales)
                                             ->with('tdocs',$tdocs)
                                             ->with('paises',$paises)
@@ -284,5 +288,20 @@ class TramitesHabilitadosController extends Controller
             }
         }
         return $buscar;
+    }
+
+    public function calcularFecha(){
+        $fecha = date('Y-m-d');
+        $dia_semana = date('w');
+
+        //Si es Jueves o viernes sumar 5, por incluir fin de semana, de lo contrario sumar 3
+        $sumar_dias = ($dia_semana == 4 || $dia_semana == 5)?'5':'3'; 
+        
+        $user = Auth::user();
+        //Se valida que solo para el Rol Comuna permita ingresar 72 en adelante
+        if($user->hasRole('Comuna'))
+            $fecha = date('Y-m-d', strtotime('+'.$sumar_dias.' days', strtotime(date('Y-m-d'))));
+            
+        return $fecha;
     }
 }
