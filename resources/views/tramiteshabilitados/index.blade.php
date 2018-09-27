@@ -161,7 +161,8 @@
         }
 
         function cargarPagina(){
-            window.location.href = "{{ route('tramitesHabilitados.index') }}";
+            //window.location.href = "{{ route('tramitesHabilitados.index') }}";
+            $("#buscar").click();
         }
 
         var recargarPagina;
