@@ -59,7 +59,15 @@
                     <td>{{ $row->pais }}</td>
                     <td>{{ $row->fecha }}</span>
                     <td>{{ $row->sucursal }}</span>
-                    <td>{{ $row->motivo_id }} </td>
+                    <td>
+                        @if ($row->nro_expediente)
+                            <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Expediente Nro. {{ $row->nro_expediente }}">    
+                                {{ $row->motivo_id }}
+                            </span>
+                        @else
+                            {{ $row->motivo_id }}
+                        @endif
+                    </td>
                     <td>
                         <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Creado {{ $row->created_at }}">    
                             {{ $row->user_id }}

@@ -88,6 +88,13 @@
                 {!! Form::select('motivo_id', $motivos, isset($edit) ? $edit->motivo_id : null , ['class' => 'form-control', 'placeholder' => 'Seleccione', 'required' => 'required']) !!}
             @endif
         </div>
+
+        @hasrole('Legales')
+            <div class="form-group">    
+                {!! Form::label('nro_expediente', ' Nro. de Expediente / Carpeta') !!}
+                {!! Form::text('nro_expediente', isset($edit) ? $edit->nro_expediente : null, ['class' => 'form-control', 'placeholder' => 'Ingrese Número de Expediente', 'required' => 'required']) !!}
+            </div>
+        @endhasrole
         <hr>
         
         @can('add_tramites_habilitados', 'edit_tramites_habilitados')
