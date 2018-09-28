@@ -43,5 +43,13 @@ class TramitesHabilitados extends Model
             return $motivo->description;
         else
             return "";  
-        }
+    }
+
+    public function sucursalTexto(){
+        $sucursal = SysMultivalue::where('type','SUCU')->where('id', $this->sucursal)->first();
+        if($sucursal)
+          return $sucursal->description;
+        else
+          return "";  
+    }
 }

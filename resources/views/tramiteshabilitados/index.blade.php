@@ -10,7 +10,7 @@
             <div class="input-group">
                 <input type="text" class="form-control" name="search" placeholder="Buscar..." value="{{ Request::get('search') }}">
                 <span class="input-group-btn">
-                    <input type="date" class="form-control" name="fecha" id="fecha" value={{ isset($_GET['fecha'])?$_GET['fecha']:date('Y-m-d') }}>
+                    <input type="date" class="form-control" name="fecha" id="fecha" value={{ isset($_GET['fecha'])?$_GET['fecha']:'' }}>
                     <button id="buscar" class="btn btn-default-sm" type="submit"><i class="fa fa-search"></i></button>
                 </span>
             </div>
@@ -19,7 +19,7 @@
 
         <div class="col-sm-4 col-xs-12 text-right">
             <a href="{{route('tramitesHabilitados.index')}}" class="btn btn-primary"> Actualizar <i class="glyphicon glyphicon-refresh"></i> </a>
-            @can('add_tramitesHabilitados')
+            @can('add_tramites_habilitados')
                 <a href="{{route('tramitesHabilitados.create')}}" class="btn btn-primary">Nuevo <i class="glyphicon glyphicon-plus-sign"></i> </a>
             @endcan
         </div>        
@@ -36,14 +36,17 @@
                     <th class="column-title">Nro. Doc.</th>
                     <th class="column-title">Pais</th>
                     <th class="column-title">Fecha</th>
+                    <th class="column-title">Sucursal</th>
                     <th class="column-title">Motivo</th>
                     <th class="column-title">Usuario</th>
-                        <! -- /*Establecer condicion para mostrar u ocultar el boton Habilitar */ -->
-                        @if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Administrador Tramites Habilitados') ||  Auth::user()->hasRole('Soporte de Procesos'))
-                            <th class="column-title">Habilitado</th>
-                        @endif
-                    <th class="column-title">Precheck</th>
-                    <th class="column-title"></th>
+                    <! -- /*Establecer condicion para mostrar u ocultar el boton Habilitar */ -->
+                    @can('habilita_tramites_habilitados')
+                        <th class="column-title" style="width:auto!important;">Habilitado</th>
+                    @endcan
+                    <th class="column-title" style="width:auto!important;">Precheck</th>
+                    @can('edit_tramites_habilitados','delete_tramites_habilitados')
+                        <th class="column-title" style="width:80px!important;"></th>
+                    @endcan
                 </tr>
             </thead>
             <tbody>
@@ -55,44 +58,58 @@
                     <td>{{ $row->nro_doc }}</td>
                     <td>{{ $row->pais }}</td>
                     <td>{{ $row->fecha }}</span>
-                    <td>{{ $row->motivo_id }} </td>
+                    <td>{{ $row->sucursal }}</span>
+                    <td>
+                        @if ($row->nro_expediente)
+                            <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Expediente Nro. {{ $row->nro_expediente }}">    
+                                {{ $row->motivo_id }}
+                            </span>
+                        @else
+                            {{ $row->motivo_id }}
+                        @endif
+                    </td>
                     <td>
                         <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Creado {{ $row->created_at }}">    
                             {{ $row->user_id }}
                         </span>
                     </td>
-                    @if(Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Administrador Tramites Habilitados') ||  Auth::user()->hasRole('Soporte de Procesos'))
+                    @can('habilita_tramites_habilitados')
                     <td>
+                        @php $disable_not_today = ($row->fecha == date('d-m-Y'))?'':'disabled' @endphp
                         @if($row->habilitado)
-                        <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="{{ $row->habilitado_user_id }}">    
-                            @if(Auth::user()->hasRole('Admin'))
-                                <input id="habilitado{{ $row->id }}" type="checkbox" checked onchange="habilitarTurno({{ $row->id }})" data-toggle="toggle" data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60">
-                            @else
-                                <input id="habilitado{{ $row->id }}" type="checkbox" checked disabled data-toggle="toggle" data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60">
-                            @endif
-                        </span> 
+                            <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="{{ $row->habilitado_user_id }}">    
+                                @if(Auth::user()->hasRole('Admin'))
+                                    <input id="habilitado{{ $row->id }}" type="checkbox" checked {{ $disable_not_today }} onchange="habilitarTurno({{ $row->id }})" data-toggle="toggle" data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60">
+                                @else
+                                    <input id="habilitado{{ $row->id }}" type="checkbox" checked disabled data-toggle="toggle" data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60">
+                                @endif
+                            </span> 
                         @else
-                            <input id="habilitado{{ $row->id }}" type="checkbox" onchange="habilitarTurno({{ $row->id }})" data-toggle="toggle"  data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60" >
+                            <input id="habilitado{{ $row->id }}" type="checkbox" {{ $disable_not_today }} onchange="habilitarTurno({{ $row->id }})" data-toggle="toggle"  data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60" >
                         @endif
                     </td>
-                    @endif
+                    @endcan
                     <td>
                         <button type="button" onclick="cargarDatosPrecheck({{ $row->tramites_a_iniciar_id }})" class="btn btn-info btn-xs" data-toggle="modal" data-target="#modal-precheck">
                             <i class="glyphicon glyphicon-check"></i> Precheck
                         </button>
-                    </td>                             
-                    <td>
-                        @can('edit_tramitesHabilitados')
-                            <a href="{{ route('tramitesHabilitados.edit', $row->id) }}" class="btn btn-success pull-right btn-xs" title="Editar"> Editar <i class="fa fa-edit"></i></a>
-                        @endcan
-                        @can('delete_tramitesHabilitados')
-                            {!! Form::open(array('route' => array('tramitesHabilitados.destroy', $row->id), 'method' => 'delete', 'class' => 'form-delete')) !!}
-                                <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete">
-                                    <i class="glyphicon glyphicon-trash"></i> Borrar 
-                                </button>
-                            {!! Form::close() !!}
-                        @endcan
                     </td>
+                    @can('edit_tramites_habilitados','delete_tramites_habilitados')
+                    <td>
+                        <div class="btn-toolbar" role="toolbar">
+                            @can('edit_tramites_habilitados')
+                                <a href="{{ route('tramitesHabilitados.edit', $row->id) }}" class="btn btn-success btn-xs" title="Editar"> <i class="fa fa-edit"></i></a>
+                            @endcan
+                            @can('delete_tramites_habilitados')
+                                {!! Form::open(array('route' => array('tramitesHabilitados.destroy', $row->id), 'method' => 'delete', 'class' => 'form-delete')) !!}
+                                    <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete">
+                                        <i class="glyphicon glyphicon-trash"></i>
+                                    </button>
+                                {!! Form::close() !!}
+                            @endcan
+                        </div>
+                    </td>
+                    @endcan
                 </tr>
             @endforeach
             </tbody>
@@ -101,7 +118,7 @@
     </div>
 
     <div class="col-sm-12 col-xs-12 text-center">
-        {{ $data->links() }}
+        {{ $data->appends(request()->query())->links() }}
     </div>
 
 </div>
@@ -154,7 +171,8 @@
         }
 
         function cargarPagina(){
-            window.location.href = "{{ route('tramitesHabilitados.index') }}";
+            //window.location.href = "{{ route('tramitesHabilitados.index') }}";
+            $("#buscar").click();
         }
 
         var recargarPagina;

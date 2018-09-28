@@ -26,36 +26,41 @@ class TramitesHabilitadosController extends Controller
     public function index(Request $request)
     {
         
-        $fecha = isset($_GET['fecha'])?$_GET['fecha']:date('Y-m-d');
+        $fecha = isset($_GET['fecha'])?$_GET['fecha']:'';
 
-        //Cargar por defecto el formulario solo al Operador
-        if(Auth::user()->hasRole('Operador')){
-            return $this->create();
-        }else{
-            $data = TramitesHabilitados::orderBy('tramites_habilitados.fecha','desc')
-                        ->orderBy('tramites_habilitados.id','desc')
-                        ->where(function($query) use ($request) {
-                            $query->where('nombre', 'LIKE', '%'. strtoupper($request->search) .'%')
-                                ->orWhere('apellido', 'LIKE', '%'. strtoupper($request->search) .'%')
-                                ->orWhereRaw("CAST(nro_doc AS text) LIKE '%$request->search%' ");
-                            });
-            if($fecha)
-                $data = $data->where('fecha',$fecha);
+        $data = TramitesHabilitados::orderBy('tramites_habilitados.fecha','desc')
+                    ->orderBy('tramites_habilitados.id','desc')
+                    ->where(function($query) use ($request) {
+                        $query->where('nombre', 'LIKE', '%'. strtoupper($request->search) .'%')
+                            ->orWhere('apellido', 'LIKE', '%'. strtoupper($request->search) .'%')
+                            ->orWhereRaw("CAST(nro_doc AS text) LIKE '%$request->search%' ");
+                        });
+        if($fecha)
+            $data = $data->where('fecha',$fecha);
+        
+        //Verificar si tiene permisos para filtrar solo los que registro
+        $user = Auth::user();
+        if($user->hasPermissionTo('view_self_tramites_habilitados'))
+            $data = $data->where('user_id',$user->id);
+        
+        if($user->hasPermissionTo('view_sede_tramites_habilitados'))
+            $data = $data->where('sucursal',$user->sucursal);
+        
+        $data = $data->paginate(10);
 
-            $data = $data->paginate(10);
-
-            if(count($data)){
-                foreach ($data as $key => $value) {
-                    $buscar = TramitesHabilitados::find($value->id);
-                    $value->tipo_doc = $buscar->tipoDocText();
-                    $value->pais = $buscar->paisTexto();
-                    $value->user_id = $buscar->userTexto($value->user_id);
-                    $value->habilitado_user_id = $buscar->userTexto($value->habilitado_user_id);
-                    $value->motivo_id = $buscar->motivoTexto();
-                }
+        if(count($data)){
+            foreach ($data as $key => $value) {
+                $buscar = TramitesHabilitados::find($value->id);
+                $value->tipo_doc = $buscar->tipoDocText();
+                $value->pais = $buscar->paisTexto();
+                $value->user_id = $buscar->userTexto($value->user_id);
+                $value->habilitado_user_id = $buscar->userTexto($value->habilitado_user_id);
+                $value->motivo_id = $buscar->motivoTexto();
+                $value->sucursal = $buscar->sucursalTexto();
+                $value->fecha = date('d-m-Y', strtotime($value->fecha));
             }
-            return view($this->path.'.index', compact('data'));
-        } 
+        }
+        return view($this->path.'.index', compact('data'));
     }
 
     /**
@@ -65,8 +70,17 @@ class TramitesHabilitadosController extends Controller
      */
     public function create()
     {
-        $fecha = date('Y-m-d');
-        $motivos = \DB::table('tramites_habilitados_motivos')->select('id','description')->where('activo','true')->orderBy('description', 'asc')->pluck('description','id');        
+        $fecha = $this->calcularFecha();
+
+        //Se valida para el Rol Legales se muestre solo el motivo LEGALES
+        $user = Auth::user();
+        if($user->hasRole('Legales'))
+            $motivos = \DB::table('tramites_habilitados_motivos')->select('id','description')->where('description','LEGALES')->orderBy('description', 'asc')->pluck('description','id');
+        else
+            if($user->hasRole('Comuna'))
+                $motivos = \DB::table('tramites_habilitados_motivos')->select('id','description')->where('description','COMUNA')->orderBy('description', 'asc')->pluck('description','id');        
+            else
+                $motivos = \DB::table('tramites_habilitados_motivos')->select('id','description')->whereNotIn('description',['LEGALES','COMUNA'])->where('activo','true')->orderBy('description', 'asc')->pluck('description','id');        
 
         $SysMultivalue = new SysMultivalue();
         $sucursales = $SysMultivalue->sucursales();
@@ -89,48 +103,55 @@ class TramitesHabilitadosController extends Controller
     public function store(Request $request)
     {
         try{
-            //validar nro_doc solo si es pasaporte acepte letras y numeros de lo contrario solo numeros
-            if($request->tipo_doc== '4')
-                $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/^[0-9a-zA-Z]+$/']);
-            else
-                $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^(\d+)?$)/u']);
+            
+            if($this->verificarLimitePorSucursal($request->sucursal, $request->fecha)){
+                //validar nro_doc solo si es pasaporte acepte letras y numeros de lo contrario solo numeros
+                if($request->tipo_doc== '4')
+                    $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/^[0-9a-zA-Z]+$/']);
+                else
+                    $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^(\d+)?$)/u']);
 
-            //Validar que no exista el mismo registro
-            $existe = TramitesHabilitados::where('tipo_doc',$request->tipo_doc)
-                        ->where('nro_doc',$request->nro_doc)
-                        ->where('pais',$request->pais)
-                        ->where('fecha',$request->fecha)
-                        ->count();
-            if($existe){
-                Flash::error('El Documento Nro. '.$request->nro_doc.' Ya tiene un turno asignado para el día '.$request->fecha);
-                return back();   
-            }
+                //Validar que no exista el mismo registro
+                $existe = TramitesHabilitados::where('tipo_doc',$request->tipo_doc)
+                            ->where('nro_doc',$request->nro_doc)
+                            ->where('pais',$request->pais)
+                            ->where('fecha',$request->fecha)
+                            ->count();
+                if($existe){
+                    Flash::error('El Documento Nro. '.$request->nro_doc.' Ya tiene un turno asignado para el día '.$request->fecha);
+                    return back();   
+                }
 
-            //Si no existe entonces crear el registro
-            $tramiteshabilitados = new TramitesHabilitados();
+                //Si no existe entonces crear el registro
+                $tramiteshabilitados = new TramitesHabilitados();
 
-            $tramiteshabilitados->fecha         = $request->fecha;
-            $tramiteshabilitados->apellido      = strtoupper($request->apellido);
-            $tramiteshabilitados->nombre        = strtoupper($request->nombre);
-            $tramiteshabilitados->tipo_doc      = $request->tipo_doc;
-            $tramiteshabilitados->nro_doc       = strtoupper($request->nro_doc);
-            $tramiteshabilitados->sexo          = $request->sexo;
-            $tramiteshabilitados->fecha_nacimiento     = $request->fecha_nacimiento;
-            $tramiteshabilitados->pais          = $request->pais;
-            $tramiteshabilitados->user_id       = $request->user_id;
-            $tramiteshabilitados->sucursal      = $request->sucursal;
-            $tramiteshabilitados->motivo_id     = $request->motivo_id;
-
-            if(Auth::user()->sucursal == '1') //Solo para la Sede Roca
+                $tramiteshabilitados->fecha         = $request->fecha;
+                $tramiteshabilitados->apellido      = strtoupper($request->apellido);
+                $tramiteshabilitados->nombre        = strtoupper($request->nombre);
+                $tramiteshabilitados->tipo_doc      = $request->tipo_doc;
+                $tramiteshabilitados->nro_doc       = strtoupper($request->nro_doc);
+                $tramiteshabilitados->sexo          = $request->sexo;
+                $tramiteshabilitados->fecha_nacimiento     = $request->fecha_nacimiento;
+                $tramiteshabilitados->pais          = $request->pais;
+                $tramiteshabilitados->user_id       = $request->user_id;
+                $tramiteshabilitados->sucursal      = $request->sucursal;
+                $tramiteshabilitados->motivo_id     = $request->motivo_id;
                 $tramiteshabilitados->habilitado = false;
 
-            $tramiteshabilitados->save();
+                if(isset($request->nro_expediente))
+                    $tramiteshabilitados->nro_expediente = $request->nro_expediente;
 
-            //Crear registro en tramitesAIniciar y procesar el Precheck
-            ProcessPrecheck::dispatch($tramiteshabilitados);
+                $tramiteshabilitados->save();
 
-            Flash::success('El Tramite se ha creado correctamente');
-            return redirect()->route('tramitesHabilitados.create');
+                //Crear registro en tramitesAIniciar y procesar el Precheck
+                ProcessPrecheck::dispatch($tramiteshabilitados);
+
+                Flash::success('El Tramite se ha creado correctamente');
+                return redirect()->route('tramitesHabilitados.create');
+            }else{
+                Flash::error('LIMITE DIARIO PERMITIDO para la sucursal seleccionada.!!');
+                return back();  
+            }
         }
         catch(Exception $e){   
             return "Fatal error - ".$e->getMessage();
@@ -156,8 +177,11 @@ class TramitesHabilitadosController extends Controller
      */
     public function edit($id)
     {
+        $fecha = $this->calcularFecha();
+
         $edit = TramitesHabilitados::find($id);
-        $inicio_tramite = TramitesAIniciar::find($edit->tramites_a_iniciar_id)->tramite_dgevyl_id;
+
+        $inicio_tramite = ($edit->tramites_a_iniciar_id)?TramitesAIniciar::find($edit->tramites_a_iniciar_id)->tramite_dgevyl_id:'';
         //No realizar ninguna modificacion si el tramiteAIniciar inicio en Fotografia
         if($inicio_tramite){
             Flash::error('El Tramite ya se inicio no se puede modificar!');
@@ -170,6 +194,7 @@ class TramitesHabilitadosController extends Controller
             $paises = $SysMultivalue->paises();
 
             return view($this->path.'.form')->with('edit', $edit)
+                                            ->with('fecha',$fecha)
                                             ->with('sucursales',$sucursales)
                                             ->with('tdocs',$tdocs)
                                             ->with('paises',$paises)
@@ -203,6 +228,10 @@ class TramitesHabilitadosController extends Controller
         $tramitesHabilitados->nro_doc = strtoupper($request->nro_doc);
         $tramitesHabilitados->nombre = strtoupper($request->nombre);
         $tramitesHabilitados->apellido = strtoupper($request->apellido);
+
+        if(isset($request->nro_expediente))
+            $tramiteshabilitados->nro_expediente = $request->nro_expediente;
+
         $tramitesHabilitados->save();
 
         //Si existe un TramiteAIniciar asociado hacer lo siguiente
@@ -239,15 +268,9 @@ class TramitesHabilitadosController extends Controller
      */
     public function destroy($id)
     {
-        //echo "entro a destroy ".$id;
         try{
             $tramiteshabilitados = TramitesHabilitados::find($id);
             $tramiteshabilitados->delete();
-
-            //Borrar registros creados en tramites_a_iniciar y validaciones_precheck
-            /*$validacionesPrecheck = ValidacionesPrecheck::where('tramite_a_iniciar_id', $tramiteshabilitados->tramites_a_iniciar_id)->delete();
-            $tramitesAIniciar = TramitesAIniciar::where('id', $tramiteshabilitados->tramites_a_iniciar_id)->delete();
-            */
            
             Flash::success('El Tramite se ha eliminado correctamente');
             return redirect()->route('tramitesHabilitados.index');
@@ -281,5 +304,34 @@ class TramitesHabilitadosController extends Controller
             }
         }
         return $buscar;
+    }
+
+    public function calcularFecha(){
+        $fecha = date('Y-m-d');
+        $dia_semana = date('w');
+
+        //Si es Jueves o viernes sumar 5, por incluir fin de semana, de lo contrario sumar 3
+        $sumar_dias = ($dia_semana == 4 || $dia_semana == 5)?'5':'3'; 
+        
+        //Se valida que solo para el Rol Comuna permita ingresar 72 en adelante
+        $user = Auth::user();
+        if($user->hasRole('Comuna'))
+            $fecha = date('Y-m-d', strtotime('+'.$sumar_dias.' days', strtotime(date('Y-m-d'))));
+            
+        return $fecha;
+    }
+
+    public function verificarLimitePorSucursal($sucursal,$fecha){
+        $acceso= true;
+        $limite = "LIMITE_TH_SUCU_".$sucursal;
+        $user = Auth::user();
+        if($user->hasRole('Comuna')){
+            if(defined($limite)){
+                $total = TramitesHabilitados::where('fecha',$fecha)->where('sucursal',$sucursal)->count();
+                if($total >= intval(constant($limite)))
+                    $acceso= false;
+            }
+        }
+        return $acceso;  
     }
 }

@@ -5,12 +5,19 @@
     <h3>Menú</h3>
     <ul class="nav side-menu">
       
-      @can('view_tramitesHabilitados')
-      <li><a href="{{ route('tramitesHabilitados.index') }}">
+      @if(auth()->user()->can('view_all_tramites_habilitados') || auth()->user()->can('view_self_tramites_habilitados')  || auth()->user()->can('view_sede_tramites_habilitados'))
+      <li><a href="{{ route('tramitesHabilitados.index') }}?fecha={{date('Y-m-d')}}">
         <i class="fa fa-street-view"></i> Tramites Habilitados
         <span class="fa fa-chevron-right"></span></a>
       </li>
-      @endcan
+      @else
+        @can('add_tramites_habilitados')
+        <li><a href="{{ route('tramitesHabilitados.create') }}">
+          <i class="fa fa-street-view"></i> Tramites Habilitados
+          <span class="fa fa-chevron-right"></span></a>
+        </li>
+        @endcan
+      @endif
 
       @can('view_dashboard')
       <li><a href="{{ route('consultaDashboard') }}">
