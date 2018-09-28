@@ -75,6 +75,12 @@
             }else if(msg){
               mostrarPreCheck(msg.precheck)
               mostrarDatosPersona(msg.datosPersona)
+
+              //Bloquear todas las opciones del PreCheck para el Rol Auditoria
+              var auditoria = {{ Auth::user()->hasRole('Auditoria') }};
+              if(auditoria)
+                  $(".modal-body a").attr("disabled","disabled");
+              
             }
           },
           error: function(xhr, status, error) {
@@ -173,22 +179,22 @@
     console.log(id+' '+validation);
     
     $.ajax({
-        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-        type: "GET",
-        url: '/runPrecheck',
-        data: { id: id, validation: validation },
-        Async:true,
-        beforeSend: function(){
+      headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+      type: "GET",
+      url: '/runPrecheck',
+      data: { id: id, validation: validation },
+      Async:true,
+      beforeSend: function(){
         // Handle the beforeSend event
         $('#logPreCheck').html('<img src="/img/buffer.gif" width="200" > Verificando... ');
-        },
-        success: function( msg ) {
+      },
+      success: function( msg ) {
         console.log('Finalizo: '+msg);
         getPreCheck(id);
-        },
-        error: function(xhr, status, error) {
+      },
+      error: function(xhr, status, error) {
         $('#logPreCheck').html('ocurrio un error!! Intenta de nuevo...');
-        }
+      }
     });
 
     console.log('continuando');
@@ -207,5 +213,6 @@
         }
     });
   }
+
   </script>
 @endpush
