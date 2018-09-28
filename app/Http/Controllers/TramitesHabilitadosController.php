@@ -75,9 +75,12 @@ class TramitesHabilitadosController extends Controller
         //Se valida para el Rol Legales se muestre solo el motivo LEGALES
         $user = Auth::user();
         if($user->hasRole('Legales'))
-            $motivos = \DB::table('tramites_habilitados_motivos')->select('id','description')->where('description','LEGALES')->orderBy('description', 'asc')->pluck('description','id');        
+            $motivos = \DB::table('tramites_habilitados_motivos')->select('id','description')->where('description','LEGALES')->orderBy('description', 'asc')->pluck('description','id');
         else
-            $motivos = \DB::table('tramites_habilitados_motivos')->select('id','description')->where('description','!=','LEGALES')->where('activo','true')->orderBy('description', 'asc')->pluck('description','id');        
+            if($user->hasRole('Comuna'))
+                $motivos = \DB::table('tramites_habilitados_motivos')->select('id','description')->where('description','COMUNA')->orderBy('description', 'asc')->pluck('description','id');        
+            else
+                $motivos = \DB::table('tramites_habilitados_motivos')->select('id','description')->whereNotIn('description',['LEGALES','COMUNA'])->where('activo','true')->orderBy('description', 'asc')->pluck('description','id');        
 
         $SysMultivalue = new SysMultivalue();
         $sucursales = $SysMultivalue->sucursales();
