@@ -100,46 +100,52 @@ class TramitesHabilitadosController extends Controller
     public function store(Request $request)
     {
         try{
-            //validar nro_doc solo si es pasaporte acepte letras y numeros de lo contrario solo numeros
-            if($request->tipo_doc== '4')
-                $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/^[0-9a-zA-Z]+$/']);
-            else
-                $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^(\d+)?$)/u']);
+            
+            if($this->verificarLimitePorSucursal($request->sucursal, $request->fecha)){
+                //validar nro_doc solo si es pasaporte acepte letras y numeros de lo contrario solo numeros
+                if($request->tipo_doc== '4')
+                    $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/^[0-9a-zA-Z]+$/']);
+                else
+                    $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^(\d+)?$)/u']);
 
-            //Validar que no exista el mismo registro
-            $existe = TramitesHabilitados::where('tipo_doc',$request->tipo_doc)
-                        ->where('nro_doc',$request->nro_doc)
-                        ->where('pais',$request->pais)
-                        ->where('fecha',$request->fecha)
-                        ->count();
-            if($existe){
-                Flash::error('El Documento Nro. '.$request->nro_doc.' Ya tiene un turno asignado para el día '.$request->fecha);
-                return back();   
+                //Validar que no exista el mismo registro
+                $existe = TramitesHabilitados::where('tipo_doc',$request->tipo_doc)
+                            ->where('nro_doc',$request->nro_doc)
+                            ->where('pais',$request->pais)
+                            ->where('fecha',$request->fecha)
+                            ->count();
+                if($existe){
+                    Flash::error('El Documento Nro. '.$request->nro_doc.' Ya tiene un turno asignado para el día '.$request->fecha);
+                    return back();   
+                }
+
+                //Si no existe entonces crear el registro
+                $tramiteshabilitados = new TramitesHabilitados();
+
+                $tramiteshabilitados->fecha         = $request->fecha;
+                $tramiteshabilitados->apellido      = strtoupper($request->apellido);
+                $tramiteshabilitados->nombre        = strtoupper($request->nombre);
+                $tramiteshabilitados->tipo_doc      = $request->tipo_doc;
+                $tramiteshabilitados->nro_doc       = strtoupper($request->nro_doc);
+                $tramiteshabilitados->sexo          = $request->sexo;
+                $tramiteshabilitados->fecha_nacimiento     = $request->fecha_nacimiento;
+                $tramiteshabilitados->pais          = $request->pais;
+                $tramiteshabilitados->user_id       = $request->user_id;
+                $tramiteshabilitados->sucursal      = $request->sucursal;
+                $tramiteshabilitados->motivo_id     = $request->motivo_id;
+                $tramiteshabilitados->habilitado = false;
+
+                $tramiteshabilitados->save();
+
+                //Crear registro en tramitesAIniciar y procesar el Precheck
+                ProcessPrecheck::dispatch($tramiteshabilitados);
+
+                Flash::success('El Tramite se ha creado correctamente');
+                return redirect()->route('tramitesHabilitados.create');
+            }else{
+                Flash::error('LIMITE DIARIO PERMITIDO para la sucursal seleccionada.!!');
+                return back();  
             }
-
-            //Si no existe entonces crear el registro
-            $tramiteshabilitados = new TramitesHabilitados();
-
-            $tramiteshabilitados->fecha         = $request->fecha;
-            $tramiteshabilitados->apellido      = strtoupper($request->apellido);
-            $tramiteshabilitados->nombre        = strtoupper($request->nombre);
-            $tramiteshabilitados->tipo_doc      = $request->tipo_doc;
-            $tramiteshabilitados->nro_doc       = strtoupper($request->nro_doc);
-            $tramiteshabilitados->sexo          = $request->sexo;
-            $tramiteshabilitados->fecha_nacimiento     = $request->fecha_nacimiento;
-            $tramiteshabilitados->pais          = $request->pais;
-            $tramiteshabilitados->user_id       = $request->user_id;
-            $tramiteshabilitados->sucursal      = $request->sucursal;
-            $tramiteshabilitados->motivo_id     = $request->motivo_id;
-            $tramiteshabilitados->habilitado = false;
-
-            $tramiteshabilitados->save();
-
-            //Crear registro en tramitesAIniciar y procesar el Precheck
-            ProcessPrecheck::dispatch($tramiteshabilitados);
-
-            Flash::success('El Tramite se ha creado correctamente');
-            return redirect()->route('tramitesHabilitados.create');
         }
         catch(Exception $e){   
             return "Fatal error - ".$e->getMessage();
@@ -297,11 +303,25 @@ class TramitesHabilitadosController extends Controller
         //Si es Jueves o viernes sumar 5, por incluir fin de semana, de lo contrario sumar 3
         $sumar_dias = ($dia_semana == 4 || $dia_semana == 5)?'5':'3'; 
         
-        $user = Auth::user();
         //Se valida que solo para el Rol Comuna permita ingresar 72 en adelante
+        $user = Auth::user();
         if($user->hasRole('Comuna'))
             $fecha = date('Y-m-d', strtotime('+'.$sumar_dias.' days', strtotime(date('Y-m-d'))));
             
         return $fecha;
+    }
+
+    public function verificarLimitePorSucursal($sucursal,$fecha){
+        $acceso= true;
+        $limite = "LIMITE_TH_SUCU_".$sucursal;
+        $user = Auth::user();
+        if($user->hasRole('Comuna')){
+            if(defined($limite)){
+                $total = TramitesHabilitados::where('fecha',$fecha)->where('sucursal',$sucursal)->count();
+                if($total >= intval(constant($limite)))
+                    $acceso= false;
+            }
+        }
+        return $acceso;  
     }
 }

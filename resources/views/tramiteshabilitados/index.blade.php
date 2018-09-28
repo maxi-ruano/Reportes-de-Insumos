@@ -85,7 +85,8 @@
                         <button type="button" onclick="cargarDatosPrecheck({{ $row->tramites_a_iniciar_id }})" class="btn btn-info btn-xs" data-toggle="modal" data-target="#modal-precheck">
                             <i class="glyphicon glyphicon-check"></i> Precheck
                         </button>
-                    </td>                             
+                    </td>
+                    @can('edit_tramites_habilitados','delete_tramites_habilitados')
                     <td>
                         <div class="btn-toolbar" role="toolbar">
                             @can('edit_tramites_habilitados')
@@ -100,6 +101,7 @@
                             @endcan
                         </div>
                     </td>
+                    @endcan
                 </tr>
             @endforeach
             </tbody>

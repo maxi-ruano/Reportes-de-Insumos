@@ -6,7 +6,7 @@
 <div class="container">
     @can('view_all_tramites_habilitados','view_self_tramites_habilitados')
         <div class="col-md-2 col-xs-12">
-            <a href="{{route('tramitesHabilitados.index')}}" class="btn btn-info btn-group-justified"> <i class="fa fa-list"></i> Mostrar listado </a>
+            <a href="{{route('tramitesHabilitados.index')}}?fecha={{date('Y-m-d')}}" class="btn btn-info btn-group-justified"> <i class="fa fa-list"></i> Mostrar listado </a>
         </div>
         <br><br>
     @endcan
