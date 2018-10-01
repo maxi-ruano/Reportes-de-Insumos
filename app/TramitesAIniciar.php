@@ -60,7 +60,7 @@ class TramitesAIniciar extends Model
         $tipoDoc = 1; //CI -> DNI
         break;
       case  5 :
-        $tipoDoc = 4; //DNI EXT
+        $tipoDoc = 1; //DNI EXT
         break;        
       case  6 :
         $tipoDoc = 6; //PASAPORTE
