@@ -79,7 +79,7 @@
               //Bloquear todas las opciones del PreCheck para el Rol Auditoria
               var auditoria = {{ Auth::user()->hasRole('Auditoria') }};
               if(auditoria)
-                  $(".modal-body a").attr("disabled","disabled");
+                  $(".modal-body a").attr("disabled","disabled").attr('onclick','');
               
             }
           },
