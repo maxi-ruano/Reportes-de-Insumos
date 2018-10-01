@@ -183,6 +183,11 @@
                             $("#ultimo_turno").html('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> Esta persona no cuenta con turno previo, debe contar con turno entre los 15 días para poder RETOMAR TURNO.</h4>');
                          }
                     });
+
+                    //Si es Administrador permitir guardar
+                    @role('Administrador Tramites Habilitados')
+                        $("button[type='submit']").show();
+                    @endrole
                 }
             }
         });
