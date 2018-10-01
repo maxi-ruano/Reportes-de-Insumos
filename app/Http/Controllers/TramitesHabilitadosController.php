@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use App\TramitesAIniciar;
 use App\ValidacionesPrecheck;
 use App\Jobs\ProcessPrecheck;
+use App\Sigeci;
 
 class TramitesHabilitadosController extends Controller
 {
@@ -304,6 +305,16 @@ class TramitesHabilitadosController extends Controller
             }
         }
         return $buscar;
+    }
+
+    public function consultarUltimoTurno(Request $request){
+        $consulta = Sigeci::leftjoin('tramites_a_iniciar','tramites_a_iniciar.id','sigeci.tramite_a_iniciar_id')
+                        ->where("idtipodoc",$request->tipo_doc)
+                        ->where("numdoc",$request->nro_doc)
+                        ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
+                        ->orderBy('sigeci.idcita','DESC')
+                        ->first();
+        return $consulta;
     }
 
     public function calcularFecha(){

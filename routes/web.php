@@ -27,6 +27,7 @@ Route::group( ['middleware' => ['auth']], function() {
 Route::resource('tramitesHabilitados','TramitesHabilitadosController');
 Route::get('tramitesHabilitadosHabilitar', ['uses' => 'TramitesHabilitadosController@habilitar','as' => 'tramitesHabilitados.habilitar']);
 Route::get('buscarDatosPersonales', 'TramitesHabilitadosController@buscarDatosPersonales');
+Route::get('consultarUltimoTurno', 'TramitesHabilitadosController@consultarUltimoTurno');
 //end TRAMITES HABILITADOS
 
 //DASHBOARD

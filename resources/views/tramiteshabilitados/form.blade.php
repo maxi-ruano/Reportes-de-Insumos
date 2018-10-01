@@ -95,6 +95,8 @@
                 {!! Form::text('nro_expediente', isset($edit) ? $edit->nro_expediente : null, ['class' => 'form-control', 'placeholder' => 'Ingrese Número de Expediente', 'required' => 'required']) !!}
             </div>
         @endhasrole
+        
+        <div id="ultimo_turno"> </div>
         <hr>
         
         @can('add_tramites_habilitados', 'edit_tramites_habilitados')
@@ -115,7 +117,7 @@
             $("input[name=nro_doc]").change(function(){
                 var nro_doc = $(this).val();
                 var tipo_doc = $("select[name=tipo_doc]").val();
-                
+
                 //Aplicar solo si nuevo registro, si esta editando no realizara la buscqueda
                 @if(!isset($edit)) 
                     $("input[name=nombre], input[name=apellido], input[name=fecha_nacimiento]").val('');
@@ -137,9 +139,52 @@
                 @endif
             });
 
-            @if(isset($new)) 
-                alert('Se creo el nuevo tramite habilitado con el ID {{ $new->id }}');
-            @endif
+            $("input[name=fecha], input[name=nro_doc], select[name=motivo_id]").change(function(){
+                $("button[type='submit']").show();
+                validarRetomaTurno();
+            });
+
+            function validarRetomaTurno(){
+                var motivo = $("select[name=motivo_id]").val();
+                var tipo_doc = $("select[name=tipo_doc]").val();
+                var nro_doc = $("input[name=nro_doc]").val();
+                $("#ultimo_turno").empty();
+            
+                if(motivo == '5' && nro_doc != ''){
+                    $("button[type='submit']").hide();
+                    console.log('motivo '+motivo+' nrodoc '+nro_doc);
+                    $.ajax({
+                        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                        url: '/consultarUltimoTurno',
+                        data: {tipo_doc: tipo_doc, nro_doc: nro_doc },
+                        type: "GET", dataType: "json",
+                        success: function(ret){
+                            //Calcular los dias entre la dos fecha
+                            var fechaini = new Date(ret.fecha);
+                            var fechafin = new Date($("input[name=fecha]").val());
+                            var diasdif= fechafin.getTime()-fechaini.getTime();
+                            var dias = Math.round(diasdif/(1000*60*60*24));
+
+                            var f = ret.fecha.split('-');
+                            var fecha = f[2]+'/'+f[1]+'/'+f[0];
+
+                            $("#ultimo_turno").html('Información de su último turno: <table class="table table-striped jambo_table"><tr><td>'+fecha+'</td><td>'+ret.hora+'</td><td>'+ret.descsede+'</td><td>'+ret.descprestacion+'</td><td class="red"> '+dias+' días</td><td class="icono"></td></tr></table>');
+
+                            if(dias > 0 && dias <= 15){
+                                $("#ultimo_turno .icono").html('<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>');
+                                $("button[type='submit']").show();
+                            }else{
+                                $("#ultimo_turno .icono").html('<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>');
+                                $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno previo ha superado el limite de los 15 días para poder RETOMAR TURNO!.</h4>');
+                            }
+
+                        },
+                        error: function(err) {
+                            $("#ultimo_turno").html('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> Esta persona no cuenta con turno previo, debe contar con turno entre los 15 días para poder RETOMAR TURNO.</h4>');
+                         }
+                    });
+                }
+            }
         });
     </script>
 @endpush
