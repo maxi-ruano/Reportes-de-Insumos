@@ -77,9 +77,11 @@
               mostrarDatosPersona(msg.datosPersona)
 
               //Bloquear todas las opciones del PreCheck para el Rol Auditoria
-              var auditoria = {{ Auth::user()->hasRole('Auditoria') }};
-              if(auditoria)
+              @if(Auth::check())
+                @if(Auth::user()->hasRole('Auditoria'))
                   $(".modal-body a").attr("disabled","disabled");
+                @endif
+              @endif
               
             }
           },

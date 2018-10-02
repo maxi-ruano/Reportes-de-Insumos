@@ -37,6 +37,7 @@
                   <th>Nacionalidad</th>
                   <th>Fecha Turno</th>
                   <th>Hora Turno</th>
+                  <th>Sede</th>
                   <th>Accion</th>
                 </tr>
               </thead>
@@ -238,6 +239,7 @@
                   '<td>'+e.nacionalidad+'</td>'+
                   '<td>'+fecha+'</td>'+
                   '<td>'+e.hora+'</td>'+
+                  '<td>'+e.sede+'</td>'+
                   '<td><button type="button" onclick="getPreCheck('+e.id+')" class="btn btn-primary btn-sm">Seleccionar</button></td>'+
                 '</tr>');
       });
