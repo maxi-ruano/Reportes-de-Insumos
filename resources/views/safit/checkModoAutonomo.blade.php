@@ -197,6 +197,14 @@
             }else if(msg){
               mostrarPreCheck(msg.precheck)
               mostrarDatosPersona(msg.datosPersona)
+
+              //Bloquear todas las opciones del PreCheck para el Rol Auditoria
+              @if(Auth::check())
+                @if(Auth::user()->hasRole('Auditoria'))
+                  $(".modal-body a").attr("disabled","disabled").attr('onclick','');
+                @endif
+              @endif
+              
             }
           },
           error: function(xhr, status, error) {
