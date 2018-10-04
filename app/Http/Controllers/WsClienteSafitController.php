@@ -33,7 +33,8 @@ class WsClienteSafitController extends Controller
     \Log::info('['.date('h:i:s').'] '.'se procede a iniciarSesion() '.$this->uswID.' | '.$this->uswPassword.' | '.$this->uswHash);
     $res = null;
     try {
-      $this->createClienteSoap();
+      if(is_null($this->cliente))
+        $this->createClienteSoap();
       $res = $this->cliente->abrir_sesion( $this->uswID,
                                            $this->uswPassword,
                                            $this->uswHash );
