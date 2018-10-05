@@ -9,18 +9,28 @@ use App\SysMultivalue;
 use App\SigeciPaises;
 use App\TramitesAIniciarErrores;
 use App\TramitesAIniciarCheckprecheck;
+use App\AnsvCelExpedidor;
 use App\Http\Controllers\TramitesController;
 
 class PreCheckController extends Controller
 {
+  
+  public $centrosEmisores = null;
+
+  public function __construct(){
+    $this->centrosEmisores = new AnsvCelExpedidor();
+  }
+
   public function checkPreCheck(){
     $paises = SysMultivalue::where('type','PAIS')->orderBy('description', 'asc')->pluck('description', 'id');
     $tdoc = SysMultivalue::where('type','TDOC')->orderBy('id', 'asc')->pluck('description', 'id');
     $sexo = SysMultivalue::where('type','SEXO')->where('id','<>',0)->orderBy('id', 'asc')->pluck('description', 'description');
-    //dd($paises);
+    
+
     return View('safit.checkModoAutonomo')->with('paises', $paises)
                                           ->with('tdoc', $tdoc)
-                                          ->with('sexo', $sexo);
+                                          ->with('sexo', $sexo)
+                                          ->with('centrosEmisores', $this->centrosEmisores->getCentrosEmisores());
   }
 
   public function consultarPreCheck(Request $request){

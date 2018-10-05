@@ -114,6 +114,10 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
+            @if(isset($edit))
+                $("input[name=fecha]").removeAttr('min');
+            @endif
+
             $("input[name=nro_doc]").change(function(){
                 var nro_doc = $(this).val();
                 var tipo_doc = $("select[name=tipo_doc]").val();

@@ -7,6 +7,7 @@ use App\SysMultivalue;
 use App\User;
 use App\TramitesHabilitados;
 use App\AnsvPaises;
+use App\AnsvCelExpedidor;
 use App\DatosPersonales;
 use Laracasts\Flash\Flash;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +19,11 @@ use App\Sigeci;
 class TramitesHabilitadosController extends Controller
 {
     private $path = 'tramiteshabilitados';
+    public $centrosEmisores = null;
+
+    public function __construct(){
+        $this->centrosEmisores = new AnsvCelExpedidor();
+    }
     
     /**
      * Display a listing of the resource.
@@ -61,7 +67,8 @@ class TramitesHabilitadosController extends Controller
                 $value->fecha = date('d-m-Y', strtotime($value->fecha));
             }
         }
-        return view($this->path.'.index', compact('data'));
+        return view($this->path.'.index')->with('data', $data)
+                                         ->with('centrosEmisores', $this->centrosEmisores->getCentrosEmisores());
     }
 
     /**
