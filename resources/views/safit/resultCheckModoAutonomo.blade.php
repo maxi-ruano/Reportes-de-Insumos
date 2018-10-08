@@ -66,7 +66,7 @@
           type: "GET",
           url: '/consultarPreCheck',
           data: { id: id, },
-          //async:false,
+          async:false,
           success: function( msg ) {
             if(msg.error){
               mostrarMensajeError(msg.error)
@@ -212,11 +212,12 @@
         type: "GET",
         url: '/generarCenatPrecheck',
         data: {id: id, bop_cb: bop_cb, cem_id: cem_id },
-        success: function( msg ) {
-          if(msg[0] == 'success')
+        beforeSend: function(){
+          $('#logPreCheck').html('<img src="/img/buffer.gif" width="200" > Generando CENAT... espere.');
+        },
+        success: function( msg ) {          
             getPreCheck(id);
-          else
-              $('#logPreCheck .msjcenat').html('***'+msg);
+            $('#logPreCheck .msjcenat').html('***'+msg);
         },
         error: function(xhr, status, error) {
           $('#logPreCheck').html('ocurrio un error!! Intenta de nuevo...');
