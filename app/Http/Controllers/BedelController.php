@@ -33,7 +33,7 @@ class BedelController extends Controller
       $default = $this->defaultParams();
       //Busqueda de tramite
       if ($request->op == 'find') {
-        $peticion = $this->findTramite($request->doc, (int)$request->tipo_doc, strtolower($request->sexo), $request->pais);
+        $peticion = $this->findTramite($request->doc, $request->tipo_doc, strtolower($request->sexo), $request->pais);
         if ($this->esValido($peticion)):
           $peticion = $this->validarEncontrados($peticion);
           $categorias = $this->api_get(config('global.API_SERVIDOR'),array('function' => 'get','tipo_doc' => $request->tipo_doc, 'nro_doc' => $request->doc, 'sexo' => strtolower($request->sexo), 'pais' => $request->pais));
@@ -113,7 +113,7 @@ class BedelController extends Controller
       }
       /**
        * Funcion api_get - Hace una peticiones get, se le pasa la url y un array asociativo con los parametros
-       * $test = $this->api_get('http://192.168.76.233/api_dc.php', array('doc' => $request->doc, 'tdoc' => (int)$request->tipo_doc));
+       * $test = $this->api_get('http://192.168.76.233/api_dc.php', array('doc' => $request->doc, 'tdoc' => $request->tipo_doc));
        */
        function api_get($url, $params)
        {

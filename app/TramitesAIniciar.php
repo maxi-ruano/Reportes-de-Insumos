@@ -19,15 +19,11 @@ class TramitesAIniciar extends Model
   }
 
   public function tipoDocText(){
-    $hablitado = TramitesHabilitados::where('tramites_a_iniciar_id',$this->id)->count();
-    if($hablitado){
-      $tdoc = SysMultivalue::where('type','TDOC')->where('id', $this->tipo_doc)->first();
-      $tipoDocText = $tdoc->description;
-    }else{
-      $tipoDocText = $this->tipoDocBui();
-    }
-    
-    return $tipoDocText;
+    $tdoc = SysMultivalue::where('type','TDOC')->where('id', $this->tipo_doc)->first();
+    if($tdoc)
+      return $tdoc->description;
+    else
+      return "";
   }
 
   public function nacionalidadTexto(){
@@ -98,10 +94,10 @@ class TramitesAIniciar extends Model
         $tipoDoc = 'CI'; //CI -> CI
         break;
       case 4 :
-        $tipoDoc = 'PAS'; //CI
+        $tipoDoc = 'PAS'; //PASS
         break;
       case 5 :
-        $tipoDoc = 'DNI'; //INS -> DNI
+        $tipoDoc = 'INS'; //INS -> DNI
         break;
       default:
         $tipoDoc = 'DNI'; //DNI
