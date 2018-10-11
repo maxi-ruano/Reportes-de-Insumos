@@ -69,7 +69,7 @@
                         @endif
                     </td>
                     <td>
-                        <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Creado {{ $row->created_at }}">    
+                        <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Creado {{ $row->created_at }} por el Rol: {{ $row->rol }}">    
                             {{ $row->user_id }}
                         </span>
                     </td>

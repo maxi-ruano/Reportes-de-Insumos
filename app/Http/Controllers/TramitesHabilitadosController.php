@@ -35,13 +35,15 @@ class TramitesHabilitadosController extends Controller
         
         $fecha = isset($_GET['fecha'])?$_GET['fecha']:'';
 
-        $data = TramitesHabilitados::orderBy('tramites_habilitados.fecha','desc')
-                    ->orderBy('tramites_habilitados.id','desc')
+        $data = TramitesHabilitados::selectRaw("tramites_habilitados.*, roles.name as rol")
+                    ->leftjoin('model_has_roles','model_has_roles.model_id','tramites_habilitados.user_id')
+                    ->leftjoin('roles','roles.id','model_has_roles.role_id')
                     ->where(function($query) use ($request) {
                         $query->where('nombre', 'LIKE', '%'. strtoupper($request->search) .'%')
                             ->orWhere('apellido', 'LIKE', '%'. strtoupper($request->search) .'%')
                             ->orWhereRaw("nro_doc LIKE '%$request->search%' ");
-                        });
+                        })
+                    ->orderBy('tramites_habilitados.fecha','desc');
         if($fecha)
             $data = $data->where('fecha',$fecha);
         
