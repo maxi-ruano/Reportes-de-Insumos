@@ -31,8 +31,6 @@ class TramitesAInicarController extends Controller
   private $estID = "A";
   private $estadoBoletaNoUtilizada = "N";
   private $estado_final = 6;
-  //SIGECI TURNOS
-  private $prestacionesCursos = [1604, 1543];
 
   //LIBRE deuda
   private $userLibreDeuda;

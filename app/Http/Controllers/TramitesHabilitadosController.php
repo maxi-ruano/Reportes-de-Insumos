@@ -307,8 +307,14 @@ class TramitesHabilitadosController extends Controller
                 $buscar = $sql->first();
             }else{
                 $buscar = TramitesHabilitados::where("tipo_doc",$request->tipo_doc)->where("nro_doc",$request->nro_doc)->orderBy('id','DESC')->first();
-                if(!$buscar)
-                    $buscar = TramitesAIniciar::where("tipo_doc",$request->tipo_doc)->where("nro_doc",$request->nro_doc)->orderBy('id','DESC')->first();
+                if(!$buscar){
+                    $buscar = TramitesAIniciar::selectRaw("tramites_a_iniciar.*, ansv_paises.id_dgevyl as pais")
+                                ->join('ansv_paises','ansv_paises.id_ansv','tramites_a_iniciar.nacionalidad')
+                                ->where("tipo_doc",$request->tipo_doc)
+                                ->where("nro_doc",$request->nro_doc)
+                                ->orderBy('id','DESC')
+                                ->first();      
+                }
             }
         }
         return $buscar;
@@ -319,6 +325,7 @@ class TramitesHabilitadosController extends Controller
                         ->where("idtipodoc",$request->tipo_doc)
                         ->where("numdoc",$request->nro_doc)
                         ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
+                        ->whereNotIn('sigeci.idprestacion', $this->prestacionesCursos)
                         ->orderBy('sigeci.idcita','DESC')
                         ->first();
         return $consulta;

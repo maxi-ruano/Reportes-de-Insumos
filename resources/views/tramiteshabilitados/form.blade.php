@@ -50,7 +50,7 @@
         <div class="form-group">
             {!! Form::label('tipo_doc', ' Documento') !!}
             {!! Form::select('tipo_doc', $tdocs, isset($edit) ? $edit->tipo_doc : null, ['class' => 'form-control']) !!}
-            {!! Form::text('nro_doc', isset($edit) ? $edit->nro_doc : null, ['class' => 'form-control', 'placeholder' => 'Nro. Documento', 'required' => 'required' ]) !!}
+            {!! Form::text('nro_doc', isset($edit) ? $edit->nro_doc : null, ['class' => 'form-control', 'placeholder' => 'Nro. Documento', 'maxlength' => 10, 'required' => 'required' ]) !!}
         </div>
 
         <div class="form-group">
@@ -133,6 +133,7 @@
                         data: {tipo_doc: tipo_doc, nro_doc: nro_doc },
                         type: "GET", dataType: "json",
                         success: function(ret){
+                            console.log(ret);
                             $("input[name=nombre]").val(ret.nombre);
                             $("input[name=apellido]").val(ret.apellido);
                             $("input[name=fecha_nacimiento]").val(ret.fecha_nacimiento);
@@ -154,7 +155,7 @@
                 var nro_doc = $("input[name=nro_doc]").val();
                 $("#ultimo_turno").empty();
             
-                if(motivo == '5' && nro_doc != ''){
+                if(motivo == '1' && nro_doc != ''){
                     $("button[type='submit']").hide();
                     console.log('motivo '+motivo+' nrodoc '+nro_doc);
                     $.ajax({
