@@ -36,7 +36,7 @@ class BedelController extends Controller
         $peticion = $this->findTramite($request->doc, (int)$request->tipo_doc, strtolower($request->sexo), $request->pais);
         if ($this->esValido($peticion)):
           $peticion = $this->validarEncontrados($peticion);
-          $categorias = $this->api_get(config('global.API_SERVIDOR'),array('function' => 'get','tipo_doc' => (int)$request->tipo_doc, 'nro_doc' => $request->doc, 'sexo' => strtolower($request->sexo), 'pais' => $request->pais));
+          $categorias = $this->api_get(config('global.API_SERVIDOR'),array('function' => 'get','tipo_doc' => $request->tipo_doc, 'nro_doc' => $request->doc, 'sexo' => strtolower($request->sexo), 'pais' => $request->pais));
           if ($categorias[0] != false) {
             $TeoricoPcController = new TeoricoPcController;
             $computadoras = $TeoricoPcController->listarDisponibles($request->session()->get('usuario_sucursal_id'));

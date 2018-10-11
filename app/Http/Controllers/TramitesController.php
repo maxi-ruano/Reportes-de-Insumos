@@ -32,7 +32,7 @@ class TramitesController extends Controller
                           ->join('ansv_paises','ansv_paises.id_dgevyl','tramites.pais')
                           ->join('tramites_a_iniciar',function($join) {
                               $join->on('tramites_a_iniciar.nacionalidad', '=', 'ansv_paises.id_ansv');
-                              $join->on('tramites.nro_doc', '=', \DB::raw('CAST(tramites_a_iniciar.nro_doc AS varchar(10))'));
+                              $join->on('tramites.nro_doc', '=', 'tramites_a_iniciar.nro_doc');
                           })
                           ->whereIn('tramites_a_iniciar.sigeci_idcita',$this->Sigeci->getTurnos($fecha)->pluck('idcita')->toArray())
                           ->whereNotIn('tramites.estado',$this->estadosIgnore)

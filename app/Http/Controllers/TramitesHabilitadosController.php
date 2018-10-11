@@ -40,7 +40,7 @@ class TramitesHabilitadosController extends Controller
                     ->where(function($query) use ($request) {
                         $query->where('nombre', 'LIKE', '%'. strtoupper($request->search) .'%')
                             ->orWhere('apellido', 'LIKE', '%'. strtoupper($request->search) .'%')
-                            ->orWhereRaw("CAST(nro_doc AS text) LIKE '%$request->search%' ");
+                            ->orWhereRaw("nro_doc LIKE '%$request->search%' ");
                         });
         if($fecha)
             $data = $data->where('fecha',$fecha);
