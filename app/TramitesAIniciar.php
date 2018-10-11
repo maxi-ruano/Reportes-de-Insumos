@@ -49,22 +49,16 @@ class TramitesAIniciar extends Model
     switch ($this->tipo_doc) {
       case 1 :
         $tipoDoc = 1; //DNI
-        break;
+      break;
       case 2 :
-        $tipoDoc = 2; //LE
-        break;
-      case 3 :
-        $tipoDoc = 3; //LC
+        $tipoDoc = 4; //CI
         break;
       case  4 :
-        $tipoDoc = 1; //CI -> DNI
+        $tipoDoc = 6; //PAS -> PAS
         break;
       case  5 :
-        $tipoDoc = 1; //DNI EXT
+        $tipoDoc = 7; //INS 
         break;        
-      case  6 :
-        $tipoDoc = 6; //PASAPORTE
-        break;      
       default:
         $tipoDoc = 1; //DNI
         break;
@@ -79,20 +73,14 @@ class TramitesAIniciar extends Model
         $tipoDoc = 'DNI'; //DNI
         break;
       case 2 :
-        $tipoDoc = 'LE'; //LE
-        break;
-      case 3 :
-        $tipoDoc = 'LC'; //LC
+        $tipoDoc = 'CI'; //CI
         break;
       case 4 :
-        $tipoDoc = 'CI'; //LC
+        $tipoDoc = 'PAS'; //LC
         break;
       case 5 :
-        $tipoDoc = 'DNI'; //CI -> DNI
+        $tipoDoc = 'INS'; //LC
         break;
-      case 6 :
-        $tipoDoc = 'PAS'; //DNI EXT
-        break;        
       default:
         $tipoDoc = 'DNI'; //DNI
         break;
@@ -107,20 +95,14 @@ class TramitesAIniciar extends Model
         $tipoDoc = 'DNI'; //DNI
         break;
       case 2 :
-        $tipoDoc = 'LE'; //LE
-        break;
-      case 3 :
-        $tipoDoc = 'LC'; //LC
+        $tipoDoc = 'CI'; //CI -> CI
         break;
       case 4 :
-        $tipoDoc = 'CI'; //CI
+        $tipoDoc = 'PAS'; //CI
         break;
       case 5 :
-        $tipoDoc = 'DNI'; //EXTrangero se utiliza DNI porque el ws libredeuda no los encuentra con EXT
+        $tipoDoc = 'DNI'; //INS -> DNI
         break;
-      case 6 :
-        $tipoDoc = 'PAS'; //DNI EXT
-        break;        
       default:
         $tipoDoc = 'DNI'; //DNI
         break;

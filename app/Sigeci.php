@@ -29,4 +29,32 @@ class Sigeci extends Model
     else 
       return null;  
   }
+
+  public function tipoDocLicta(){
+    $tipoDoc;
+    switch ($this->idtipodoc) {
+      case 1 :
+        $tipoDoc = 1; //DNI -> DNI
+        break;
+      case 2 :
+        $tipoDoc = 1; //LE -> DNI
+        break;
+      case 3 :
+        $tipoDoc = 1; //LC -> DNI
+        break;
+      case 4 :
+        $tipoDoc = 1; //CI -> DNI
+        break;
+      case 5 :
+        $tipoDoc = 1; //DNI EXT -> DNI
+        break;
+      case 6 :
+        $tipoDoc = 4; //PASS -> PASS
+        break;        
+      default:
+        $tipoDoc = 1; //DNI
+        break;
+    }
+    return $tipoDoc;
+  }
 }

@@ -239,7 +239,7 @@ class TramitesAInicarController extends Controller
       $tramiteAIniciar = new TramitesAIniciar();
       $tramiteAIniciar->apellido = $turno->apellido;
       $tramiteAIniciar->nombre = $turno->nombre;
-      $tramiteAIniciar->tipo_doc = $turno->idtipodoc;
+      $tramiteAIniciar->tipo_doc = $turno->tipoDocLicta();
       $tramiteAIniciar->nro_doc = $turno->numdoc;
       $tramiteAIniciar->nacionalidad = $this->getIdPais($turno->nacionalidad());
       $tramiteAIniciar->fecha_nacimiento = $turno->fechaNacimiento();
