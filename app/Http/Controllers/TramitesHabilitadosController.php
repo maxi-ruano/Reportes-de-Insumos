@@ -151,7 +151,7 @@ class TramitesHabilitadosController extends Controller
                 if(isset($request->nro_expediente))
                     $tramiteshabilitados->nro_expediente = $request->nro_expediente;
 
-                if(isset($request->nro_expediente))
+                if(isset($request->sigeci_idcita))
                     $tramiteshabilitados->sigeci_idcita = $request->sigeci_idcita;
 
                 $tramiteshabilitados->save();
