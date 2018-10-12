@@ -95,6 +95,11 @@
                 {!! Form::text('nro_expediente', isset($edit) ? $edit->nro_expediente : null, ['class' => 'form-control', 'placeholder' => 'Ingrese Número de Expediente', 'required' => 'required']) !!}
             </div>
         @endhasrole
+
+        <div id="idcita" class="form-group">    
+            {!! Form::label('sigeci_idcita', ' Nro. Cita') !!}
+            {!! Form::text('sigeci_idcita', isset($edit) ? $edit->sigeci_idcita : null, ['class' => 'form-control', 'placeholder' => 'Ingrese el número de la cita del turno', 'maxlength' => 8]) !!}
+        </div>
         
         <div id="ultimo_turno"> </div>
         <hr>
@@ -114,6 +119,15 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
+            
+            //Si es editar y existe mostrar: sigeci_idcita
+            @if(isset($edit->sigeci_idcita))
+                $("#idcita").show();
+                $("#idcita input[name='sigeci_idcita']").attr("required","required");
+            @else
+                $("#idcita").hide();
+            @endif
+
             @if(isset($edit))
                 $("input[name=fecha]").removeAttr('min');
             @endif
@@ -154,7 +168,8 @@
                 var tipo_doc = $("select[name=tipo_doc]").val();
                 var nro_doc = $("input[name=nro_doc]").val();
                 $("#ultimo_turno").empty();
-            
+                
+                //SI MOTIVO ES RETOMA TURNO VERIFICAR TURNO ANTERIOR ESTE ENTRE LOS 15 DIAS
                 if(motivo == '1' && nro_doc != ''){
                     $("button[type='submit']").hide();
                     console.log('motivo '+motivo+' nrodoc '+nro_doc);
@@ -188,12 +203,21 @@
                             $("#ultimo_turno").html('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> Esta persona no cuenta con turno previo, debe contar con turno entre los 15 días para poder RETOMAR TURNO.</h4>');
                          }
                     });
-
-                    //Si es Administrador permitir guardar
-                    @role('Administrador Tramites Habilitados')
-                        $("button[type='submit']").show();
-                    @endrole
                 }
+
+                //SI MOTIVO ES ERROR EN TURNO ENTONCES SOLICITAR NRO DE CITA (obligatorio)
+                if(motivo == '13'){
+                    $("#idcita").show();
+                    $("#idcita input[name='sigeci_idcita']").attr("required","required");
+                }else{
+                    $("#idcita").hide();
+                    $("#idcita input[name='sigeci_idcita']").removeAttr("required").val('');
+                }
+
+                //Si es Administrador permitir guardar
+                @role('Administrador Tramites Habilitados')
+                    $("button[type='submit']").show();
+                @endrole
             }
         });
     </script>

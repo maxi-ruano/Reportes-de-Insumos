@@ -65,7 +65,13 @@
                                 {{ $row->motivo_id }}
                             </span>
                         @else
-                            {{ $row->motivo_id }}
+                            @if ($row->sigeci_idcita)
+                            <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Nro. Cita {{ $row->sigeci_idcita }}">    
+                                {{ $row->motivo_id }}
+                            </span>
+                            @else
+                                {{ $row->motivo_id }}
+                            @endif
                         @endif
                     </td>
                     <td>

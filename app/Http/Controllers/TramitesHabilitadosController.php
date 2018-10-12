@@ -146,10 +146,13 @@ class TramitesHabilitadosController extends Controller
                 $tramiteshabilitados->user_id       = $request->user_id;
                 $tramiteshabilitados->sucursal      = $request->sucursal;
                 $tramiteshabilitados->motivo_id     = $request->motivo_id;
-                $tramiteshabilitados->habilitado = false;
+                $tramiteshabilitados->habilitado    = false;
 
                 if(isset($request->nro_expediente))
                     $tramiteshabilitados->nro_expediente = $request->nro_expediente;
+
+                if(isset($request->nro_expediente))
+                    $tramiteshabilitados->sigeci_idcita = $request->sigeci_idcita;
 
                 $tramiteshabilitados->save();
 
@@ -238,10 +241,6 @@ class TramitesHabilitadosController extends Controller
         $tramitesHabilitados->nro_doc = strtoupper($request->nro_doc);
         $tramitesHabilitados->nombre = strtoupper($request->nombre);
         $tramitesHabilitados->apellido = strtoupper($request->apellido);
-
-        if(isset($request->nro_expediente))
-            $tramiteshabilitados->nro_expediente = $request->nro_expediente;
-
         $tramitesHabilitados->save();
 
         //Si existe un TramiteAIniciar asociado hacer lo siguiente
