@@ -336,7 +336,7 @@ class TramitesHabilitadosController extends Controller
         $acceso= true;
         $limite = "LIMITE_TH_SUCU_".$sucursal;
         $user = Auth::user();
-        if($user->hasRole('Comuna')){
+        if($user->hasRole('Comuna') || $user->hasRole('Jefe Sede')){
             if(defined($limite)){
                 $total = TramitesHabilitados::where('fecha',$fecha)->where('sucursal',$sucursal)->count();
                 if($total >= intval(constant($limite)))
