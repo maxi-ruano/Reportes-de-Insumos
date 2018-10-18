@@ -33,6 +33,7 @@ Route::get('consultarUltimoTurno', 'TramitesHabilitadosController@consultarUltim
 //TRAMITES HABILITADOS MOTIVOS
 Route::resource('tramitesHabilitadosMotivos','TramitesHabilitadosMotivosController');
 Route::get('tramitesHabilitadosMotivosHabilitar', ['uses' => 'TramitesHabilitadosMotivosController@habilitar','as' => 'tramitesHabilitadosMotivos.habilitar']);
+Route::resource('roleMotivos','RoleMotivosController');
 //end TRAMITES HABILITADOS MOTIVOS
 
 //DASHBOARD

@@ -16,6 +16,7 @@
             {!! Form::close() !!}
         </div>
         <div class="col-sm-4 col-xs-12 text-right">
+                <a href="{{route('roleMotivos.index')}}" class="btn btn-success"> <i class="fa fa-edit"></i> Motivos por Rol </a>
             @can('add_tramites_habilitados_motivos')
                 <a href="{{route('tramitesHabilitadosMotivos.create')}}" class="btn btn-primary">Nuevo <i class="glyphicon glyphicon-plus-sign"></i> </a>
             @endcan

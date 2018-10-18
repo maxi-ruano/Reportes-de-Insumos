@@ -31,14 +31,15 @@ class TramitesHabilitadosController extends Controller
 
         $data = TramitesHabilitados::orderBy('tramites_habilitados.fecha','desc')
                     ->orderBy('tramites_habilitados.id','desc')
+                    ->whereIn('tramites_habilitados.motivo_id', $this->getRoleMotivos('role_motivos_lis'))
                     ->where(function($query) use ($request) {
                         $query->where('nombre', 'LIKE', '%'. strtoupper($request->search) .'%')
                             ->orWhere('apellido', 'LIKE', '%'. strtoupper($request->search) .'%')
                             ->orWhereRaw("CAST(nro_doc AS text) LIKE '%$request->search%' ");
-                        });
+                    });
         if($fecha)
             $data = $data->where('fecha',$fecha);
-        
+                    
         //Verificar si tiene permisos para filtrar solo los que registro
         $user = Auth::user();
         if($user->hasPermissionTo('view_self_tramites_habilitados'))
@@ -73,16 +74,9 @@ class TramitesHabilitadosController extends Controller
     {
         $fecha = $this->calcularFecha();
 
-        //Se valida para el Rol Legales se muestre solo el motivo LEGALES
-        $user = Auth::user();
-        if($user->hasRole('Legales'))
-            $motivos = \DB::table('tramites_habilitados_motivos')->select('id','description')->where('description','LEGALES')->orderBy('description', 'asc')->pluck('description','id');
-        else
-            if($user->hasRole('Comuna'))
-                $motivos = \DB::table('tramites_habilitados_motivos')->select('id','description')->where('description','COMUNA')->orderBy('description', 'asc')->pluck('description','id');        
-            else
-                $motivos = \DB::table('tramites_habilitados_motivos')->select('id','description')->whereNotIn('description',['LEGALES','COMUNA'])->where('activo','true')->orderBy('description', 'asc')->pluck('description','id');        
-
+        //Se cargan motivos segun el permiso asignado en roles_motivos_sel
+        $motivos = \DB::table('tramites_habilitados_motivos')->whereIn('id',$this->getRoleMotivos('role_motivos_sel'))->orderBy('description', 'asc')->pluck('description','id');
+        
         $SysMultivalue = new SysMultivalue();
         $sucursales = $SysMultivalue->sucursales();
         $tdocs = $SysMultivalue->tipodocs(); 
@@ -188,7 +182,10 @@ class TramitesHabilitadosController extends Controller
             Flash::error('El Tramite ya se inicio no se puede modificar!');
             return redirect()->route('tramitesHabilitados.index');
         }else{
-            $motivos = \DB::table('tramites_habilitados_motivos')->select('id','description')->where('activo','true')->orderBy('description', 'asc')->pluck('description','id');
+
+            //Se cargan motivos segun el permiso asignado en roles_motivos_sel
+            $motivos = \DB::table('tramites_habilitados_motivos')->whereIn('id',$this->getRoleMotivos('role_motivos_sel'))->orderBy('description', 'asc')->pluck('description','id');
+
             $SysMultivalue = new SysMultivalue();
             $sucursales = $SysMultivalue->sucursales();
             $tdocs = $SysMultivalue->tipodocs();
@@ -336,13 +333,27 @@ class TramitesHabilitadosController extends Controller
         $acceso= true;
         $limite = "LIMITE_TH_SUCU_".$sucursal;
         $user = Auth::user();
+        
         if($user->hasRole('Comuna') || $user->hasRole('Jefe Sede')){
             if(defined($limite)){
-                $total = TramitesHabilitados::where('fecha',$fecha)->where('sucursal',$sucursal)->count();
+
+                //Se buscan los usuarios con el mismo rol para poder contar los registrados por ellos
+                $roles = $user->roles->pluck('id')->toArray();
+                $usuarios = \DB::table('model_has_roles')->whereIn('role_id',$roles)->pluck('model_id')->toArray();
+                
+                $total = TramitesHabilitados::where('fecha',$fecha)->where('sucursal',$sucursal)->whereIn('user_id', $usuarios)->count();
                 if($total >= intval(constant($limite)))
                     $acceso= false;
             }
         }
         return $acceso;  
+    }
+
+    public function getRoleMotivos($tabla){
+        $user = Auth::user();
+        $roles = $user->roles->pluck('id')->toArray();
+
+        $motivos = \DB::table($tabla)->whereIn('role_id',$roles)->pluck('motivo_id')->toArray();
+        return $motivos;
     }
 }
