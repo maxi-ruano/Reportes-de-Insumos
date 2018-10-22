@@ -89,17 +89,12 @@
             @endif
         </div>
 
-        @hasrole('Legales')
-            <div class="form-group">    
-                {!! Form::label('nro_expediente', ' Nro. de Expediente / Carpeta') !!}
-                {!! Form::text('nro_expediente', isset($edit) ? $edit->nro_expediente : null, ['class' => 'form-control', 'placeholder' => 'Ingrese Número de Expediente', 'required' => 'required']) !!}
-            </div>
-        @endhasrole
-
-        <div id="idcita" class="form-group">    
-            {!! Form::label('sigeci_idcita', ' Nro. Cita') !!}
-            {!! Form::text('sigeci_idcita', isset($edit) ? $edit->sigeci_idcita : null, ['class' => 'form-control', 'placeholder' => 'Ingrese el número de la cita del turno', 'maxlength' => 8]) !!}
+       
+        <div id="div_observacion" class="form-group">    
+            {!! Form::label('observacion', ' Observación: ') !!}
+            {!! Form::text('observacion', isset($edit) ? $edit->observacion : null, ['class' => 'form-control', 'required' => 'required']) !!}
         </div>
+ 
         
         <div id="ultimo_turno"> </div>
         <hr>
@@ -119,25 +114,15 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
-            
-            //Si es editar y existe mostrar: sigeci_idcita
-            @if(isset($edit->sigeci_idcita))
-                $("#idcita").show();
-                $("#idcita input[name='sigeci_idcita']").attr("required","required");
-            @else
-                $("#idcita").hide();
-            @endif
+            var edad;
+            validarMotivos();
 
-            @if(isset($edit))
-                $("input[name=fecha]").removeAttr('min');
-            @endif
-
-            $("input[name=nro_doc]").change(function(){
-                var nro_doc = $(this).val();
-                var tipo_doc = $("select[name=tipo_doc]").val();
-
-                //Aplicar solo si nuevo registro, si esta editando no realizara la buscqueda
-                @if(!isset($edit)) 
+            @if(!isset($edit)) 
+                //Autocompletar datos solo si nuevo registro, si esta editando no realizara la buscqueda
+                $("input[name=nro_doc]").change(function(){
+                    var nro_doc = $(this).val();
+                    var tipo_doc = $("select[name=tipo_doc]").val();
+                    
                     $("input[name=nombre], input[name=apellido], input[name=fecha_nacimiento]").val('');
                     $("select[name=pais]").val(1);
             
@@ -155,24 +140,78 @@
                             $("select[name=pais]").val(ret.pais);
                         }
                     });
-                @endif
+                });
+            @endif
+
+           
+            $("input[name=fecha], input[name=nro_doc], select[name=motivo_id], input[name=fecha_nacimiento]").change(function(){
+                var fecha = $('input[name=fecha_nacimiento]').val();
+                edad = calcularEdad(fecha);
+                validarMotivos();
             });
 
-            $("input[name=fecha], input[name=nro_doc], select[name=motivo_id]").change(function(){
+            //Segun el motivo solicitar mas informacion 
+            function validarMotivos(){
+                var motivo = $("select[name=motivo_id] option:selected").text();
+                $("#div_observacion").show();
+                $("#div_observacion input").removeAttr('required minlength maxlength');
+                $("#div_observacion label").html('Observación: ');
+                
+                $("#ultimo_turno").empty();
                 $("button[type='submit']").show();
-                validarRetomaTurno();
-            });
+
+                switch(motivo) {
+                    case 'LEGALES':
+                        //Nro. de Expediente (Obligatorio)
+                        $("#div_observacion label").html('Nro. de Expediente / Carpeta: ');
+                        $("#div_observacion input").attr('placeholder','Ingrese el Nro. del Expediente').attr('required','required');
+                        break;
+                    case 'ERROR EN TURNO':
+                        //Nro. de Cita (Obligatorio)
+                        $("#div_observacion label").html('Nro. de Cita: ');
+                        $("#div_observacion input").attr('placeholder','Ingrese el Nro. de la Cita').attr('required','required').attr('minlength','8').attr('maxlength','8');
+                        break;
+                    case 'REINICIA TRAMITE':
+                        //ID del Tramite (Obligatorio)
+                        $("#div_observacion label").html('ID del Tramite: ');
+                        $("#div_observacion input").attr('placeholder','Ingrese el ID del Tramite').attr('required','required').attr('minlength','7').attr('maxlength','7');;
+                        break;
+                    case 'DIRECCIÓN':
+                        //Campo Obligatorio dejar constancia de quien viene (Obligatorio)
+                        $("#div_observacion input").attr('placeholder','Ingrese el responsable de la solictud').attr('required','required');
+                        break;
+                    case 'GOEGS':
+                        //Dejar constancia de quien viene NO Obligatorio
+                        $("#div_observacion input").attr('placeholder','Ingrese el responsable de la solictud');
+                        break;
+                    case 'MAYOR DE 65':
+                        $("#div_observacion").hide();
+                        if(!(edad > 65) && edad > 0){
+                            $("button[type='submit']").hide();
+                            $("#ultimo_turno").html('<h4 class="red"> <i class="fa fa-user-times" style="font-size:20px;"></i> Esta persona no cuenta con la edad permitida! tiene: '+edad+' años </h4>');
+                        }
+                        break;
+                    case 'RETOMA TURNO':
+                        $("#div_observacion").hide();
+                        validarRetomaTurno();
+                        break;
+                    default:
+                        $("#div_observacion").hide();
+                        
+                }
+                
+            }
 
             function validarRetomaTurno(){
-                var motivo = $("select[name=motivo_id]").val();
+                var motivo = $("select[name=motivo_id] option:selected").text();
                 var tipo_doc = $("select[name=tipo_doc]").val();
                 var nro_doc = $("input[name=nro_doc]").val();
-                $("#ultimo_turno").empty();
                 
-                //SI MOTIVO ES RETOMA TURNO VERIFICAR TURNO ANTERIOR ESTE ENTRE LOS 15 DIAS
-                if(motivo == '1' && nro_doc != ''){
+                console.log('motivo '+motivo+' nrodoc '+nro_doc);
+                
+                if(nro_doc != ''){
                     $("button[type='submit']").hide();
-                    console.log('motivo '+motivo+' nrodoc '+nro_doc);
+                    
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                         url: '/consultarUltimoTurno',
@@ -205,20 +244,23 @@
                     });
                 }
 
-                //SI MOTIVO ES ERROR EN TURNO ENTONCES SOLICITAR NRO DE CITA (obligatorio)
-                if(motivo == '13'){
-                    $("#idcita").show();
-                    $("#idcita input[name='sigeci_idcita']").attr("required","required");
-                }else{
-                    $("#idcita").hide();
-                    $("#idcita input[name='sigeci_idcita']").removeAttr("required").val('');
-                }
-
                 //Si es Administrador permitir guardar
                 @role('Administrador Tramites Habilitados')
                     $("button[type='submit']").show();
                 @endrole
             }
+
+            function calcularEdad(fecha) {
+                var hoy = new Date();
+                var cumpleanos = new Date(fecha);
+                var edad = hoy.getFullYear() - cumpleanos.getFullYear();
+                var m = hoy.getMonth() - cumpleanos.getMonth();
+                if (m < 0 || (m === 0 && hoy.getDate() < cumpleanos.getDate())) {
+                    edad--;
+                }
+                return edad;
+            }
+
         });
     </script>
 @endpush

@@ -30,6 +30,12 @@ Route::get('buscarDatosPersonales', 'TramitesHabilitadosController@buscarDatosPe
 Route::get('consultarUltimoTurno', 'TramitesHabilitadosController@consultarUltimoTurno');
 //end TRAMITES HABILITADOS
 
+//TRAMITES HABILITADOS MOTIVOS
+Route::resource('tramitesHabilitadosMotivos','TramitesHabilitadosMotivosController');
+Route::get('tramitesHabilitadosMotivosHabilitar', ['uses' => 'TramitesHabilitadosMotivosController@habilitar','as' => 'tramitesHabilitadosMotivos.habilitar']);
+Route::resource('roleMotivos','RoleMotivosController');
+//end TRAMITES HABILITADOS MOTIVOS
+
 //DASHBOARD
 Route::get('consultaDashboard', ['uses' => 'DashboardController@consultaDashboard','as' => 'consultaDashboard']);
 Route::get('consultaDashboardGraf', ['uses' => 'DashboardController@consultaDashboardGraf','as' => 'consultaDashboardGraf']);

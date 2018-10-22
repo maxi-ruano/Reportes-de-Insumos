@@ -18,9 +18,9 @@
           @endcan
         @endif
 
-        @can('view_dashboard')
-        <li><a href="{{ route('consultaDashboard') }}">
-          <i class="fa fa-pie-chart"></i> Estadisticas
+        @can('view_tramites_habilitados_motivos')
+        <li><a href="{{ route('tramitesHabilitadosMotivos.index') }}">
+          <i class="fa fa-list"></i> Motivos
           <span class="fa fa-chevron-right"></span></a>
         </li>
         @endcan

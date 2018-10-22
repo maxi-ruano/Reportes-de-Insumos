@@ -18,7 +18,7 @@
         </div>
 
         <div class="col-sm-4 col-xs-12 text-right">
-            <a href="{{route('tramitesHabilitados.index')}}" class="btn btn-primary"> Actualizar <i class="glyphicon glyphicon-refresh"></i> </a>
+            <a href="javascript:void(0)" onclick="cargarPagina()" class="btn btn-primary"> Actualizar <i class="glyphicon glyphicon-refresh"></i> </a>
             @can('add_tramites_habilitados')
                 <a href="{{route('tramitesHabilitados.create')}}" class="btn btn-primary">Nuevo <i class="glyphicon glyphicon-plus-sign"></i> </a>
             @endcan
@@ -60,8 +60,8 @@
                     <td>{{ $row->fecha }}</span>
                     <td>{{ $row->sucursal }}</span>
                     <td>
-                        @if ($row->nro_expediente)
-                            <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Expediente Nro. {{ $row->nro_expediente }}">    
+                        @if ($row->observacion)
+                            <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="{{ $row->observacion }}">    
                                 {{ $row->motivo_id }}
                             </span>
                         @else
@@ -176,8 +176,7 @@
             });
         }
 
-        function cargarPagina(){
-            //window.location.href = "{{ route('tramitesHabilitados.index') }}";
+        function cargarPagina(){            
             $("#buscar").click();
         }
 
