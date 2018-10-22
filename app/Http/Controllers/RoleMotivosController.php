@@ -34,8 +34,6 @@ class RoleMotivosController extends Controller
         try{
             $role_id = $request->role_id;
 
-            //dd($request);
-
             //Borrar e insertar en role_motivos_sel (select)
             $role_motivos_sel = \DB::table('role_motivos_sel')->where('role_id',$role_id);
             $role_motivos_sel->delete();

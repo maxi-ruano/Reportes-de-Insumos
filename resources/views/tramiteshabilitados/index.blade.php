@@ -60,8 +60,8 @@
                     <td>{{ $row->fecha }}</span>
                     <td>{{ $row->sucursal }}</span>
                     <td>
-                        @if ($row->nro_expediente)
-                            <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Expediente Nro. {{ $row->nro_expediente }}">    
+                        @if ($row->observacion)
+                            <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="{{ $row->observacion }}">    
                                 {{ $row->motivo_id }}
                             </span>
                         @else

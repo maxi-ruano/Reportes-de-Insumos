@@ -29,14 +29,15 @@ class TramitesHabilitadosController extends Controller
         
         $fecha = isset($_GET['fecha'])?$_GET['fecha']:'';
 
-        $data = TramitesHabilitados::orderBy('tramites_habilitados.fecha','desc')
-                    ->orderBy('tramites_habilitados.id','desc')
+        $data = TramitesHabilitados::selectRaw('tramites_habilitados.*, tramites_habilitados_observaciones.observacion')
+                    ->leftjoin('tramites_habilitados_observaciones','tramites_habilitados_observaciones.tramite_habilitado_id','tramites_habilitados.id')
                     ->whereIn('tramites_habilitados.motivo_id', $this->getRoleMotivos('role_motivos_lis'))
                     ->where(function($query) use ($request) {
                         $query->where('nombre', 'LIKE', '%'. strtoupper($request->search) .'%')
                             ->orWhere('apellido', 'LIKE', '%'. strtoupper($request->search) .'%')
                             ->orWhereRaw("CAST(nro_doc AS text) LIKE '%$request->search%' ");
-                    });
+                    })
+                    ->orderBy('tramites_habilitados.fecha','desc');
         if($fecha)
             $data = $data->where('fecha',$fecha);
                     
@@ -98,7 +99,6 @@ class TramitesHabilitadosController extends Controller
     public function store(Request $request)
     {
         try{
-            
             if($this->verificarLimitePorSucursal($request->sucursal, $request->fecha)){
                 //validar nro_doc solo si es pasaporte acepte letras y numeros de lo contrario solo numeros
                 if($request->tipo_doc== '4')
@@ -131,12 +131,12 @@ class TramitesHabilitadosController extends Controller
                 $tramiteshabilitados->user_id       = $request->user_id;
                 $tramiteshabilitados->sucursal      = $request->sucursal;
                 $tramiteshabilitados->motivo_id     = $request->motivo_id;
-                $tramiteshabilitados->habilitado = false;
-
-                if(isset($request->nro_expediente))
-                    $tramiteshabilitados->nro_expediente = $request->nro_expediente;
-
+                $tramiteshabilitados->habilitado = false;               
                 $tramiteshabilitados->save();
+
+                
+                if(isset($request->observacion))
+                    $this->guardarObservacion($tramiteshabilitados->id, $request->observacion);
 
                 //Crear registro en tramitesAIniciar y procesar el Precheck
                 ProcessPrecheck::dispatch($tramiteshabilitados);
@@ -174,7 +174,10 @@ class TramitesHabilitadosController extends Controller
     {
         $fecha = $this->calcularFecha();
 
-        $edit = TramitesHabilitados::find($id);
+        $edit = TramitesHabilitados::where('tramites_habilitados.id',$id)
+                    ->selectRaw('tramites_habilitados.*, tramites_habilitados_observaciones.observacion')
+                    ->leftjoin('tramites_habilitados_observaciones','tramites_habilitados_observaciones.tramite_habilitado_id','tramites_habilitados.id')
+                    ->first();
 
         $inicio_tramite = ($edit->tramites_a_iniciar_id)?TramitesAIniciar::find($edit->tramites_a_iniciar_id)->tramite_dgevyl_id:'';
         //No realizar ninguna modificacion si el tramiteAIniciar inicio en Fotografia
@@ -226,11 +229,10 @@ class TramitesHabilitadosController extends Controller
         $tramitesHabilitados->nro_doc = strtoupper($request->nro_doc);
         $tramitesHabilitados->nombre = strtoupper($request->nombre);
         $tramitesHabilitados->apellido = strtoupper($request->apellido);
-
-        if(isset($request->nro_expediente))
-            $tramiteshabilitados->nro_expediente = $request->nro_expediente;
-
         $tramitesHabilitados->save();
+
+        if(isset($request->observacion))
+            $this->guardarObservacion($id, $request->observacion);
 
         //Si existe un TramiteAIniciar asociado hacer lo siguiente
         if($tramitesAIniciar_id){
@@ -282,6 +284,14 @@ class TramitesHabilitadosController extends Controller
     {
         $sql = TramitesHabilitados::where("id",$request->id)
                 ->update(array('habilitado' => $request->valor, 'habilitado_user_id' => Auth::user()->id));
+        return $sql;
+    }
+
+    public function guardarObservacion($tramite_habilitado_id, $observacion)
+    {
+        \DB::table('tramites_habilitados_observaciones')->where('tramite_habilitado_id',$tramite_habilitado_id)->delete();
+        $sql =\DB::insert("INSERT INTO tramites_habilitados_observaciones (tramite_habilitado_id, observacion) 
+                   VALUES (".$tramite_habilitado_id.", '".$observacion."' )");
         return $sql;
     }
 
