@@ -14,6 +14,7 @@ use App\TramitesAIniciar;
 use App\ValidacionesPrecheck;
 use App\Jobs\ProcessPrecheck;
 use App\Sigeci;
+use App\TramitesHabilitadosMotivos;
 
 class TramitesHabilitadosController extends Controller
 {
@@ -99,7 +100,7 @@ class TramitesHabilitadosController extends Controller
     public function store(Request $request)
     {
         try{
-            if($this->verificarLimitePorSucursal($request->sucursal, $request->fecha)){
+            if($this->verificarLimitePorSucursal($request->sucursal, $request->motivo_id, $request->fecha)){
                 //validar nro_doc solo si es pasaporte acepte letras y numeros de lo contrario solo numeros
                 if($request->tipo_doc== '4')
                     $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/^[0-9a-zA-Z]+$/']);
@@ -339,21 +340,26 @@ class TramitesHabilitadosController extends Controller
         return $fecha;
     }
 
-    public function verificarLimitePorSucursal($sucursal,$fecha){
+    public function verificarLimitePorSucursal($sucursal, $motivo, $fecha){
         $acceso= true;
         $limite = "LIMITE_TH_SUCU_".$sucursal;
         $user = Auth::user();
         
-        if($user->hasRole('Comuna') || $user->hasRole('Jefe Sede')){
-            if(defined($limite)){
-
-                //Se buscan los usuarios con el mismo rol para poder contar los registrados por ellos
-                $roles = $user->roles->pluck('id')->toArray();
-                $usuarios = \DB::table('model_has_roles')->whereIn('role_id',$roles)->pluck('model_id')->toArray();
-                
-                $total = TramitesHabilitados::where('fecha',$fecha)->where('sucursal',$sucursal)->whereIn('user_id', $usuarios)->count();
+        if(defined($limite)){
+            if($user->hasRole('Comuna')){
+                $total = TramitesHabilitados::where('fecha',$fecha)->where('sucursal',$sucursal)->count();
                 if($total >= intval(constant($limite)))
                     $acceso= false;
+            }
+
+            if($user->hasRole('Jefe Sede')){
+                //Se buscan los usuarios con el mismo rol para poder contar los registrados por ellos
+                $motivos = TramitesHabilitadosMotivos::find($motivo);
+                if($motivos->description == "CORTESIA"){
+                    $total = TramitesHabilitados::where('fecha',$fecha)->where('sucursal',$sucursal)->where('motivo_id',$motivo)->where('user_id', $user->id)->count();
+                    if($total >= intval(constant($limite)))
+                        $acceso= false;
+                }
             }
         }
         return $acceso;  
