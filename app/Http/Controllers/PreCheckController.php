@@ -9,18 +9,29 @@ use App\SysMultivalue;
 use App\SigeciPaises;
 use App\TramitesAIniciarErrores;
 use App\TramitesAIniciarCheckprecheck;
+use App\AnsvCelExpedidor;
 use App\Http\Controllers\TramitesController;
+use App\Sigeci;
 
 class PreCheckController extends Controller
 {
+  
+  public $centrosEmisores = null;
+
+  public function __construct(){
+    $this->centrosEmisores = new AnsvCelExpedidor();
+  }
+
   public function checkPreCheck(){
     $paises = SysMultivalue::where('type','PAIS')->orderBy('description', 'asc')->pluck('description', 'id');
     $tdoc = SysMultivalue::where('type','TDOC')->orderBy('id', 'asc')->pluck('description', 'id');
     $sexo = SysMultivalue::where('type','SEXO')->where('id','<>',0)->orderBy('id', 'asc')->pluck('description', 'description');
-    //dd($paises);
+    
+
     return View('safit.checkModoAutonomo')->with('paises', $paises)
                                           ->with('tdoc', $tdoc)
-                                          ->with('sexo', $sexo);
+                                          ->with('sexo', $sexo)
+                                          ->with('centrosEmisores', $this->centrosEmisores->getCentrosEmisores());
   }
 
   public function consultarPreCheck(Request $request){
@@ -203,4 +214,35 @@ class PreCheckController extends Controller
     return TramitesAIniciar::where('id',$request->id)->update(['fecha_paseturno' => $fecha]);
   }
 
+  public function get_precheck_comprobantes(Request $request) {
+    
+    $fecha = isset($request->fecha)?date('Y-m-d', strtotime($request->fecha)):date('Y-m-d');
+
+    $sql  = "SELECT
+              tramites_a_iniciar.id, 
+              sigeci.tipodoc, 
+              tramites_a_iniciar.nro_doc, 
+              tramites_a_iniciar.nombre, 
+              tramites_a_iniciar.apellido, 
+              tramites_a_iniciar.sexo, 
+              (CASE WHEN validaciones_precheck.validation_id = 3 THEN validaciones_precheck.comprobante ELSE null END) as SAFIT, 
+              (CASE WHEN validaciones_precheck.validation_id = 4 THEN validaciones_precheck.comprobante ELSE null END) as LIBRE_DEUDA, 
+              (CASE WHEN validaciones_precheck.validation_id = 5 THEN validaciones_precheck.comprobante ELSE null END) as BUI
+            FROM tramites_a_iniciar
+              INNER JOIN sigeci ON  sigeci.tramite_a_iniciar_id =  tramites_a_iniciar.id
+              INNER JOIN validaciones_precheck ON  validaciones_precheck.tramite_a_iniciar_id =  tramites_a_iniciar.id
+            WHERE sigeci.fecha = '".$fecha."' ";
+    
+
+    $consulta = \DB::table(\DB::raw('('.$sql.')  as precheck'))
+                    ->selectRaw("id, tipodoc, nro_doc, MAX(nombre) as nombre, MAX(apellido) as apellido, MAX(sexo) as sexo, MAX(SAFIT) as safit, MAX(LIBRE_DEUDA) as libredeuda, MAX(BUI) as bui")
+                    ->groupBy("id","tipodoc", "nro_doc")
+                    ->orderBy('nro_doc','ASC')          
+                    ->get(); 
+
+    $data= json_decode( json_encode($consulta), true);
+    $this->exportFile($data, 'xls', 'consultaPrecheck');
+
+    return $data;
+  }
 }

@@ -14,4 +14,14 @@ class AnsvCelExpedidor extends Model
     $res = SysMultivalue::where('type', 'SUCU')->where('id', $this->sucursal_id)->first();
     return $res;
   }
+
+  public function getCentrosEmisores(){
+    $centrosEmisores = AnsvCelExpedidor::whereNotNull('safit_cem_id')->get();
+    foreach ($centrosEmisores as $key => $value) {
+      $value->name = "";
+      if($value->sysMultivalue())
+        $value->name = $value->sysMultivalue()->description;
+    }
+    return $centrosEmisores;
+  }
 }

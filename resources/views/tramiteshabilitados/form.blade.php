@@ -50,7 +50,7 @@
         <div class="form-group">
             {!! Form::label('tipo_doc', ' Documento') !!}
             {!! Form::select('tipo_doc', $tdocs, isset($edit) ? $edit->tipo_doc : null, ['class' => 'form-control']) !!}
-            {!! Form::text('nro_doc', isset($edit) ? $edit->nro_doc : null, ['class' => 'form-control', 'placeholder' => 'Nro. Documento', 'required' => 'required' ]) !!}
+            {!! Form::text('nro_doc', isset($edit) ? $edit->nro_doc : null, ['class' => 'form-control', 'placeholder' => 'Nro. Documento', 'maxlength' => 10, 'required' => 'required' ]) !!}
         </div>
 
         <div class="form-group">
@@ -95,6 +95,11 @@
                 {!! Form::text('nro_expediente', isset($edit) ? $edit->nro_expediente : null, ['class' => 'form-control', 'placeholder' => 'Ingrese Número de Expediente', 'required' => 'required']) !!}
             </div>
         @endhasrole
+
+        <div id="idcita" class="form-group">    
+            {!! Form::label('sigeci_idcita', ' Nro. Cita') !!}
+            {!! Form::text('sigeci_idcita', isset($edit) ? $edit->sigeci_idcita : null, ['class' => 'form-control', 'placeholder' => 'Ingrese el número de la cita del turno', 'maxlength' => 8]) !!}
+        </div>
         
         <div id="ultimo_turno"> </div>
         <hr>
@@ -114,6 +119,19 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
+            
+            //Si es editar y existe mostrar: sigeci_idcita
+            @if(isset($edit->sigeci_idcita))
+                $("#idcita").show();
+                $("#idcita input[name='sigeci_idcita']").attr("required","required");
+            @else
+                $("#idcita").hide();
+            @endif
+
+            @if(isset($edit))
+                $("input[name=fecha]").removeAttr('min');
+            @endif
+
             $("input[name=nro_doc]").change(function(){
                 var nro_doc = $(this).val();
                 var tipo_doc = $("select[name=tipo_doc]").val();
@@ -129,6 +147,7 @@
                         data: {tipo_doc: tipo_doc, nro_doc: nro_doc },
                         type: "GET", dataType: "json",
                         success: function(ret){
+                            console.log(ret);
                             $("input[name=nombre]").val(ret.nombre);
                             $("input[name=apellido]").val(ret.apellido);
                             $("input[name=fecha_nacimiento]").val(ret.fecha_nacimiento);
@@ -149,8 +168,9 @@
                 var tipo_doc = $("select[name=tipo_doc]").val();
                 var nro_doc = $("input[name=nro_doc]").val();
                 $("#ultimo_turno").empty();
-            
-                if(motivo == '5' && nro_doc != ''){
+                
+                //SI MOTIVO ES RETOMA TURNO VERIFICAR TURNO ANTERIOR ESTE ENTRE LOS 15 DIAS
+                if(motivo == '1' && nro_doc != ''){
                     $("button[type='submit']").hide();
                     console.log('motivo '+motivo+' nrodoc '+nro_doc);
                     $.ajax({
@@ -183,12 +203,21 @@
                             $("#ultimo_turno").html('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> Esta persona no cuenta con turno previo, debe contar con turno entre los 15 días para poder RETOMAR TURNO.</h4>');
                          }
                     });
-
-                    //Si es Administrador permitir guardar
-                    @role('Administrador Tramites Habilitados')
-                        $("button[type='submit']").show();
-                    @endrole
                 }
+
+                //SI MOTIVO ES ERROR EN TURNO ENTONCES SOLICITAR NRO DE CITA (obligatorio)
+                if(motivo == '13'){
+                    $("#idcita").show();
+                    $("#idcita input[name='sigeci_idcita']").attr("required","required");
+                }else{
+                    $("#idcita").hide();
+                    $("#idcita input[name='sigeci_idcita']").removeAttr("required").val('');
+                }
+
+                //Si es Administrador permitir guardar
+                @role('Administrador Tramites Habilitados')
+                    $("button[type='submit']").show();
+                @endrole
             }
         });
     </script>

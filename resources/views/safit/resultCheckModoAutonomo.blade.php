@@ -46,13 +46,11 @@
         </ul>
         <div class="clearfix"></div>
       </div>
-      <div class="x_content">
-        <ul class="list-unstyled timeline">
-          <div id="logPreCheck">
-            
-          </div>
-        </ul>
-
+      <div id="tramite" class="x_content">
+          {!! Form::hidden('tramite_a_iniciar_id', '', ['id' => 'tramite_a_iniciar_id', 'class' => 'form-control']) !!}        
+          <ul class="list-unstyled timeline">
+            <div id="logPreCheck"></div>
+          </ul>
       </div>
     </div>
   </div>
@@ -68,7 +66,7 @@
           type: "GET",
           url: '/consultarPreCheck',
           data: { id: id, },
-          //async:false,
+          async:false,
           success: function( msg ) {
             if(msg.error){
               mostrarMensajeError(msg.error)
@@ -99,6 +97,9 @@
   }
 
   function mostrarDatosPersona(datosPersona){
+
+      console.log(datosPersona);
+
       //Convertir fecha a dd-mm-yyyy
       var f = datosPersona.fecha_nacimiento.split('-');
       var fecha_nac = f[2] +"-"+ f[1]+"-"+f[0];
@@ -120,6 +121,8 @@
 
   function crearMensajePrecheck(msj){
       console.log(msj);
+
+      $("#tramite_a_iniciar_id").val(msj.tramite_a_iniciar_id);
 
       type = 'danger'
       fecha_error = ''
@@ -174,7 +177,53 @@
           '</div>'+
           '</div>'+
       '</li>';
+
+      //Emitir Certificado SAFIT si no se encontro por WS
+      if(msj.validation_id == '3' && type=='danger' && error != 'No verificado'){
+        var options;
+        @foreach ($centrosEmisores as $key => $value)
+              options += '<option value="{{ $value->safit_cem_id }}"> {{ $value->name }} </option>';
+        @endforeach
+
+        html+='<h4> <i class="fa fa-chevron-circle-right"></i> Generar CENAT <span class="msjcenat red"></span> </h4>';
+        html+='<div class="col-md-5 col-sm-5 col-xs-12">'+
+              '<input type="number" class="form-control" id="bop_cb" name="bop_cb" aria-describedby="codigoPagoElectronico" placeholder="Código Pago Electrónico">'+
+              '</div>';
+        html+='<div class="col-md-5 col-sm-5 col-xs-12">'+
+              '<select id="cem_id" name="cem_id" class="select2_single form-control" data-placeholder="Seleccionar Centro Emisor">'+options+'</select>'+
+              '</div>';
+
+        html+='<div class="col-md-2 col-sm-2 col-xs-12"> <button type="button" onclick="generarCenat()" class="btn btn-primary btn-block" title="Generar Certificado Virtual"> <i class="fa fa-cloud-download fa-lg"></i> </div>';
+      }
+
       $('#logPreCheck').append(html)
+  }
+
+  function generarCenat(){
+    var id = $("#tramite_a_iniciar_id").val();
+    var bop_cb = $("#bop_cb").val();
+    var cem_id = $("#cem_id").val();
+
+    if(bop_cb == ''){
+      $('#logPreCheck .msjcenat').html('*** ingrese el código del Pago Electronico');
+    }else{
+      $.ajax({
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+        type: "GET",
+        url: '/generarCenatPrecheck',
+        data: {id: id, bop_cb: bop_cb, cem_id: cem_id },
+        beforeSend: function(){
+          $('#logPreCheck').html('<img src="/img/buffer.gif" width="200" > Generando CENAT... espere.');
+        },
+        success: function( msg ) {          
+            getPreCheck(id);
+            $('#logPreCheck .msjcenat').html('***'+msg);
+        },
+        error: function(xhr, status, error) {
+          $('#logPreCheck').html('ocurrio un error!! Intenta de nuevo...');
+        }
+      });
+    }
   }
 
   function runPrecheck(id, validation){
@@ -187,7 +236,6 @@
       data: { id: id, validation: validation },
       Async:true,
       beforeSend: function(){
-        // Handle the beforeSend event
         $('#logPreCheck').html('<img src="/img/buffer.gif" width="200" > Verificando... ');
       },
       success: function( msg ) {

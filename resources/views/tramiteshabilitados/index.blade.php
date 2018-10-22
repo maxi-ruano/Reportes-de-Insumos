@@ -65,11 +65,17 @@
                                 {{ $row->motivo_id }}
                             </span>
                         @else
-                            {{ $row->motivo_id }}
+                            @if ($row->sigeci_idcita)
+                            <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Nro. Cita {{ $row->sigeci_idcita }}">    
+                                {{ $row->motivo_id }}
+                            </span>
+                            @else
+                                {{ $row->motivo_id }}
+                            @endif
                         @endif
                     </td>
                     <td>
-                        <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Creado {{ $row->created_at }}">    
+                        <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Creado {{ $row->created_at }} por el Rol: {{ $row->rol }}">    
                             {{ $row->user_id }}
                         </span>
                     </td>

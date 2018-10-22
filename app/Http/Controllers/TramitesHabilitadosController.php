@@ -7,6 +7,7 @@ use App\SysMultivalue;
 use App\User;
 use App\TramitesHabilitados;
 use App\AnsvPaises;
+use App\AnsvCelExpedidor;
 use App\DatosPersonales;
 use Laracasts\Flash\Flash;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +19,11 @@ use App\Sigeci;
 class TramitesHabilitadosController extends Controller
 {
     private $path = 'tramiteshabilitados';
+    public $centrosEmisores = null;
+
+    public function __construct(){
+        $this->centrosEmisores = new AnsvCelExpedidor();
+    }
     
     /**
      * Display a listing of the resource.
@@ -29,13 +35,15 @@ class TramitesHabilitadosController extends Controller
         
         $fecha = isset($_GET['fecha'])?$_GET['fecha']:'';
 
-        $data = TramitesHabilitados::orderBy('tramites_habilitados.fecha','desc')
-                    ->orderBy('tramites_habilitados.id','desc')
+        $data = TramitesHabilitados::selectRaw("tramites_habilitados.*, roles.name as rol")
+                    ->leftjoin('model_has_roles','model_has_roles.model_id','tramites_habilitados.user_id')
+                    ->leftjoin('roles','roles.id','model_has_roles.role_id')
                     ->where(function($query) use ($request) {
                         $query->where('nombre', 'LIKE', '%'. strtoupper($request->search) .'%')
                             ->orWhere('apellido', 'LIKE', '%'. strtoupper($request->search) .'%')
-                            ->orWhereRaw("CAST(nro_doc AS text) LIKE '%$request->search%' ");
-                        });
+                            ->orWhereRaw("nro_doc LIKE '%$request->search%' ");
+                        })
+                    ->orderBy('tramites_habilitados.fecha','desc');
         if($fecha)
             $data = $data->where('fecha',$fecha);
         
@@ -61,7 +69,8 @@ class TramitesHabilitadosController extends Controller
                 $value->fecha = date('d-m-Y', strtotime($value->fecha));
             }
         }
-        return view($this->path.'.index', compact('data'));
+        return view($this->path.'.index')->with('data', $data)
+                                         ->with('centrosEmisores', $this->centrosEmisores->getCentrosEmisores());
     }
 
     /**
@@ -137,10 +146,13 @@ class TramitesHabilitadosController extends Controller
                 $tramiteshabilitados->user_id       = $request->user_id;
                 $tramiteshabilitados->sucursal      = $request->sucursal;
                 $tramiteshabilitados->motivo_id     = $request->motivo_id;
-                $tramiteshabilitados->habilitado = false;
+                $tramiteshabilitados->habilitado    = false;
 
                 if(isset($request->nro_expediente))
                     $tramiteshabilitados->nro_expediente = $request->nro_expediente;
+
+                if(isset($request->sigeci_idcita))
+                    $tramiteshabilitados->sigeci_idcita = $request->sigeci_idcita;
 
                 $tramiteshabilitados->save();
 
@@ -229,10 +241,6 @@ class TramitesHabilitadosController extends Controller
         $tramitesHabilitados->nro_doc = strtoupper($request->nro_doc);
         $tramitesHabilitados->nombre = strtoupper($request->nombre);
         $tramitesHabilitados->apellido = strtoupper($request->apellido);
-
-        if(isset($request->nro_expediente))
-            $tramiteshabilitados->nro_expediente = $request->nro_expediente;
-
         $tramitesHabilitados->save();
 
         //Si existe un TramiteAIniciar asociado hacer lo siguiente
@@ -300,8 +308,14 @@ class TramitesHabilitadosController extends Controller
                 $buscar = $sql->first();
             }else{
                 $buscar = TramitesHabilitados::where("tipo_doc",$request->tipo_doc)->where("nro_doc",$request->nro_doc)->orderBy('id','DESC')->first();
-                if(!$buscar)
-                    $buscar = TramitesAIniciar::where("tipo_doc",$request->tipo_doc)->where("nro_doc",$request->nro_doc)->orderBy('id','DESC')->first();
+                if(!$buscar){
+                    $buscar = TramitesAIniciar::selectRaw("tramites_a_iniciar.*, ansv_paises.id_dgevyl as pais")
+                                ->join('ansv_paises','ansv_paises.id_ansv','tramites_a_iniciar.nacionalidad')
+                                ->where("tipo_doc",$request->tipo_doc)
+                                ->where("nro_doc",$request->nro_doc)
+                                ->orderBy('id','DESC')
+                                ->first();      
+                }
             }
         }
         return $buscar;
@@ -312,6 +326,7 @@ class TramitesHabilitadosController extends Controller
                         ->where("idtipodoc",$request->tipo_doc)
                         ->where("numdoc",$request->nro_doc)
                         ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
+                        ->whereNotIn('sigeci.idprestacion', $this->prestacionesCursos)
                         ->orderBy('sigeci.idcita','DESC')
                         ->first();
         return $consulta;

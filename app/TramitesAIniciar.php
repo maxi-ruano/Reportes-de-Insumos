@@ -19,15 +19,11 @@ class TramitesAIniciar extends Model
   }
 
   public function tipoDocText(){
-    $hablitado = TramitesHabilitados::where('tramites_a_iniciar_id',$this->id)->count();
-    if($hablitado){
-      $tdoc = SysMultivalue::where('type','TDOC')->where('id', $this->tipo_doc)->first();
-      $tipoDocText = $tdoc->description;
-    }else{
-      $tipoDocText = $this->tipoDocBui();
-    }
-    
-    return $tipoDocText;
+    $tdoc = SysMultivalue::where('type','TDOC')->where('id', $this->tipo_doc)->first();
+    if($tdoc)
+      return $tdoc->description;
+    else
+      return "";
   }
 
   public function nacionalidadTexto(){
@@ -49,22 +45,16 @@ class TramitesAIniciar extends Model
     switch ($this->tipo_doc) {
       case 1 :
         $tipoDoc = 1; //DNI
-        break;
+      break;
       case 2 :
-        $tipoDoc = 2; //LE
-        break;
-      case 3 :
-        $tipoDoc = 3; //LC
+        $tipoDoc = 4; //CI
         break;
       case  4 :
-        $tipoDoc = 1; //CI -> DNI
+        $tipoDoc = 6; //PAS -> PAS
         break;
       case  5 :
-        $tipoDoc = 1; //DNI EXT
+        $tipoDoc = 7; //INS 
         break;        
-      case  6 :
-        $tipoDoc = 6; //PASAPORTE
-        break;      
       default:
         $tipoDoc = 1; //DNI
         break;
@@ -79,20 +69,14 @@ class TramitesAIniciar extends Model
         $tipoDoc = 'DNI'; //DNI
         break;
       case 2 :
-        $tipoDoc = 'LE'; //LE
-        break;
-      case 3 :
-        $tipoDoc = 'LC'; //LC
+        $tipoDoc = 'CI'; //CI
         break;
       case 4 :
-        $tipoDoc = 'CI'; //LC
+        $tipoDoc = 'PAS'; //LC
         break;
       case 5 :
-        $tipoDoc = 'DNI'; //CI -> DNI
+        $tipoDoc = 'INS'; //LC
         break;
-      case 6 :
-        $tipoDoc = 'PAS'; //DNI EXT
-        break;        
       default:
         $tipoDoc = 'DNI'; //DNI
         break;
@@ -107,20 +91,14 @@ class TramitesAIniciar extends Model
         $tipoDoc = 'DNI'; //DNI
         break;
       case 2 :
-        $tipoDoc = 'LE'; //LE
-        break;
-      case 3 :
-        $tipoDoc = 'LC'; //LC
+        $tipoDoc = 'CI'; //CI -> CI
         break;
       case 4 :
-        $tipoDoc = 'CI'; //CI
+        $tipoDoc = 'PAS'; //PASS
         break;
       case 5 :
-        $tipoDoc = 'DNI'; //EXTrangero se utiliza DNI porque el ws libredeuda no los encuentra con EXT
+        $tipoDoc = 'INS'; //INS -> DNI
         break;
-      case 6 :
-        $tipoDoc = 'PAS'; //DNI EXT
-        break;        
       default:
         $tipoDoc = 'DNI'; //DNI
         break;

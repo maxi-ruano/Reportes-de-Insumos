@@ -41,6 +41,7 @@ Route::get('consultaTurnosEnEsperaPorSucursal', ['uses' => 'DashboardController@
 //PRECHECK
 Route::get('run', 'MicroservicioController@run');
 Route::get('runPrecheck','MicroservicioController@runPrecheck')->name('runPrecheck');
+Route::get('generarCenatPrecheck','TramitesAInicarController@generarCenatPrecheck')->name('generarCenatPrecheck');
 //end PRECHECK
 
 Route::post('rendir_examen',['uses' => 'EtlExamenPreguntaController@getPreguntasExamen','as' => 'rendir_examen']);
@@ -50,7 +51,7 @@ Route::post('finalizar_examen',['uses' => 'EtlExamenController@calcularYGuardarR
 
 //SAFIT
 Route::get('buscarBoletaPago', 'TramitesAInicarController@buscarBoletaPago');
-Route::post('consultarBoletaPago',['uses' => 'TramitesAInicarController@consultarBoletaPago','as' => 'consultarBoletaPago']);
+Route::post('consultarCenat',['uses' => 'TramitesAInicarController@consultarCenat','as' => 'consultarCenat']);
 Route::post('generarCenat', ['uses' => 'TramitesAInicarController@generarCenat','as' => 'generarCenat']);
 Route::get('checkPreCheck', ['uses' => 'PreCheckController@checkPreCheck','as' => 'checkPreCheck']);
 Route::get('consultarPreCheck', ['uses' => 'PreCheckController@consultarPreCheck','as' => 'consultarPreCheck']);

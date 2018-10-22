@@ -72,7 +72,7 @@ class MicroservicioController extends Controller
       // Si bui, cenat y infracciones pasa de estado 2 a 6
       $tramitesAIniciar->revisarValidaciones(VALIDACIONES_COMPLETAS);
       // pasa de estado 6 a 7 los tramites
-      //$tramitesAIniciar->enviarTramitesASinalic( VALIDACIONES, INICIO_EN_SINALIC);
+      //$tramitesAIniciar->enviarTramitesASinalic( VALIDACIONES_COMPLETAS, INICIO_EN_SINALIC);
       //
     }
 

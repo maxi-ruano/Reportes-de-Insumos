@@ -11,7 +11,7 @@
           <div class="clearfix"></div>
       </div>
       <div class="x_content">
-        {!! Form::open(['route' => 'consultarBoletaPago', 'id'=>'consultarBoletaPago', 'method' => 'POST', 'class' => 'form-horizontal form-label-left', 'role' => 'form', 'files' => true ]) !!}
+        {!! Form::open(['route' => 'consultarCenat', 'id'=>'consultarCenat', 'method' => 'POST', 'class' => 'form-horizontal form-label-left', 'role' => 'form', 'files' => true ]) !!}
             <div class="form-group">
               <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">ID Boleta<span class="required">*</span>
               </label>

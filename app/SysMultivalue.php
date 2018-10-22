@@ -28,7 +28,7 @@ class SysMultivalue extends Model
 
   public function tipodocs()
   {
-    $tipodocs = SysMultivalue::where('type','TDOC')->pluck('description', 'id');
+    $tipodocs = SysMultivalue::where('type','TDOC')->whereNotIn('description',['INS','CI'])->pluck('description', 'id');
     return $tipodocs;
   }
 

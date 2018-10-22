@@ -14,6 +14,9 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
+    //SIGECI Cursos
+    public $prestacionesCursos = [1604, 1543];
+
     public function __construct(){
        $this->crearConstantes();
     }

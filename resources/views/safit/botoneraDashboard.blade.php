@@ -6,6 +6,9 @@
             <span class="input-group-btn" >
                 <a href="#" class="btn btn-default" onclick="$('#btnConsultar').click()" title="Actualizar"> &nbsp; <i class="fa fa-refresh"></i> &nbsp; </a>
             </span>
+            <span class="input-group-btn" >
+                <a id="btnDescargar" href="#" onclick="descargarxls()" class="btn btn-default" title="Descargar"> &nbsp; <i class="fa fa-download"></i> &nbsp; </a>
+            </span>
         </div>
         <button id="btnConsultar" type="submit" class="btn btn-primary" style='display:none;'></button>
     </div>
@@ -19,3 +22,14 @@
         <button id="pagNext" type="button" class="btn btn-primary btn-group-justified" data-loading-text="Loading...">Next</button>
     </div>
 </div>
+
+
+@push('scripts')
+  <script>
+    function descargarxls(){
+        var fecha = $("#fecha").val();
+        var url = "{{  URL::to('/') }}/api/reportes/get_precheck_comprobantes?fecha="+fecha;
+        $("#btnDescargar").attr("href",url);
+    }
+  </script>
+@endpush
