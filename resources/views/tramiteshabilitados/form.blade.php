@@ -186,7 +186,7 @@
                         break;
                     case 'MAYOR DE 65':
                         $("#div_observacion").hide();
-                        if(!(edad > 65) && edad > 0){
+                        if(edad < 65){
                             $("button[type='submit']").hide();
                             $("#ultimo_turno").html('<h4 class="red"> <i class="fa fa-user-times" style="font-size:20px;"></i> Esta persona no cuenta con la edad permitida! tiene: '+edad+' años </h4>');
                         }
