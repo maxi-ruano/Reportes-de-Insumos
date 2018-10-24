@@ -44,7 +44,7 @@ class TramitesHabilitadosController extends Controller
                             ->orWhere('apellido', 'LIKE', '%'. strtoupper($request->search) .'%')
                             ->orWhereRaw("CAST(nro_doc AS text) LIKE '%$request->search%' ");
                     })
-                    ->orderBy('tramites_habilitados.fecha','desc');
+                    ->orderBy('tramites_habilitados.updated_at','desc');
         if($fecha)
             $data = $data->where('fecha',$fecha);
                     
@@ -329,9 +329,10 @@ class TramitesHabilitadosController extends Controller
     }
 
     public function consultarUltimoTurno(Request $request){
-        $consulta = Sigeci::leftjoin('tramites_a_iniciar','tramites_a_iniciar.id','sigeci.tramite_a_iniciar_id')
-                        ->where("idtipodoc",$request->tipo_doc)
-                        ->where("numdoc",$request->nro_doc)
+        $consulta = Sigeci::join("tipo_doc","tipo_doc.id_sigeci","sigeci.idtipodoc")
+                        ->leftjoin('tramites_a_iniciar','tramites_a_iniciar.id','sigeci.tramite_a_iniciar_id')
+                        ->where("tipo_doc.id_dgevyl",$request->tipo_doc)
+                        ->where("sigeci.numdoc",$request->nro_doc)
                         ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
                         ->whereNotIn('sigeci.idprestacion', $this->prestacionesCursos)
                         ->orderBy('sigeci.idcita','DESC')

@@ -179,6 +179,7 @@
       '</li>';
 
       //Emitir Certificado SAFIT si no se encontro por WS
+      /*
       if(msj.validation_id == '3' && type=='danger' && error != 'No verificado'){
         var options;
         @foreach ($centrosEmisores as $key => $value)
@@ -187,7 +188,7 @@
 
         html+='<h4> <i class="fa fa-chevron-circle-right"></i> Generar CENAT <span class="msjcenat red"></span> </h4>';
         html+='<div class="col-md-5 col-sm-5 col-xs-12">'+
-              '<input type="number" class="form-control" id="bop_cb" name="bop_cb" aria-describedby="codigoPagoElectronico" placeholder="Código Pago Electrónico">'+
+              '<input type="number" class="form-control" id="bop_cb" name="bop_cb" aria-describedby="codigoPagoElectronico" placeholder="ID Boleta">'+
               '</div>';
         html+='<div class="col-md-5 col-sm-5 col-xs-12">'+
               '<select id="cem_id" name="cem_id" class="select2_single form-control" data-placeholder="Seleccionar Centro Emisor">'+options+'</select>'+
@@ -195,7 +196,7 @@
 
         html+='<div class="col-md-2 col-sm-2 col-xs-12"> <button type="button" onclick="generarCenat()" class="btn btn-primary btn-block" title="Generar Certificado Virtual"> <i class="fa fa-cloud-download fa-lg"></i> </div>';
       }
-
+      */
       $('#logPreCheck').append(html)
   }
 
@@ -205,7 +206,7 @@
     var cem_id = $("#cem_id").val();
 
     if(bop_cb == ''){
-      $('#logPreCheck .msjcenat').html('*** ingrese el código del Pago Electronico');
+      $('#logPreCheck .msjcenat').html('*** ingrese el ID de la Boleta');
     }else{
       $.ajax({
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },

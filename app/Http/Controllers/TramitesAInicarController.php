@@ -960,7 +960,7 @@ class TramitesAInicarController extends Controller
       }
     }else{
       
-      $resultado = ['error', ' El Cenat ya fue emitido, corresponde a: '.$emision->nro_doc];
+      $resultado = ['success', 'El Cenat ya fue emitido'];
      
       //Si el Cenat fue emitido y los datos coinciden se actualiza en validaicones_precheck
       if($tramiteAIniciar)
@@ -1027,7 +1027,7 @@ class TramitesAInicarController extends Controller
           //                  ->with('boleta', $tramiteAInicar)
           //                  ->with('error', 'Ha ocurrido un error inesperado: '.$res);
     }else{
-      $resultado = ['error', 'El Cenat ya fue emitido, corresponde a: '.$emision->nro_doc];
+      $resultado = ['success', ' El Cenat ya fue emitido '];
       //Si el Cenat fue emitido y los datos coinciden se actualiza en validaicones_precheck
       $this->actualizarEnValidacionesPrecheck($emision, $tramiteAInicar, EMISION_BOLETA_SAFIT);
 
