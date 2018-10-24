@@ -227,7 +227,7 @@
                             var f = ret.fecha.split('-');
                             var fecha = f[2]+'/'+f[1]+'/'+f[0];
 
-                            $("#ultimo_turno").html('Información de su último turno: <table class="table table-striped jambo_table"><tr><td>'+fecha+'</td><td>'+ret.hora+'</td><td>'+ret.descsede+'</td><td>'+ret.descprestacion+'</td><td class="red"> '+dias+' días</td><td class="icono"></td></tr></table>');
+                            $("#ultimo_turno").html('Información de su último turno: <table class="table table-striped jambo_table"><tr><td>'+fecha+'</td><td>'+ret.hora+'</td><td>'+ret.tipodoc+'</td><td>'+ret.numdoc+'</td><td>'+ret.nombre+' '+ret.apellido+'</td><td>'+ret.descsede+'</td><td>'+ret.descprestacion+'</td><td class="red"> '+dias+' días</td><td class="icono"></td></tr></table>');
 
                             if(dias > 0 && dias <= 15){
                                 $("#ultimo_turno .icono").html('<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>');
