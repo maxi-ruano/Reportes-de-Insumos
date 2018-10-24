@@ -7,7 +7,7 @@ use App\Sigeci;
 
 class SigeciController extends Controller
 {
-    private $prestacionesCursos = ['1543','1604']; //Ignorar los Cursos
+    //private $prestacionesCursos = ['1543','1604']; //Ignorar los Cursos
 
     //Consulta general sobre los Turnos asignados en Sigeci
     public function getTurnos($fecha, $viewAll = '') {

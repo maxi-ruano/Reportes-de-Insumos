@@ -1004,14 +1004,18 @@ class TramitesAInicarController extends Controller
       $this->wsSafit->iniciarSesion();
       $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAInicar);
       $this->wsSafit->cerrarSesion();
+      $demorado = false;
       if(isset($res->rspID)){
         if($res->rspID == 1){
           if(isset($res->reincidencias->rspReincidente))
             if($res->reincidencias->rspReincidente == "P"){
               $resultado = ['error', 'El Cenat se encuentra Demorado'];
+              $demorado = true;
             }
-            $this->guardarEmisionBoleta($request, $clientIP);
-            $resultado = ['success', $res->rspDescrip];
+            if(!$demorado){
+              $this->guardarEmisionBoleta($request, $clientIP);
+              $resultado = ['success', $res->rspDescrip];
+            }
         }else
           $resultado = ['error', $res->rspDescrip];
             //return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->centrosEmisores->getCentrosEmisores())
