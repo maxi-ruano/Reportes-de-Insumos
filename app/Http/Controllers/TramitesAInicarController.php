@@ -102,6 +102,7 @@ class TramitesAInicarController extends Controller
   }
 
   public function guardarDatosBoleta($persona, $boleta, $siguienteEstado){
+    //$persona = TramitesAIniciar::find($persona->id);
     $persona->bop_cb = (isset($boleta->bopCB)?$boleta->bopCB:$boleta->bop_cb);
     $persona->bop_monto = (isset($boleta->bopMonto)?$boleta->bopMonto:$boleta->bop_monto);
     $persona->bop_fec_pag = (isset($boleta->bopFecPag)?$boleta->bopFecPag:$boleta->bop_fec_pag);
@@ -888,7 +889,7 @@ class TramitesAInicarController extends Controller
   }
 
   public function consultarCenat(Request $request){
-    $boleta = $this->consultarBoletaPago($request);
+    $boleta = $this->consultarBoletaPagoSafit($request->bop_cb, $request->cem_id);
     return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->centrosEmisores->getCentrosEmisores())
                                           ->with($boleta[0], $boleta[1]);
   }
@@ -902,41 +903,48 @@ class TramitesAInicarController extends Controller
 
   //Generar Cenat desde el PreCheck
   public function generarCenatPrecheck(Request $request){
-    $tramiteAIniciar = TramitesAIniciar::find($request->id);
-    $tramiteAIniciar->tipo_doc = $tramiteAIniciar->tipoDocSafit();
 
-    $consulta = $this->consultarBoletaPago($request, $tramiteAIniciar);
-    $resp = $consulta[0];
-    $boleta = $consulta[1];
+    $consulta = $this->consultarBoletaPagoSafit($request->bop_cb, $request->cem_id);
 
-    if($resp == 'boleta'){
-      if($boleta->nro_doc == $tramiteAIniciar->nro_doc && $boleta->tipo_doc == $tramiteAIniciar->tipo_doc && $boleta->sexo == $tramiteAIniciar->sexo){
-        //Si los datos son correctos guadamos los datos en tramitesAniciar;
-        $this->guardarDatosBoleta($tramiteAIniciar, $boleta, SAFIT);
-        $tramiteAIniciar = TramitesAIniciar::find($request->id);
-        $tramiteAIniciar->tipo_doc = $tramiteAIniciar->tipoDocSafit();
+    if($consulta[0] == 'boleta'){
+      $boleta = $consulta[1];
+
+      $tramiteAIniciar = TramitesAIniciar::find($request->id);
+      $tramiteAIniciar->tipo_doc = $tramiteAIniciar->tipoDocSafit();
+      
+      //verificamos que los datos esten correctos para guardar en tramitesAniciar
+      if($boleta->nro_doc == $tramiteAIniciar->nro_doc && $boleta->tipo_doc == $tramiteAIniciar->tipo_doc && $boleta->sexo == $tramiteAIniciar->sexo){        
+
+        if($this->guardarDatosBoleta($tramiteAIniciar, $boleta, SAFIT))
+          $consulta = $this->obtenerCertificadoVirtualPago($tramiteAIniciar);
+        else
+          $consulta = ['error', 'No se guardaron los datos en TramitesAIniciar'];
         
-        //Si encontro la boleta y los datos coinciden ahora si emitimos el cenat
-        $consulta = $this->obtenerCertificadoVirtualPago($tramiteAIniciar);
-        if($consulta[0] == 'success')
-          //guardando en validaciones precheck el nro comprobante
-          $this->guardarValidacion($tramiteAIniciar, true, EMISION_BOLETA_SAFIT, $boleta->bop_id);
       }else{
-        $consulta = 'Los datos del titular no coinciden';
+        $consulta = ['error', 'Los datos del titular no coinciden'];
       }
+
     }
+
+    //Si emitio el certificado o el Cenat ya fue emitido actualizamos en validaciones_precheck 
+    if($consulta[0] == 'success')
+      if($this->actualizarEnValidacionesPrecheck($request->bop_cb, $tramiteAIniciar, EMISION_BOLETA_SAFIT))
+        $consulta = ['success', 'actualizado satisfactoriamente'];
+      else
+        $consulta = 'El Cenat ya fue emitido pero no corresponde a este titular';
+
     return $consulta;
   }
 
   //1) Consultar Boleta de Pago al WS Safit
-  public function consultarBoletaPago($request, $tramiteAIniciar = ''){
+  public function consultarBoletaPagoSafit($bop_cb, $cem_id){
     $emision = null;
-    if($request->bop_cb < 999999999)
-      $emision = EmisionBoletaSafit::where('numero_boleta', $request->bop_cb)->first();
+    if($bop_cb < 999999999)
+      $emision = EmisionBoletaSafit::where('numero_boleta', $bop_cb)->first();
     
     if ($emision === null) {
       $this->wsSafit->iniciarSesion();
-      $res = $this->wsSafit->consultarBoletaPago($request->bop_cb, $request->cem_id);
+      $res = $this->wsSafit->consultarBoletaPago($bop_cb, $cem_id);
       $this->wsSafit->cerrarSesion();
       if(isset($res->rspID)){
         if($res->rspID == 1){
@@ -949,7 +957,7 @@ class TramitesAInicarController extends Controller
                                 'bop_cb' => $res->datosBoletaPago->bopCB,
                                 'bop_monto' => $res->datosBoletaPago->bopMonto,
                                 'bop_fec_pag' => $res->datosBoletaPago->bopFecPag,
-                                'cem_id' => $request->cem_id);
+                                'cem_id' => $cem_id);
           $resultado = ['boleta', $boleta];
         }else{
           $resultado = ['error', $res->rspDescrip];
@@ -958,26 +966,21 @@ class TramitesAInicarController extends Controller
         $resultado = ['error',  'Ha ocurrido un error inesperado: '.$res];
       }
     }else{
-      
       $resultado = ['success', 'El Cenat ya fue emitido'];
-     
-      //Si el Cenat fue emitido y los datos coinciden se actualiza en validaicones_precheck
-      if($tramiteAIniciar)
-        if($this->actualizarEnValidacionesPrecheck($emision, $tramiteAIniciar, EMISION_BOLETA_SAFIT))
-          $resultado = ['success', 'actualizado satisfactoriamente'];
     }
 
     return $resultado;
   }
 
-  public function actualizarEnValidacionesPrecheck($emision,$tramiteAIniciar, $validation_id){    
+  public function actualizarEnValidacionesPrecheck($bop_cb,$tramiteAIniciar, $validation_id){ 
     $actualizo = false;
-    //dd($emision->tipo_doc.' | '. $tramiteAIniciar->tipo_doc .' | '. $emision->nro_doc.' | '. $tramiteAIniciar->nro_doc .' | '. $emision->sexo.' | '. $tramiteAIniciar->sexo);
-    if($emision->tipo_doc == $tramiteAIniciar->tipo_doc && $emision->nro_doc == $tramiteAIniciar->nro_doc && $emision->sexo == $tramiteAIniciar->sexo){
-      $esta_false = ValidacionesPrecheck::where("tramite_a_iniciar_id",$tramiteAIniciar->id)->where("validation_id",$validation_id)->where("validado",false)->count();
-      if($esta_false){
-        $this->guardarValidacion($tramiteAIniciar, true, $validation_id, $emision->numero_boleta);
-        $actualizo = true;
+    $emision = EmisionBoletaSafit::where('numero_boleta', $bop_cb)->first();
+
+    if($emision){
+      //dd($emision->tipo_doc.' | '. $tramiteAIniciar->tipo_doc .' | '. $emision->nro_doc.' | '. $tramiteAIniciar->nro_doc .' | '. $emision->sexo.' | '. $tramiteAIniciar->sexo);
+      if($emision->tipo_doc == $tramiteAIniciar->tipo_doc && $emision->nro_doc == $tramiteAIniciar->nro_doc && $emision->sexo == $tramiteAIniciar->sexo){
+          $this->guardarValidacion($tramiteAIniciar, true, $validation_id, $emision->numero_boleta);
+          $actualizo = true;
       }
     }
     return $actualizo;
@@ -1012,24 +1015,22 @@ class TramitesAInicarController extends Controller
               $demorado = true;
             }
             if(!$demorado){
+              //revertimos el tipo_doc a como se usa en licta
+              $sigeci = new Sigeci();
+              $sigeci->idtipodoc = $request->tipo_doc;
+              $request->tipo_doc = $sigeci->tipoDocLicta();
               $this->guardarEmisionBoleta($request, $clientIP);
               $resultado = ['success', $res->rspDescrip];
             }
-        }else
+        }else{
           $resultado = ['error', $res->rspDescrip];
-            //return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->centrosEmisores->getCentrosEmisores())
-            //                    ->with('boleta', $tramiteAInicar)
-            //                    ->with('error', $res->rspDescrip);
-      }else
-        $resultado = ['error', 'Ha ocurrido un error inesperado: '.$res];
-          //return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->centrosEmisores->getCentrosEmisores())
-          //                  ->with('boleta', $tramiteAInicar)
-          //                  ->with('error', 'Ha ocurrido un error inesperado: '.$res);
-    }else{
-      $resultado = ['success', ' El Cenat ya fue emitido '];
-      //Si el Cenat fue emitido y los datos coinciden se actualiza en validaicones_precheck
-      $this->actualizarEnValidacionesPrecheck($emision, $tramiteAInicar, EMISION_BOLETA_SAFIT);
+        }
 
+      }else{
+        $resultado = ['error', 'Ha ocurrido un error inesperado: '.$res];
+      }
+    }else{
+      $resultado = ['success', 'El Cenat ya fue emitido'];
     }
     return $resultado;
   }

@@ -179,7 +179,7 @@
       '</li>';
 
       //Emitir Certificado SAFIT si no se encontro por WS
-      /*
+      
       if(msj.validation_id == '3' && type=='danger' && error != 'No verificado'){
         var options;
         @foreach ($centrosEmisores as $key => $value)
@@ -196,7 +196,7 @@
 
         html+='<div class="col-md-2 col-sm-2 col-xs-12"> <button type="button" onclick="generarCenat()" class="btn btn-primary btn-block" title="Generar Certificado Virtual"> <i class="fa fa-cloud-download fa-lg"></i> </div>';
       }
-      */
+      
       $('#logPreCheck').append(html)
   }
 
