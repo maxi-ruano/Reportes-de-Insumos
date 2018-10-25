@@ -24,7 +24,7 @@ class TramitesAInicarController extends Controller
 {
   private $localhost = '192.168.76.33';
   private $diasEnAdelante = 1;
-  private $cantidadDias = 3;
+  private $cantidadDias = 5;
   private $fecha_inicio = '';
   private $fecha_fin = '';
   private $munID = 1;
@@ -102,7 +102,6 @@ class TramitesAInicarController extends Controller
   }
 
   public function guardarDatosBoleta($persona, $boleta, $siguienteEstado){
-    $persona = TramitesAIniciar::find($persona->id);
     $persona->bop_cb = (isset($boleta->bopCB)?$boleta->bopCB:$boleta->bop_cb);
     $persona->bop_monto = (isset($boleta->bopMonto)?$boleta->bopMonto:$boleta->bop_monto);
     $persona->bop_fec_pag = (isset($boleta->bopFecPag)?$boleta->bopFecPag:$boleta->bop_fec_pag);
