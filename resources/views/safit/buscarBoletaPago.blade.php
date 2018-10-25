@@ -23,10 +23,14 @@
               <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">Centro Emisor<span class="required">*</span>
               </label>
               <div class="col-md-6 col-sm-6 col-xs-12">
-                <select name="cem_id" class='select2_single form-control' data-placeholder='Seleccionar Centro Emisor'>
-                @foreach ($centrosEmisores as $key => $value)
-                    <option value="{{ $value->safit_cem_id }}"> {{ $value->name }} </option>
-                @endforeach
+                <select name="cem_id" class='select2_single form-control' data-placeholder='Seleccionar Centro Emisor' value='1'>
+                  @foreach ($centrosEmisores as $key => $value)
+                    @if($value->safit_cem_id == 1)
+                      <option value="{{ $value->safit_cem_id }}" selected="selected"> {{ $value->name }} </option>
+                    @else
+                      <option value="{{ $value->safit_cem_id }}"> {{ $value->name }} </option>
+                    @endif
+                  @endforeach
                 </select>
               </div>
             </div>
