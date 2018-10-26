@@ -929,8 +929,6 @@ class TramitesAInicarController extends Controller
     if($consulta[0] == 'success')
       if($this->actualizarEnValidacionesPrecheck($request->bop_cb, $tramiteAIniciar, EMISION_BOLETA_SAFIT))
         $consulta = ['success', 'actualizado satisfactoriamente'];
-      else
-        $consulta = 'El Cenat ya fue emitido pero no corresponde a este titular';
 
     return $consulta;
   }
@@ -973,6 +971,7 @@ class TramitesAInicarController extends Controller
 
   public function actualizarEnValidacionesPrecheck($bop_cb,$tramiteAIniciar, $validation_id){ 
     $actualizo = false;
+
     //Solo si existe en emision_boleta_safit y en tramites_a_iniciar
     $emision = EmisionBoletaSafit::whereRaw(" CAST(numero_boleta AS text) IN(SELECT bop_id from tramites_a_iniciar where bop_id = '".$bop_cb."' and id = ".$tramiteAIniciar->id.") ")->first();
 

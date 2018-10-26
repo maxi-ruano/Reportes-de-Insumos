@@ -218,7 +218,7 @@
         },
         success: function( msg ) {          
             getPreCheck(id);
-            $('#logPreCheck .msjcenat').html('***'+msg);
+            $('#logPreCheck .msjcenat').html('***'+msg[1]);
         },
         error: function(xhr, status, error) {
           $('#logPreCheck').html('ocurrio un error!! Intenta de nuevo...');
