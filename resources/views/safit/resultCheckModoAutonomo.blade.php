@@ -183,7 +183,11 @@
       if(msj.validation_id == '3' && type=='danger' && error != 'No verificado'){
         var options;
         @foreach ($centrosEmisores as $key => $value)
-              options += '<option value="{{ $value->safit_cem_id }}"> {{ $value->name }} </option>';
+          @if($value->safit_cem_id == 1)
+            options += '<option value="{{ $value->safit_cem_id }}" selected="selected"> {{ $value->name }} </option>';
+          @else
+            options += '<option value="{{ $value->safit_cem_id }}"> {{ $value->name }} </option>';
+          @endif
         @endforeach
 
         html+='<h4> <i class="fa fa-chevron-circle-right"></i> Generar CENAT <span class="msjcenat red"></span> </h4>';
