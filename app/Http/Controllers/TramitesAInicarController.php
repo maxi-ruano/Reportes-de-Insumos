@@ -904,14 +904,13 @@ class TramitesAInicarController extends Controller
   //Generar Cenat desde el PreCheck
   public function generarCenatPrecheck(Request $request){
 
+    $tramiteAIniciar = TramitesAIniciar::find($request->id);
+    $tramiteAIniciar->tipo_doc = $tramiteAIniciar->tipoDocSafit();
+
     $consulta = $this->consultarBoletaPagoSafit($request->bop_cb, $request->cem_id);
 
     if($consulta[0] == 'boleta'){
       $boleta = $consulta[1];
-
-      $tramiteAIniciar = TramitesAIniciar::find($request->id);
-      $tramiteAIniciar->tipo_doc = $tramiteAIniciar->tipoDocSafit();
-      
       //verificamos que los datos esten correctos para guardar en tramitesAniciar
       if($boleta->nro_doc == $tramiteAIniciar->nro_doc && $boleta->tipo_doc == $tramiteAIniciar->tipo_doc && $boleta->sexo == $tramiteAIniciar->sexo){        
 
@@ -974,7 +973,8 @@ class TramitesAInicarController extends Controller
 
   public function actualizarEnValidacionesPrecheck($bop_cb,$tramiteAIniciar, $validation_id){ 
     $actualizo = false;
-    $emision = EmisionBoletaSafit::where('numero_boleta', $bop_cb)->first();
+    //Solo si existe en emision_boleta_safit y en tramites_a_iniciar
+    $emision = EmisionBoletaSafit::whereRaw(" CAST(numero_boleta AS text) IN(SELECT bop_id from tramites_a_iniciar where bop_id = '".$bop_cb."' and id = ".$tramiteAIniciar->id.") ")->first();
 
     if($emision){
       //dd($emision->tipo_doc.' | '. $tramiteAIniciar->tipo_doc .' | '. $emision->nro_doc.' | '. $tramiteAIniciar->nro_doc .' | '. $emision->sexo.' | '. $tramiteAIniciar->sexo);
