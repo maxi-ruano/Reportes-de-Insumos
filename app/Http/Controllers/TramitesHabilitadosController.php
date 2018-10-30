@@ -36,8 +36,10 @@ class TramitesHabilitadosController extends Controller
         
         $fecha = isset($_GET['fecha'])?$_GET['fecha']:'';
 
-        $data = TramitesHabilitados::selectRaw('tramites_habilitados.*, tramites_habilitados_observaciones.observacion')
+        $data = TramitesHabilitados::selectRaw('tramites_habilitados.*, tramites_habilitados_observaciones.observacion, roles.name as rol')
                     ->leftjoin('tramites_habilitados_observaciones','tramites_habilitados_observaciones.tramite_habilitado_id','tramites_habilitados.id')
+                    ->leftjoin('model_has_roles','model_has_roles.model_id','tramites_habilitados.user_id')
+                    ->leftjoin('roles','roles.id','model_has_roles.role_id')
                     ->whereIn('tramites_habilitados.motivo_id', $this->getRoleMotivos('role_motivos_lis'))
                     ->where(function($query) use ($request) {
                         $query->where('nombre', 'LIKE', '%'. strtoupper($request->search) .'%')
@@ -107,7 +109,7 @@ class TramitesHabilitadosController extends Controller
     public function store(Request $request)
     {
         try{
-            if($this->verificarLimitePorSucursal($request->sucursal, $request->motivo_id, $request->fecha)){
+            if($this->verificarLimite($request->sucursal, $request->motivo_id, $request->fecha)){
                 //validar nro_doc solo si es pasaporte acepte letras y numeros de lo contrario solo numeros
                 if($request->tipo_doc== '4')
                     $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/^[0-9a-zA-Z]+$/']);
@@ -355,28 +357,48 @@ class TramitesHabilitadosController extends Controller
         return $fecha;
     }
 
-    public function verificarLimitePorSucursal($sucursal, $motivo, $fecha){
-        $acceso= true;
-        $limite = "LIMITE_TH_SUCU_".$sucursal;
+    public function verificarLimite($sucursal, $motivo, $fecha){
+        $acceso= false;
         $user = Auth::user();
+        $role_id = $user->roles->pluck('id')->first();
         
-        if(defined($limite)){
-            if($user->hasRole('Comuna')){
-                $total = TramitesHabilitados::where('fecha',$fecha)->where('sucursal',$sucursal)->count();
-                if($total >= intval(constant($limite)))
-                    $acceso= false;
-            }
+        //Encontrar todas las posibilidades establecidas en roles_limites
+        $roles_limites = \DB::table('roles_limites')->where('role_id',$role_id)->where('sucursal',$sucursal)->where('motivo_id',$motivo)->where('activo', true)->first();
+        
+        if($roles_limites == null)
+            $roles_limites = \DB::table('roles_limites')->where('role_id',$role_id)->where('sucursal',$sucursal)->whereNull('motivo_id')->where('activo', true)->first();
+        
+        if($roles_limites == null)
+            $roles_limites = \DB::table('roles_limites')->where('role_id',$role_id)->where('motivo_id',$motivo)->whereNull('sucursal')->where('activo', true)->first();
+        
+        if($roles_limites == null)
+            $roles_limites = \DB::table('roles_limites')->where('role_id',$role_id)->whereNull('sucursal')->whereNull('motivo_id')->where('activo', true)->first();
 
-            if($user->hasRole('Jefe Sede')){
-                //Se buscan los usuarios con el mismo rol para poder contar los registrados por ellos
-                $motivos = TramitesHabilitadosMotivos::find($motivo);
-                if($motivos->description == "CORTESIA"){
-                    $total = TramitesHabilitados::where('fecha',$fecha)->where('sucursal',$sucursal)->where('motivo_id',$motivo)->where('user_id', $user->id)->count();
-                    if($total >= intval(constant($limite)))
-                        $acceso= false;
-                }
-            }
+        if($roles_limites){
+
+            $consulta = TramitesHabilitados::where('fecha',$fecha)
+                            ->whereIn('user_id',function($query) use($role_id){
+                                $query->select('model_id')->from('model_has_roles')->where('role_id',$role_id);
+                             });
+            
+            if($roles_limites->sucursal)
+                $consulta = $consulta->where('sucursal',$roles_limites->sucursal);
+            
+            if($roles_limites->motivo_id)
+                $consulta = $consulta->where('motivo_id',$roles_limites->motivo_id);
+                        
+            $consulta = $consulta->count();
+
+            if($consulta >= $roles_limites->limite)
+                $acceso = false;
+            else
+                $acceso = true;
+        }else{
+            $acceso = true;
         }
+
+        //dd($role_id.' | '.$sucursal.' | '.$motivo.' limite: '.$roles_limites->limite.' '.$acceso);
+
         return $acceso;  
     }
 
