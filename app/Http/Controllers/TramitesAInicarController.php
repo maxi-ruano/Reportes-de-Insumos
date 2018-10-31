@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Laracasts\Flash\Flash;
 use App\Sigeci;
 use App\TramitesAIniciar;
 use App\Http\Controllers\SoapController;
@@ -885,7 +886,22 @@ class TramitesAInicarController extends Controller
 
   //Generar Cenat desde buscarBoletaPago
   public function buscarBoletaPago(Request $request){
-    return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->centrosEmisores->getCentrosEmisores());
+    $clientIP = \Request::ip();
+    $ip = substr($clientIP, 0, strrpos($clientIP, '.'));
+
+    $permisos = \DB::table('sys_rpt_servers')
+                    ->join('emision_boleta_safit_permisos', 'emision_boleta_safit_permisos.sucursal_id', 'sys_rpt_servers.sucursal_id')
+                    ->where('emision_boleta_safit_permisos.activo', true)
+                    ->whereRaw(" sys_rpt_servers.ip like '".$ip."%' ")
+                    ->count();
+
+    if($permisos){
+      return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->centrosEmisores->getCentrosEmisores());
+    }else{
+      Flash::warning('La sede no tiene permisos para Generar Cenat, intente desde el Precheck o Tramites Habilitados!');
+      return redirect('/login');
+    }
+
   }
 
   public function consultarCenat(Request $request){
