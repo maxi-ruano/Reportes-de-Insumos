@@ -884,18 +884,27 @@ class TramitesAInicarController extends Controller
     return preg_match("/[a-z]/i", $clases);
   }
 
-  //Generar Cenat desde buscarBoletaPago
-  public function buscarBoletaPago(Request $request){
-    $clientIP = \Request::ip();
-    $ip = substr($clientIP, 0, strrpos($clientIP, '.'));
+  public function permisoParaGenerarCenat(){
+    $ip = \Request::ip();
+    $clientIP = substr($ip, 0, strrpos($ip, '.'));
 
-    $permisos = \DB::table('sys_rpt_servers')
+    $sucursales = \DB::table('sys_rpt_servers')
                     ->join('emision_boleta_safit_permisos', 'emision_boleta_safit_permisos.sucursal_id', 'sys_rpt_servers.sucursal_id')
                     ->where('emision_boleta_safit_permisos.activo', true)
-                    ->whereRaw(" sys_rpt_servers.ip like '".$ip."%' ")
-                    ->count();
+                    ->get();
+    $permiso=false;
+    foreach($sucursales as $sucursal){
+      $ip = gethostbyname($sucursal->ip);
+      $sucursalIp = substr($ip, 0, strrpos($ip, '.'));
+      if($sucursalIp == $clientIP)
+        $permiso = true;
+    }
+    return $permiso;
+  }
 
-    if($permisos){
+  //Generar Cenat desde buscarBoletaPago
+  public function buscarBoletaPago(Request $request){
+    if($this->permisoParaGenerarCenat()){
       return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->centrosEmisores->getCentrosEmisores());
     }else{
       Flash::warning('La sede no tiene permisos para Generar Cenat, intente desde el Precheck o Tramites Habilitados!');
