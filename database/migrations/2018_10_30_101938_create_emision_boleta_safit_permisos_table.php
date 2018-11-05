@@ -37,7 +37,8 @@ class CreateEmisionBoletaSafitPermisosTable extends Migration
             ['sucursal_id' => '120', 'activo' => true, 'created_at' => date("Y-m-d H:i:s"), 'updated_at' => date("Y-m-d H:i:s") ],
             ['sucursal_id' => '121', 'activo' => true, 'created_at' => date("Y-m-d H:i:s"), 'updated_at' => date("Y-m-d H:i:s") ],
             ['sucursal_id' => '130', 'activo' => true, 'created_at' => date("Y-m-d H:i:s"), 'updated_at' => date("Y-m-d H:i:s") ],
-            ['sucursal_id' => '140', 'activo' => true, 'created_at' => date("Y-m-d H:i:s"), 'updated_at' => date("Y-m-d H:i:s") ]
+            ['sucursal_id' => '140', 'activo' => true, 'created_at' => date("Y-m-d H:i:s"), 'updated_at' => date("Y-m-d H:i:s") ],
+            ['sucursal_id' => '160', 'activo' => true, 'created_at' => date("Y-m-d H:i:s"), 'updated_at' => date("Y-m-d H:i:s") ]
         ]);
     }
 

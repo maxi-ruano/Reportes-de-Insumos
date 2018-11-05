@@ -54,9 +54,12 @@ class TramitesController extends Controller
   //function get para API listar los tramites con licencias emitidas
   public function get_licencias_emitidas(Request $request){
     $ip = $request->ip();
-    //IP permitidas para realizar la consulta: Daniela / Juan Ojeda / Pierre / Secretaria de Atencion Ciudadana
-    $autorizadas = ['192.168.76.136','192.168.76.215','192.168.76.230','10.67.51.55','10.67.51.58','10.67.51.59','10.67.51.60'];
-    
+    //IP permitidas para realizar la consulta: Daniela / Juan Ojeda / Pierre 
+    $autorizadas = array('192.168.76.136','192.168.76.215','192.168.76.230');
+    ///Secretaria de Atencion Ciudadana autorizados:
+    array_push($autorizadas, '10.67.51.55','10.67.51.58','10.67.51.59','10.67.51.60');
+    array_push($autorizadas, '10.10.14.37', '10.10.5.95');
+
     if(in_array($ip, $autorizadas)){ 
 
       $estado_finalizado = '95'; 
