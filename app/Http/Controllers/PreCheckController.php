@@ -20,6 +20,7 @@ class PreCheckController extends Controller
 
   public function __construct(){
     $this->centrosEmisores = new AnsvCelExpedidor();
+    $this->crearConstantes(); //Esta funcion deberia ejecutarse desde Controllers pero se vuelve a ajecutar porq no reconocia las constants
   }
 
   public function checkPreCheck(){
@@ -93,6 +94,7 @@ class PreCheckController extends Controller
                                     ])
                                   ->join('validaciones_precheck','validaciones_precheck.tramite_a_iniciar_id','=','tramites_a_iniciar.id')
                                   ->join('sigeci','sigeci.idcita','=','tramites_a_iniciar.sigeci_idcita')
+                                  ->where('tramites_a_iniciar.estado','!=', TURNO_VENCIDO)
                                   ->orderBy('validaciones_precheck.validado', 'asc')
                                   ->first();
       if($busqueda)
