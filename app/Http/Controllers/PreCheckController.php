@@ -92,10 +92,9 @@ class PreCheckController extends Controller
                                     'tipo_doc'=> $persona->tipo_doc,
                                     'nacionalidad'=> $persona->nacionalidad
                                     ])
-                                  ->join('validaciones_precheck','validaciones_precheck.tramite_a_iniciar_id','=','tramites_a_iniciar.id')
                                   ->join('sigeci','sigeci.idcita','=','tramites_a_iniciar.sigeci_idcita')
                                   ->where('tramites_a_iniciar.estado','!=', TURNO_VENCIDO)
-                                  ->orderBy('validaciones_precheck.validado', 'asc')
+                                  ->orderBy('sigeci.idcita', 'desc')
                                   ->first();
       if($busqueda)
         $tramites [] = $busqueda;
