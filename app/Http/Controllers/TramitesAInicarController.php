@@ -58,7 +58,7 @@ class TramitesAInicarController extends Controller
     //WS SAFIT
     $this->wsSafit = new WsClienteSafitController();
     //WS SINALIC
-    //$this->wsSinalic = new WsClienteSinalicController();
+    $this->wsSinalic = new WsClienteSinalicController();
     ini_set('default_socket_timeout', 600);
     $this->calcularFechas();
     
@@ -745,25 +745,33 @@ class TramitesAInicarController extends Controller
   public function enviarTramitesASinalic($estadoActual, $siguienteEstado){
     if(is_null($this->wsSinalic->cliente))
       return "El Ws de Sinalic no responde, por favor revise la conexion, o contactese con Nacion";
-    $tramites = TramitesAIniciar::where('estado', $estadoActual)->get();
+
+    $SinalicWS_id_sede = explode(",",SinalicWS_id_sede);
+    $tramites = TramitesAIniciar::select("tramites_a_iniciar.*")
+                                  ->join("sigeci","sigeci.idcita","tramites_a_iniciar.sigeci_idcita")
+                                  ->whereIn('sigeci.sucroca',$SinalicWS_id_sede)
+                                  ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
+                                  ->whereNull('tramites_a_iniciar.tramite_sinalic_id')
+                                  ->where('tramites_a_iniciar.estado', $estadoActual)
+                                  ->get();
+
     foreach ($tramites as $key => $tramite) {
       $this->asignarTipoTramiteAIniciar($tramite);
       $res = null;
       $response = null;
       $datos = $this->wsSinalic->parseTramiteParaSinalic($tramite);
-
       switch ($tramite->tipo_tramite) {
         case 2: //RENOVACION
           $response = $this->wsSinalic->IniciarTramiteRenovarLicencia($datos);
-          $res = $response->IniciarTramiteRenovarLicenciaResult;
+          $res = (isset($response->IniciarTramiteRenovarLicenciaResult))?$response->IniciarTramiteRenovarLicenciaResult:$response;
         break;
         case 1: //OTORGAMIENTO
           $response = $this->wsSinalic->IniciarTramiteNuevaLicencia($datos);
-          $res = $response->IniciarTramiteNuevaLicenciaResult;
+          $res = (isset($response->IniciarTramiteNuevaLicenciaResult))?$response->IniciarTramiteNuevaLicenciaResult:$response;
         break;
         case 6: //RENOVACION CON AMPLIACION
           $response = $this->wsSinalic->IniciarTramiteRenovacionConAmpliacion($datos);
-          $res = $reponse->IniciarTramiteRenovacionConAmpliacionResult;
+          $res = (isset($response->IniciarTramiteRenovacionConAmpliacionResult))?$response->IniciarTramiteRenovacionConAmpliacionResult:$response;
         break;
         default:
           # code...
@@ -771,7 +779,6 @@ class TramitesAInicarController extends Controller
       }
 
       $res = $this->interpretarResultado($res, $datos);
-
       if(!empty($res->error)){
         $this->guardarError($res, $siguienteEstado, $tramite->id);
         $tramite->response_ws = json_encode($response);
@@ -786,14 +793,20 @@ class TramitesAInicarController extends Controller
   }
 
   public function interpretarResultado($resultado, $datos){
-    if(intval($resultado->CantidadErrores) > 0){
-      $res = array('error' => $this->getErrores($resultado->MensajesRespuesta),
-                   'request' => $datos,
-                   'response' => $resultado);
+    if(isset($resultado->exception)){
+      $res = array('error' => 'El servidor no puede procesar la solicitud',
+                  'request' => $datos,
+                  'response' => $resultado);
+    }else{
+      if(intval($resultado->CantidadErrores) > 0){
+        $res = array('error' => $this->getErrores($resultado->MensajesRespuesta),
+                    'request' => $datos,
+                    'response' => $resultado);
+      }else{
+        $res = array('mensaje' => $this->getErrores($resultado->MensajesRespuesta) .' Tramite ID: '.$resultado->NumeroTramite,
+                            'tramite_sinalic_id' => $resultado->NumeroTramite);
+      }
     }
-    else
-      $res = array('mensaje' => $this->getErrores($resultado->MensajesRespuesta) .' Tramite ID: '.$resultado->NumeroTramite,
-                           'tramite_sinalic_id' => $resultado->NumeroTramite);
     return (object)$res;
   }
 
@@ -814,13 +827,12 @@ class TramitesAInicarController extends Controller
     $tramiteAInicar->save();
   }
 
-
   public function getUltimaLicencia($tramiteAInicar){
     $licencias = $this->getLicencias($tramiteAInicar);
-    $licencias = $licencias->ConsultarLicenciasResult->LicenciaDTO;
     $ultimaLicencia = null;
 
-    if(!empty($licencias))
+    if(isset($licencias->ConsultarLicenciasResult->LicenciaDTO)){
+      $licencias = $licencias->ConsultarLicenciasResult->LicenciaDTO;
       if(count($licencias) == 1)
         return $licencias; //Retorna Una sola licencia
 
@@ -836,6 +848,7 @@ class TramitesAInicarController extends Controller
             $ultimaLicencia = $value;
         }
       }
+    }
     return $ultimaLicencia;
   }
 
@@ -846,6 +859,19 @@ class TramitesAInicarController extends Controller
              "tipoDocumento" => $tramiteAInicar->tipo_doc
            ));
     return $res;
+  }
+
+  public function anularTramiteSinalic($nro_tramite,$motivo,$usuario){
+    $res = $this->wsSinalic->AnularTramite(array(
+             "nroTramite" => $nro_tramite,
+             "motivo" => $motivo,
+             "usuario" => $usuario
+           ));
+
+    if($res->AnularTramiteResult->CantidadErrores > 0)
+      return false;
+
+    return true;
   }
 
   public function getTipoTramite($ultimaLicencia){
@@ -1104,11 +1130,36 @@ class TramitesAInicarController extends Controller
       $last_date = date('Y-m-d', strtotime('-'.(DIAS_VALIDEZ_TURNO).' days', strtotime(date('Y-m-d'))));
       //26 dias atras
       $ini_date = date('Y-m-d', strtotime('-'.(DIAS_VALIDEZ_TURNO+11).' days', strtotime(date('Y-m-d'))));
-      $res = TramitesAIniciar::leftJoin('sigeci', 'tramites_a_iniciar.id', '=', 'sigeci.tramite_a_iniciar_id')
-                      ->where('sigeci.fecha', '<=', $last_date)
-                      ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
-                      ->update(['estado' => TURNO_VENCIDO]);
-      \Log::info('['.date('h:i:s').'] revisarTurnosVencidos - Se da por TURNO_VENCIDO a los turnos menores igual a : '.$last_date);                     
+
+      $res = TramitesAIniciar::join('sigeci', 'tramites_a_iniciar.id', '=', 'sigeci.tramite_a_iniciar_id')
+                                  ->where('sigeci.fecha', '<=', $last_date)
+                                  ->where('tramites_a_iniciar.estado', '!=', TURNO_VENCIDO)
+                                  ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
+                                  ->update(['tramites_a_iniciar.estado' => TURNO_VENCIDO]);
+      \Log::info('['.date('h:i:s').'] revisarTurnosVencidos - Se da por TURNO_VENCIDO a los turnos menores igual a : '.$last_date);
+
+      //Preguntar si se debe dar por vencidos los precheck realizados con tramites habilitados
+      /*$habilitados_vencidos = TramitesAIniciar::join('tramites_habilitados', 'tramites_a_iniciar.id', '=', 'tramites_habilitados.tramites_a_iniciar_id')
+                                  ->where('tramites_habilitados.fecha', '<=', $last_date)
+                                  ->where('tramites_a_iniciar.estado', '!=', TURNO_VENCIDO)
+                                  ->whereNull('tramites_a_iniciar.sigeci_idcita')
+                                  ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
+                                  //->update(['tramites_a_iniciar.estado' => TURNO_VENCIDO])
+                                  ; */
+
+      //PENDIENTE: anular los tramites iniciados en SINALIC que pasaron a VENCIDOS  y actualizar en tramites_a_iniciar
+      $tramites = TramitesAIniciar::where('estado', TURNO_VENCIDO)->whereNotNull('tramites_a_iniciar.tramite_sinalic_id')->get();
+      foreach ($tramites as $tramite){
+        if($this->anularTramiteSinalic($tramite->tramite_sinalic_id,'6','microservicio')){ //Motivo:****OTROS
+          $actualizar = TramitesAIniciar::find($tramite->id)
+                        ->update([
+                                'tramite_sinalic_id' => null,
+                                'tipo_tramite' => null,
+                                'response_ws' => null
+                          ]);
+        }
+      }
+
     }catch(\Exception $e){
         \Log::warning('['.date('h:i:s').'] revisarTurnosVencidos Error: '.$e->getMessage()); 
     }                    

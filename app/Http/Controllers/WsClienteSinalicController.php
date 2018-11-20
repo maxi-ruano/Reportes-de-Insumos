@@ -5,10 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use SoapClient;
 use App\AnsvCelExpedidor;
+use phpDocumentor\Reflection\Types\Object_;
 
 class WsClienteSinalicController extends Controller
 {
-  var $url = 'https://testqa09.seguridadvial.gov.ar/sinalic.services.caba/Sinalic_Basic_WS.asmx?wsdl';
+  var $url = SinalicWS_url;
   var $cliente = null;
   var $nombreUsuario = 'microservicio';
   var $numeroFormulario = 999;
@@ -41,28 +42,31 @@ class WsClienteSinalicController extends Controller
   }
 
   public function IniciarTramiteNuevaLicencia($tramiteAInicar){
+    $res = null;
     try {
       $res = $this->cliente->IniciarTramiteNuevaLicencia($tramiteAInicar);
     }catch(\Exception $e) {
-        echo $e->getMessage();
+      $res = (object) array( 'exception' => $e->getMessage() );
     }
     return $res;
   }
 
   public function IniciarTramiteRenovarLicencia($tramiteAInicar){
+    $res = null;
     try {
       $res = $this->cliente->IniciarTramiteRenovarLicencia($tramiteAInicar);
     }catch(\Exception $e) {
-        echo $e->getMessage();
+      $res = (object) array( 'exception' => $e->getMessage() );
     }
     return $res;
   }
 
   public function IniciarTramiteRenovacionConAmpliacion($tramiteAInicar){
+    $res = null;
     try {
       $res = $this->cliente->IniciarTramiteRenovacionConAmpliacion($tramiteAInicar);
     }catch(\Exception $e) {
-        echo $e->getMessage();
+      $res = (object) array( 'exception' => $e->getMessage() );
     }
     return $res;
   }
@@ -96,8 +100,19 @@ class WsClienteSinalicController extends Controller
   }
 
   public function ConsultarLicencias($datos){
+    $res = null;
     try {
       $res = $this->cliente->ConsultarLicencias($datos);
+    }catch(\Exception $e) {
+        echo $e->getMessage();
+    }
+    return $res;
+  }
+
+  public function AnularTramite($datos){
+    $res = null;
+    try {
+      $res = $this->cliente->AnularTramite($datos);
     }catch(\Exception $e) {
         echo $e->getMessage();
     }
