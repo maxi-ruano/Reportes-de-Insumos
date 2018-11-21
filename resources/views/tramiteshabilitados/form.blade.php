@@ -153,10 +153,11 @@
             //Segun el motivo solicitar mas informacion 
             function validarMotivos(){
                 var motivo = $("select[name=motivo_id] option:selected").text();
-                $("#div_observacion").show();
+
                 $("#div_observacion input").removeAttr('required minlength maxlength');
                 $("#div_observacion label").html('Observación: ');
-                
+                $("#div_observacion input").attr('placeholder','');
+
                 $("#ultimo_turno").empty();
                 $("button[type='submit']").show();
 
@@ -185,19 +186,18 @@
                         $("#div_observacion input").attr('placeholder','Ingrese el responsable de la solictud');
                         break;
                     case 'MAYOR DE 65':
-                        $("#div_observacion").hide();
-                        if(edad < 65){
+                        if(edad >= 65 && edad < 100){
+                            $("button[type='submit']").show();
+                        }else{
                             $("button[type='submit']").hide();
                             $("#ultimo_turno").html('<h4 class="red"> <i class="fa fa-user-times" style="font-size:20px;"></i> Esta persona no cuenta con la edad permitida! tiene: '+edad+' años </h4>');
                         }
                         break;
                     case 'RETOMA TURNO':
-                        $("#div_observacion").hide();
                         validarRetomaTurno();
                         break;
                     default:
-                        $("#div_observacion").hide();
-                        
+                        //
                 }
                 
             }
@@ -207,7 +207,7 @@
                 var tipo_doc = $("select[name=tipo_doc]").val();
                 var nro_doc = $("input[name=nro_doc]").val();
                 
-                console.log('motivo '+motivo+' nrodoc '+nro_doc);
+                //console.log('motivo '+motivo+' nrodoc '+nro_doc);
                 
                 if(nro_doc != ''){
                     $("button[type='submit']").hide();
@@ -221,7 +221,7 @@
                             //Calcular los dias entre la dos fecha
                             var fechaini = new Date(ret.fecha);
                             var fechafin = new Date($("input[name=fecha]").val());
-                            var diasdif= fechafin.getTime()-fechaini.getTime();
+                             var diasdif= fechafin.getTime()-fechaini.getTime();
                             var dias = Math.round(diasdif/(1000*60*60*24));
 
                             var f = ret.fecha.split('-');
