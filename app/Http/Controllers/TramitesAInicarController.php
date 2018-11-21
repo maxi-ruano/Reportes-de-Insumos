@@ -817,10 +817,11 @@ class TramitesAInicarController extends Controller
 
   public function getUltimaLicencia($tramiteAInicar){
     $licencias = $this->getLicencias($tramiteAInicar);
-    $licencias = $licencias->ConsultarLicenciasResult->LicenciaDTO;
     $ultimaLicencia = null;
 
-    if(!empty($licencias))
+    if(isset($licencias->ConsultarLicenciasResult->LicenciaDTO)){
+      $licencias = $licencias->ConsultarLicenciasResult->LicenciaDTO;
+
       if(count($licencias) == 1)
         return $licencias; //Retorna Una sola licencia
 
@@ -836,6 +837,7 @@ class TramitesAInicarController extends Controller
             $ultimaLicencia = $value;
         }
       }
+    }
     return $ultimaLicencia;
   }
 
