@@ -906,12 +906,12 @@ class TramitesAInicarController extends Controller
 
   //Generar Cenat desde buscarBoletaPago
   public function buscarBoletaPago(Request $request){
-    if($this->permisoParaGenerarCenat()){
+    //if($this->permisoParaGenerarCenat()){
       return View('safit.buscarBoletaPago')->with('centrosEmisores', $this->centrosEmisores->getCentrosEmisores());
-    }else{
+    /*}else{
       Flash::warning('La sede no tiene permisos para Generar Cenat, intente desde el Precheck o Tramites Habilitados!');
       return redirect('/login');
-    }
+    }*/
 
   }
 
