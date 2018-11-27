@@ -230,7 +230,7 @@ class PreCheckController extends Controller
               (CASE WHEN validaciones_precheck.validation_id = 4 THEN validaciones_precheck.comprobante ELSE null END) as LIBRE_DEUDA, 
               (CASE WHEN validaciones_precheck.validation_id = 5 THEN validaciones_precheck.comprobante ELSE null END) as BUI
             FROM tramites_a_iniciar
-              INNER JOIN sigeci ON  sigeci.tramite_a_iniciar_id =  tramites_a_iniciar.id
+              INNER JOIN sigeci ON  sigeci.idcita =  tramites_a_iniciar.sigeci_idcita
               INNER JOIN validaciones_precheck ON  validaciones_precheck.tramite_a_iniciar_id =  tramites_a_iniciar.id
             WHERE sigeci.fecha = '".$fecha."' ";
     

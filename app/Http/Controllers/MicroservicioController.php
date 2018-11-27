@@ -56,9 +56,17 @@ class MicroservicioController extends Controller
       $tramitesAIniciar->revisarValidaciones(VALIDACIONES_COMPLETAS);
     }
 
+    public function enviarTramitesASinalic(){
+      \Log::info('['.date('h:i:s').'] '.'se inicio: enviarTramitesASinalic()');
+      $tramitesAIniciar = new TramitesAInicarController();
+      $tramitesAIniciar->enviarTramitesASinalic( VALIDACIONES_COMPLETAS, INICIO_EN_SINALIC);
+    }
+
     public function run(){
       ini_set('default_socket_timeout', 600);
       $tramitesAIniciar = new TramitesAInicarController();
+      dd('entro a Microservicio');
+      $tramitesAIniciar->revisarTurnosVencidos();
       //  pasa a estado 1
       $tramitesAIniciar->completarTurnosEnTramitesAIniciar( INICIO );
       // Verificar Libre deuda, pasa a estado 4 en validaciones precheck
@@ -72,7 +80,7 @@ class MicroservicioController extends Controller
       // Si bui, cenat y infracciones pasa de estado 2 a 6
       $tramitesAIniciar->revisarValidaciones(VALIDACIONES_COMPLETAS);
       // pasa de estado 6 a 7 los tramites
-      //$tramitesAIniciar->enviarTramitesASinalic( VALIDACIONES_COMPLETAS, INICIO_EN_SINALIC);
+      $tramitesAIniciar->enviarTramitesASinalic( VALIDACIONES_COMPLETAS, INICIO_EN_SINALIC);
       //
     }
 
