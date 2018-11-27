@@ -332,7 +332,7 @@ class TramitesHabilitadosController extends Controller
 
     public function consultarUltimoTurno(Request $request){
         $consulta = Sigeci::join("tipo_doc","tipo_doc.id_sigeci","sigeci.idtipodoc")
-                        ->leftjoin('tramites_a_iniciar','tramites_a_iniciar.id','sigeci.tramite_a_iniciar_id')
+                        ->leftjoin('tramites_a_iniciar','tramites_a_iniciar.sigeci_idcita','sigeci.idcita')
                         ->where("tipo_doc.id_dgevyl",$request->tipo_doc)
                         ->where("sigeci.numdoc",$request->nro_doc)
                         ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')

@@ -74,7 +74,7 @@ class TramitesAInicarController extends Controller
   public function getTramitesAIniciar($estado, $fecha_inicio, $fecha_fin){
     $personas = \DB::table('tramites_a_iniciar')
                     ->select('tramites_a_iniciar.*')
-                    ->join('sigeci', 'sigeci.tramite_a_iniciar_id', '=', 'tramites_a_iniciar.id')
+                    ->join('sigeci', 'sigeci.idcita', '=', 'tramites_a_iniciar.sigeci_idcita')
                     ->whereBetween('sigeci.fecha', [$fecha_inicio, $fecha_fin])
                     ->where('tramites_a_iniciar.estado', $estado)
                     ->get();
@@ -84,10 +84,10 @@ class TramitesAInicarController extends Controller
   public function getTramitesAIniciarValidaciones($estado, $estadoValidacion, $fecha_inicio, $fecha_fin){
     $personas = \DB::table('tramites_a_iniciar')
                     ->select('tramites_a_iniciar.*')
-                    ->join('sigeci', 'sigeci.tramite_a_iniciar_id', '=', 'tramites_a_iniciar.id')
+                    ->join('sigeci', 'sigeci.idcita', '=', 'tramites_a_iniciar.sigeci_idcita')
                     ->join('validaciones_precheck', 'validaciones_precheck.tramite_a_iniciar_id', '=', 'tramites_a_iniciar.id')
                     ->whereBetween('sigeci.fecha', [$fecha_inicio, $fecha_fin])
-                    ->where('tramites_a_iniciar.estado', '>=', $estado)
+                    ->where('tramites_a_iniciar.estado', '!=', TURNO_VENCIDO)
                     ->where('validaciones_precheck.validation_id', $estadoValidacion)
                     ->where('validaciones_precheck.validado', false)
                     ->get();
@@ -115,8 +115,9 @@ class TramitesAInicarController extends Controller
 
   //Proceso utilizado en segundo plano mediante Queue
   public function iniciarTramiteEnPrecheck($turno){
+    $nacionalidad = AnsvPaises::where('id_dgevyl', $turno->pais)->first()->id_ansv;
     //Verificar si existe un precheck realizado recientemente para vincular con este tramite habilitado
-    $tramiteAIniciar = $this->existeTramiteAIniciarConPrecheck($turno);
+    $tramiteAIniciar = $this->existeTramiteAIniciarConPrecheck($turno->nro_doc, $turno->tipo_doc, $nacionalidad);
     if($tramiteAIniciar){
         \Log::info('['.date('h:i:s').'] '.'se vincula con un tramiteAIniciar que existe, '.$turno->id);
         $turno->tramites_a_iniciar_id = $tramiteAIniciar->id;
@@ -131,7 +132,7 @@ class TramitesAInicarController extends Controller
       $tramiteAIniciar->tipo_doc = $turno->tipo_doc;
       $tramiteAIniciar->nro_doc = $turno->nro_doc;
       $tramiteAIniciar->sexo = $turno->sexo;
-      $tramiteAIniciar->nacionalidad = AnsvPaises::where('id_dgevyl', $turno->pais)->first()->id_ansv; 
+      $tramiteAIniciar->nacionalidad = $nacionalidad; 
       $tramiteAIniciar->fecha_nacimiento = $turno->fecha_nacimiento;
       $tramiteAIniciar->estado = '1';
       $saved = $tramiteAIniciar->save();
@@ -175,21 +176,15 @@ class TramitesAInicarController extends Controller
     return true;
   }
 
-  public function existeTramiteAIniciarConPrecheck($persona){
-    $encontrado = TramitesAIniciar::select('tramites_a_iniciar.*')
-                    ->leftjoin('tramites','tramites.tramite_id','tramites_a_iniciar.tramite_dgevyl_id')
-                    ->join('ansv_paises','ansv_paises.id_ansv','tramites_a_iniciar.nacionalidad')
-                    ->where('ansv_paises.id_dgevyl',$persona->pais)
-                    ->where('tramites_a_iniciar.nro_doc',$persona->nro_doc)
-                    ->where('tramites_a_iniciar.tipo_doc',$persona->tipo_doc)
-                    ->where('tramites_a_iniciar.estado', '!=','8')
-                    ->where(function ($query) {
-                        $query->where('tramites.estado', '93')
-                            ->orWhereNull('tramites.estado');
-                    })
-                    ->orderBy('tramites_a_iniciar.created_at','DESC')
-                    ->first();                
-    return $encontrado;
+  public function existeTramiteAIniciarConPrecheck($nro_doc, $tipo_doc, $nacionalidad){
+    $existe = TramitesAIniciar::orderBy('id','desc')
+                    ->where('nacionalidad',$nacionalidad)
+                    ->where('nro_doc',$nro_doc)
+                    ->where('tipo_doc',$tipo_doc)
+                    ->where('estado', '!=', TURNO_VENCIDO)
+                    ->whereNull('tramite_dgevyl_id')
+                    ->first();      
+    return $existe;
   }
 
   public function eliminarVinculosEnTramitesHabilitados($turno_id, $tramite_id){
@@ -210,19 +205,34 @@ class TramitesAInicarController extends Controller
    * MicroservicioController: 1) Metodos asociados para completarTurnosEnTramitesAIniciar
    */
   public function completarTurnosEnTramitesAIniciar($siguienteEstado){
-    $turnos = $this->getTurnos($this->fecha_inicio, $this->fecha_fin);
-
+    $turnos = $this->getTurnos($this->fecha_inicio, $this->fecha_fin);    
     foreach ($turnos as $key => $turno) {
       try{
 
         if(empty(TramitesAIniciar::where('sigeci_idcita', $turno->idcita)->first()))
-          $this->guardarTurnoEnTramitesAInicar($turno, $siguienteEstado);
-
+          if(!$this->asignarTurnoEnTramitesAIniciar($turno))
+            $this->guardarTurnoEnTramitesAInicar($turno, $siguienteEstado);
+            
 		  }catch(\Exception $e){
         $array = array('error' => $e->getMessage()." IDCITA: ".$turno->idcita, 'request' => "",'response' => "");
         $this->guardarError((object)$array, $siguienteEstado, 1);
 		  }
     }
+  }
+
+  public function asignarTurnoEnTramitesAIniciar($turno){
+    $tipo_doc = $turno->tipoDocLicta();
+    $nacionalidad = $this->getIdPais($turno->nacionalidad());
+    $tramiteAIniciar = $this->existeTramiteAIniciarConPrecheck($turno->numdoc, $tipo_doc, $nacionalidad);
+    
+    if($tramiteAIniciar){
+      $tramiteAIniciar->sigeci_idcita = $turno->idcita;
+      $tramiteAIniciar->save();
+      $turno->tramite_a_iniciar_id = $tramiteAIniciar->id;
+      $turno->save();
+      return true;
+    }
+    return false;
   }
 
   public function getTurnos($fecha_inicio, $fecha_fin){
@@ -695,8 +705,10 @@ class TramitesAInicarController extends Controller
   public function revisarValidaciones($siguienteEstado){
     $validaciones = \DB::table('validaciones_precheck')
                   ->select('validaciones_precheck.tramite_a_iniciar_id')  
-                  ->join('sigeci', 'sigeci.tramite_a_iniciar_id', '=', 'validaciones_precheck.tramite_a_iniciar_id')
+                  ->join('tramites_a_iniciar', 'tramites_a_iniciar.id', '=', 'validaciones_precheck.tramite_a_iniciar_id')
+                  ->join('sigeci', 'sigeci.idcita', '=', 'tramites_a_iniciar.sigeci_idcita')
                   ->whereBetween('sigeci.fecha', [$this->fecha_inicio, $this->fecha_fin])
+                  ->whereNotIn('tramites_a_iniciar.estado',[VALIDACIONES_COMPLETAS, INICIO_EN_SINALIC, TURNO_VENCIDO])
                   ->groupBy('validaciones_precheck.tramite_a_iniciar_id')
                   ->get();
 
@@ -833,6 +845,7 @@ class TramitesAInicarController extends Controller
 
     if(isset($licencias->ConsultarLicenciasResult->LicenciaDTO)){
       $licencias = $licencias->ConsultarLicenciasResult->LicenciaDTO;
+
       if(count($licencias) == 1)
         return $licencias; //Retorna Una sola licencia
 
@@ -849,6 +862,7 @@ class TramitesAInicarController extends Controller
         }
       }
     }
+
     return $ultimaLicencia;
   }
 
@@ -1131,7 +1145,7 @@ class TramitesAInicarController extends Controller
       //26 dias atras
       $ini_date = date('Y-m-d', strtotime('-'.(DIAS_VALIDEZ_TURNO+11).' days', strtotime(date('Y-m-d'))));
 
-      $res = TramitesAIniciar::join('sigeci', 'tramites_a_iniciar.id', '=', 'sigeci.tramite_a_iniciar_id')
+      $res = TramitesAIniciar::join('sigeci', 'sigeci.idcita', '=', 'tramites_a_iniciar.sigeci_idcita')
                                   ->where('sigeci.fecha', '<=', $last_date)
                                   ->where('tramites_a_iniciar.estado', '!=', TURNO_VENCIDO)
                                   ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
