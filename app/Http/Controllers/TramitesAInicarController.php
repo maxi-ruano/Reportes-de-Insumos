@@ -768,8 +768,8 @@ class TramitesAInicarController extends Controller
                                   ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
                                   ->whereNull('tramites_a_iniciar.tramite_sinalic_id')
                                   ->where('tramites_a_iniciar.estado', $estadoActual)
+                                  ->whereBetween('sigeci.fecha', [$this->fecha_inicio, $this->fecha_fin])
                                   ->get();
-
     foreach ($tramites as $key => $tramite) {
       $this->asignarTipoTramiteAIniciar($tramite);
       $res = null;
@@ -849,7 +849,7 @@ class TramitesAInicarController extends Controller
     if(isset($licencias->ConsultarLicenciasResult->LicenciaDTO)){
       $licencias = $licencias->ConsultarLicenciasResult->LicenciaDTO;
 
-      if(count($licencias) == 1)
+      if(!is_array($licencias))
         return $licencias; //Retorna Una sola licencia
 
       foreach ($licencias as $key => $value) {
