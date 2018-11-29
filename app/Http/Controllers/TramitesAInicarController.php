@@ -755,6 +755,9 @@ class TramitesAInicarController extends Controller
   }
 
   public function enviarTramitesASinalic($estadoActual, $siguienteEstado){
+
+    $this->wsSinalic->iniciarSesion();
+
     if(is_null($this->wsSinalic->cliente))
       return "El Ws de Sinalic no responde, por favor revise la conexion, o contactese con Nacion";
 

@@ -15,8 +15,22 @@ class WsClienteSinalicController extends Controller
   var $numeroFormulario = 999;
 
   public function __construct(){
-      $this->createClienteSoap();
+
   }
+
+  public function iniciarSesion(){
+    \Log::info('['.date('h:i:s').'] '.'se procede a iniciarSesion() Sinalic URL: '.$this->url);
+    $res = null;
+    try {
+      if(is_null($this->cliente))
+        $this->createClienteSoap();
+
+    }catch(\Exception $e) {
+      ModoAutonomoLog::create(array('ws' => 'sinalic-abrir_sesion', 'description' => $e->getMessage()));
+    }
+    return $res;
+  }
+
 
   public function createClienteSoap(){
     try {
