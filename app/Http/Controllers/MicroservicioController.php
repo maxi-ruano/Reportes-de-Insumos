@@ -111,15 +111,4 @@ class MicroservicioController extends Controller
       }
       return $precheck;
     }
-
-    /*
-    public function runPrecheckHabilitados(){
-      $tramitesAIniciar = new TramitesAInicarController();
-      $habilitados =  \DB::table('tramites_habilitados')->whereNull('tramites_a_iniciar_id')->where('fecha',date('Y-m-d'))->get();
-      dd($habilitados);
-      foreach ($habilitados as $key => $habilitado) {
-        $tramitesAIniciar->iniciarTramiteEnPrecheck($habilitado);
-      }
-    }*/
-
 }

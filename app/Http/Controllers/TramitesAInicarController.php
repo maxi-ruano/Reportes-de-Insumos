@@ -116,10 +116,12 @@ class TramitesAInicarController extends Controller
   //Proceso utilizado en segundo plano mediante Queue
   public function iniciarTramiteEnPrecheck($t){
     $turno = TramitesHabilitados::find($t->id);
+    \Log::info('['.date('h:i:s').'] '.'se procede iniciarTramiteEnPrecheck(), '.$turno->id);
+
     $nacionalidad = AnsvPaises::where('id_dgevyl', $turno->pais)->first()->id_ansv;
     //Verificar si existe un precheck realizado recientemente para vincular con este tramite habilitado
     $tramiteAIniciar = $this->existeTramiteAIniciarConPrecheck($turno->nro_doc, $turno->tipo_doc, $nacionalidad);
-    if($tramiteAIniciar){
+    if(isset($tramiteAIniciar->id)){
         \Log::info('['.date('h:i:s').'] '.'se vincula con un tramiteAIniciar que existe, '.$turno->id);
         $turno->tramites_a_iniciar_id = $tramiteAIniciar->id;
         $turno->save();
@@ -155,7 +157,7 @@ class TramitesAInicarController extends Controller
         \Log::info('['.date('h:i:s').'] '.'> > > gestionarLibreDeuda() tramites_habilitado ID = '.$turno->id);
         $this->gestionarLibreDeuda($tramiteAIniciar, LIBRE_DEUDA, VALIDACIONES);
       }
-      
+
       if(!$this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,BUI)){
         \Log::info('['.date('h:i:s').'] '.'> > > gestionarBui('.BUI.') tramites_habilitado ID = '.$turno->id);
         $this->gestionarBui($tramiteAIniciar, BUI, VALIDACIONES);        

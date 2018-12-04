@@ -24,6 +24,8 @@ class TramitesHabilitadosController extends Controller
 
     public function __construct(){
         $this->centrosEmisores = new AnsvCelExpedidor();
+        //Iniciar precheck de los tramites que no iniciaron el dia de hoy
+        $this->verificarPrecheckHabilitados();
     }
     
     /**
@@ -33,7 +35,6 @@ class TramitesHabilitadosController extends Controller
      */
     public function index(Request $request)
     {
-        
         $fecha = isset($_GET['fecha'])?$_GET['fecha']:'';
 
         $data = TramitesHabilitados::selectRaw('tramites_habilitados.*, tramites_habilitados_observaciones.observacion, roles.name as rol')
@@ -408,5 +409,13 @@ class TramitesHabilitadosController extends Controller
 
         $motivos = \DB::table($tabla)->whereIn('role_id',$roles)->pluck('motivo_id')->toArray();
         return $motivos;
+    }
+
+    public function verificarPrecheckHabilitados(){
+        $turnos =  TramitesHabilitados::whereNull('tramites_a_iniciar_id')->where('fecha',date('Y-m-d'))->get();
+        foreach ($turnos as $key => $turno) {
+            //Crear registro en tramitesAIniciar y procesar el Precheck
+            ProcessPrecheck::dispatch($turno);
+        }
     }
 }

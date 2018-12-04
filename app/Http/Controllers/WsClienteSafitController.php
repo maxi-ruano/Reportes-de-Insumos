@@ -29,8 +29,7 @@ class WsClienteSafitController extends Controller
   }
 
   public function iniciarSesion(){
-    \Log::info('['.date('h:i:s').'] '.'se procede a iniciarSesion() URL: '.$this->url);
-    \Log::info('['.date('h:i:s').'] '.'se procede a iniciarSesion() '.$this->uswID.' | '.$this->uswPassword.' | '.$this->uswHash);
+    //\Log::info('['.date('h:i:s').'] '.'se procede a iniciarSesion() URL: '.$this->url);
     $res = null;
     try {
       if(is_null($this->cliente))
