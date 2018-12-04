@@ -114,7 +114,8 @@ class TramitesAInicarController extends Controller
   }
 
   //Proceso utilizado en segundo plano mediante Queue
-  public function iniciarTramiteEnPrecheck($turno){
+  public function iniciarTramiteEnPrecheck($t){
+    $turno = TramitesHabilitados::find($t->id);
     $nacionalidad = AnsvPaises::where('id_dgevyl', $turno->pais)->first()->id_ansv;
     //Verificar si existe un precheck realizado recientemente para vincular con este tramite habilitado
     $tramiteAIniciar = $this->existeTramiteAIniciarConPrecheck($turno->nro_doc, $turno->tipo_doc, $nacionalidad);
@@ -142,8 +143,7 @@ class TramitesAInicarController extends Controller
       $turno->save();
 
       //Crear registros en validaciones_precheck
-      if($saved)
-        $this->crearValidacionesPrecheck($tramiteAIniciar->id);
+      $this->crearValidacionesPrecheck($tramiteAIniciar->id);
         
     }
     
