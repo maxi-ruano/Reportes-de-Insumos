@@ -150,10 +150,12 @@ class PreCheckController extends Controller
 
         foreach ($errores as $key => $error){
           if($persona->idcita == $error->idcita){
+            $response_ws = json_decode($error->response_ws);
             $datos[$persona->idcita]['error'][] = array(
                           'validation_id' => $error->validation_id, 
                           'validation_nombre' => $error->validation_nombre, 
                           'description' => $error->description, 
+                          'error_id' => isset($response_ws->rspID)?$response_ws->rspID:null, 
                           'created_at' => $error->created_at);
           }
         }
@@ -178,6 +180,7 @@ class PreCheckController extends Controller
                   validaciones_precheck.validation_id,
                   MAX(sys_multivalue.description) as validation_nombre,
                   MAX(tramites_a_iniciar_errores.description) as description, 
+                  MAX(tramites_a_iniciar_errores.response_ws) as response_ws, 
                   MAX(tramites_a_iniciar_errores.created_at) as created_at ";
 
       $table = "FROM tramites_a_iniciar_errores 
