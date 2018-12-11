@@ -19,11 +19,31 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $result = User::latest()->paginate(10);
+        $users = User::latest();
         
-        return view('user.index', compact('result'));
+        if(isset($request->search))
+            $users = $users->where(function($query) use ($request) {
+                        $query->where('name', 'iLIKE', '%'. $request->search .'%')
+                            ->orWhere('email', 'iLIKE', '%'. $request->search .'%');
+                    });
+        
+        if(isset($request->sucursal))
+            $users = $users->where('sucursal',$request->sucursal);
+                    
+        $result = $users->paginate(10);
+
+        if(count($result)){
+            foreach ($result as $key => $value) {
+                $value->sucursal = User::find($value->id)->sucursalTexto();
+            }
+        }
+
+        $SysMultivalue = new SysMultivalue();        
+        $sucursales = $SysMultivalue->sucursales();
+        
+        return view('user.index', compact('result','sucursales'));
     }
 
     /**
@@ -196,5 +216,11 @@ class UserController extends Controller
         $user->syncRoles($roles);
 
         return $user;
+    }
+
+    public function activar(Request $request)
+    {
+        $sql = User::where("id",$request->id)->update(array('activo' => $request->activo));
+        return $sql;
     }
 }

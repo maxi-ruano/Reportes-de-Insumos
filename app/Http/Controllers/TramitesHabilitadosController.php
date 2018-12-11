@@ -24,8 +24,8 @@ class TramitesHabilitadosController extends Controller
 
     public function __construct(){
         $this->centrosEmisores = new AnsvCelExpedidor();
-        //Iniciar precheck de los tramites que no iniciaron el dia de hoy
-        $this->verificarPrecheckHabilitados();
+        //Iniciar precheck de los tramites que no iniciaron el dia de hoy --PAUSADO Colapsa el demonio Queque
+        //$this->verificarPrecheckHabilitados();
     }
     
     /**
@@ -43,13 +43,16 @@ class TramitesHabilitadosController extends Controller
                     ->leftjoin('roles','roles.id','model_has_roles.role_id')
                     ->whereIn('tramites_habilitados.motivo_id', $this->getRoleMotivos('role_motivos_lis'))
                     ->where(function($query) use ($request) {
-                        $query->where('nombre', 'LIKE', '%'. strtoupper($request->search) .'%')
-                            ->orWhere('apellido', 'LIKE', '%'. strtoupper($request->search) .'%')
-                            ->orWhereRaw("CAST(nro_doc AS text) LIKE '%$request->search%' ");
+                        $query->where('nombre', 'iLIKE', '%'. $request->search .'%')
+                            ->orWhere('apellido', 'iLIKE', '%'. $request->search .'%')
+                            ->orWhereRaw("CAST(nro_doc AS text) iLIKE '%$request->search%' ");
                     })
                     ->orderBy('tramites_habilitados.updated_at','desc');
         if($fecha)
             $data = $data->where('fecha',$fecha);
+        
+        if(isset($request->sucursal))
+            $data = $data->where('sucursal',$request->sucursal);
                     
         //Verificar si tiene permisos para filtrar solo los que registro
         $user = Auth::user();
@@ -59,8 +62,10 @@ class TramitesHabilitadosController extends Controller
         if($user->hasPermissionTo('view_sede_tramites_habilitados'))
             $data = $data->where('sucursal',$user->sucursal);
         
+        //Finalizar Query con el Paginador
         $data = $data->paginate(10);
-
+        
+        //Se reemplaza id por texto de cada tabla relacionada
         if(count($data)){
             foreach ($data as $key => $value) {
                 $buscar = TramitesHabilitados::find($value->id);
@@ -73,8 +78,14 @@ class TramitesHabilitadosController extends Controller
                 $value->fecha = date('d-m-Y', strtotime($value->fecha));
             }
         }
+
+        //Se envia listado d elas Sucursales para el select del buscar
+        $SysMultivalue = new SysMultivalue();        
+        $sucursales = $SysMultivalue->sucursales();
+
         return view($this->path.'.index')->with('data', $data)
-                                         ->with('centrosEmisores', $this->centrosEmisores->getCentrosEmisores());
+                                         ->with('centrosEmisores', $this->centrosEmisores->getCentrosEmisores())
+                                         ->with('sucursales', $sucursales);
     }
 
     /**
@@ -411,11 +422,14 @@ class TramitesHabilitadosController extends Controller
         return $motivos;
     }
 
+    /*
+    //Comentado porque de tantos llamas se colapsa colocandolos en cola en la tabla jobs 
+    //Se envia masivamente los turnos que no ha inciado a procesar Precheck con el queque (Demonio)
     public function verificarPrecheckHabilitados(){
         $turnos =  TramitesHabilitados::whereNull('tramites_a_iniciar_id')->where('fecha',date('Y-m-d'))->get();
         foreach ($turnos as $key => $turno) {
             //Crear registro en tramitesAIniciar y procesar el Precheck
             ProcessPrecheck::dispatch($turno);
         }
-    }
+    }*/
 }

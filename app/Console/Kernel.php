@@ -34,9 +34,9 @@ class Kernel extends ConsoleKernel
         //$schedule->call('App\Http\Controllers\MicroservicioController@emitirBoletasVirtualPago')->weekdays()->at('15:34');//Obtener Certificado Virtual Cenat
         $schedule->call('App\Http\Controllers\MicroservicioController@verificarBuiTramites')->weekdays()->at('15:35');//Bui
 
-	$schedule->call('App\Http\Controllers\MicroservicioController@emitirBoletasVirtualPago')->weekdays()->at('17:00');//Obtener Certificado Virtual Cenat
-	$schedule->call('App\Http\Controllers\MicroservicioController@revisarValidaciones')->weekdays()->at('17:40');//Validaciones Completas
-        $schedule->call('App\Http\Controllers\MicroservicioController@enviarTramitesASinalic')->weekdays()->at('18:00');//Turnos a Enviar a Sinalic
+	    $schedule->call('App\Http\Controllers\MicroservicioController@emitirBoletasVirtualPago')->weekdays()->at('17:00');//Obtener Certificado Virtual Cenat
+	    $schedule->call('App\Http\Controllers\MicroservicioController@revisarValidaciones')->weekdays()->at('17:40');//Validaciones Completas
+        //$schedule->call('App\Http\Controllers\MicroservicioController@enviarTramitesASinalic')->weekdays()->at('18:00');//Turnos a Enviar a Sinalic
         //FIN PRECHECK
     }
 

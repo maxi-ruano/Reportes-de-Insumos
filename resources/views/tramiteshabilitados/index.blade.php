@@ -11,6 +11,7 @@
                 <input type="text" class="form-control" name="search" placeholder="Buscar..." value="{{ Request::get('search') }}">
                 <span class="input-group-btn">
                     <input type="date" class="form-control" name="fecha" id="fecha" value={{ isset($_GET['fecha'])?$_GET['fecha']:'' }}>
+                    {!! Form::select('sucursal', $sucursales, null , ['class' => 'form-control', 'placeholder' => 'Todas las Sucursales']) !!}                
                     <button id="buscar" class="btn btn-default-sm" type="submit"><i class="fa fa-search"></i></button>
                 </span>
             </div>
@@ -96,7 +97,7 @@
                     </td>
                     @endcan
                     <td>
-                        <button type="button" onclick="cargarDatosPrecheck({{ $row->tramites_a_iniciar_id }})" class="btn btn-info btn-xs" data-toggle="modal" data-target="#modal-precheck">
+                        <button type="button" onclick="mostrarPrecheck({{ $row->tramites_a_iniciar_id }})" class="btn btn-info btn-xs" data-toggle="modal" data-target="#modal-precheck">
                             <i class="glyphicon glyphicon-check"></i> Precheck
                         </button>
                     </td>
@@ -191,10 +192,12 @@
             clearTimeout(recargarPagina);
             console.log('se detuvo')
         }
+        
+        //Mostrar el Precheck realizado del tramites_a_iniciar_id
+        function mostrarPrecheck(id){            
+            detenerRegargarPagina();
+            getPreCheck(id);
 
-        function cargarDatosPrecheck(id){
-            detenerRegargarPagina()
-            getPreCheck(id)
         }
 
     </script>

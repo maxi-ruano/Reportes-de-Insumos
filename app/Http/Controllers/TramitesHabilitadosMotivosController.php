@@ -18,7 +18,7 @@ class TramitesHabilitadosMotivosController extends Controller
     public function index(Request $request)
     {
         $data = TramitesHabilitadosMotivos::orderBy('id','asc')
-                    ->where('description', 'LIKE', '%'. strtoupper($request->search) .'%')
+                    ->where('description', 'iLIKE', '%'. $request->search .'%')
                     ->paginate(10);
 
         return view('motivos.index')->with('data', $data);                                         ;
