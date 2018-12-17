@@ -62,7 +62,10 @@ class UserController extends Controller
         $SysMultivalue = new SysMultivalue();        
         $sucursales = $SysMultivalue->sucursales();
 
-        return view('user.new', compact('roles','sucursales'));
+        $userModel = new User();       
+        $sys_users = $userModel->usersLicta();
+
+        return view('user.new', compact('roles','sucursales','sys_users'));
     }
 
     /**
@@ -124,7 +127,10 @@ class UserController extends Controller
         $SysMultivalue = new SysMultivalue();        
         $sucursales = $SysMultivalue->sucursales();
 
-        return view('user.edit', compact('user', 'roles', 'permissions','sucursales'));
+        $userModel = new User();       
+        $sys_users = $userModel->usersLicta();
+
+        return view('user.edit', compact('user', 'roles', 'permissions','sucursales','sys_users'));
     }
 
     /**
@@ -149,6 +155,9 @@ class UserController extends Controller
         // Update user
         $user->fill($request->except('roles', 'permissions', 'password'));
         $user->sucursal = $request->get('sucursal');
+        
+        if($request->get('sys_user_id'))
+            $user->sys_user_id = $request->get('sys_user_id');
 
         // check for password change
         if($request->get('password')) {

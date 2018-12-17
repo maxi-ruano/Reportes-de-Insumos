@@ -37,3 +37,11 @@
 @if(isset($user))
     @include('shared._permissions', ['closed' => 'true', 'model' => $user ])
 @endif
+
+
+<!-- Asociar al usuario de Licta  -->
+<div class="form-group @if ($errors->has('sys_user_id')) has-error @endif">
+    {!! Form::label('sys_user_id', 'Deseas asociar al usuario de LICTA') !!}
+    {!! Form::select('sys_user_id', $sys_users, isset($user) ? $user->sys_user_id : null,  ['class' => 'form-control', 'placeholder' => 'Seleccione']) !!}
+    @if ($errors->has('sys_user_id')) <p class="help-block">{{ $errors->first('sys_user_id') }}</p> @endif
+</div>
