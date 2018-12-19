@@ -23,6 +23,85 @@ class PreCheckController extends Controller
     $this->crearConstantes(); //Esta funcion deberia ejecutarse desde Controllers pero se vuelve a ajecutar porq no reconocia las constants
   }
 
+  /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+  public function index(Request $request)
+  {
+      $tramites = '';
+      $precheck = '';
+      $tramite_a_iniciar_id = ''; 
+
+      if(isset($request->nro_doc)){
+        //Buscar en tramites a iniciar y mostrar toda la informacion basica 
+        $tramites = TramitesAIniciar::selectRaw('tramites_a_iniciar.*, sigeci.fecha as sigeci_fecha, tramites_habilitados.fecha as sath_fecha, tramites.fec_emision, tramites.fec_vencimiento')
+                    ->leftjoin('tramites_habilitados','tramites_habilitados.tramites_a_iniciar_id','tramites_a_iniciar.id')
+                    ->leftjoin('sigeci','sigeci.idcita','tramites_a_iniciar.sigeci_idcita')
+                    ->leftjoin('tramites','tramites.tramite_id','tramites_a_iniciar.tramite_dgevyl_id')
+                    ->where('tramites_a_iniciar.nro_doc',$request->nro_doc)
+                    ->where('tramites_a_iniciar.estado','!=',TURNO_VENCIDO)
+                    ->orderBy('tramites_a_iniciar.id','DESC')
+                    ->get();
+
+        if(count($tramites)){
+          foreach ($tramites as $key => $value) {
+            $buscar = TramitesAIniciar::find($value->id);
+            $value->nacionalidad = $buscar->nacionalidadTexto();
+            $value->tipo_doc = $buscar->tipoDocText();
+            $value->sigeci_fecha = ($value->sigeci_fecha) ? date('d-m-Y', strtotime($value->sigeci_fecha)) : '';
+            $value->sath_fecha = ($value->sath_fecha) ? date('d-m-Y', strtotime($value->sath_fecha)) : '';
+            $value->fec_emision = ($value->fec_emision) ? date('d-m-Y', strtotime($value->fec_emision)) : '';
+            $value->fec_vencimiento = ($value->fec_vencimiento) ? date('d-m-Y', strtotime($value->fec_vencimiento)) : '';
+
+            //Si contiene un solo Precheck seleccionamos para visualizar validaciones
+            if(count($tramites) == 1)
+              $tramite_a_iniciar_id = $value->id;
+          }
+        }
+        
+      }
+
+      //Si existe en el request  un tramite a iniciar seleccionado para mostrar sus validaciones
+      if(isset($request->id))
+        $tramite_a_iniciar_id = $request->id;
+
+      //Buscar en validaciones_precheck
+      if($tramite_a_iniciar_id)
+        $precheck =  \DB::table('validaciones_precheck')
+                            ->selectRaw('validaciones_precheck.*, sys_multivalue.description, tramites_a_iniciar.tramite_dgevyl_id')
+                            ->join('tramites_a_iniciar', 'tramites_a_iniciar.id', 'validaciones_precheck.tramite_a_iniciar_id')
+                            ->join('sys_multivalue', 'sys_multivalue.id', 'validaciones_precheck.validation_id')
+                            ->where('sys_multivalue.type', 'VALP')
+                            ->where('tramite_a_iniciar_id',$tramite_a_iniciar_id)
+                            ->get();
+      
+      $centrosEmisores = $this->centrosEmisores->getCentrosEmisores();
+
+      return view('precheck.index', compact('tramites','precheck','centrosEmisores'));
+  }
+
+  /**
+     * Remove the specified resource from storage.
+     * Si se desea anular un precheck, borrando el comprobante para que en Licta lo coloquen manual
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function anular(Request $request)
+    {
+        try{
+            $anular = \DB::table('validaciones_precheck')->where('id',$request->id)
+                ->update(array('validado' => false, 'comprobante' => null));
+            return $anular;
+        }
+        catch(Exception $e){   
+            return "Fatal error - ".$e->getMessage();
+        }
+    }
+
+
+
   public function checkPreCheck(){
     $paises = SysMultivalue::where('type','PAIS')->orderBy('description', 'asc')->pluck('description', 'id');
     $tdoc = SysMultivalue::where('type','TDOC')->orderBy('id', 'asc')->pluck('description', 'id');

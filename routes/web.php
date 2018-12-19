@@ -49,6 +49,9 @@ Route::get('consultaTurnosEnEsperaPorSucursal', ['uses' => 'DashboardController@
 Route::get('run', 'MicroservicioController@run');
 Route::get('runPrecheck','MicroservicioController@runPrecheck')->name('runPrecheck');
 Route::get('generarCenatPrecheck','TramitesAInicarController@generarCenatPrecheck')->name('generarCenatPrecheck');
+
+Route::resource('precheck', 'PreCheckController');
+Route::get('anularPreCheck','PreCheckController@anular')->name('anular');
 //end PRECHECK
 
 Route::post('rendir_examen',['uses' => 'EtlExamenPreguntaController@getPreguntasExamen','as' => 'rendir_examen']);

@@ -24,6 +24,13 @@
           <span class="fa fa-chevron-right"></span></a>
         </li>
         @endcan
+       
+        @role('Admin')
+        <li><a href="{{ route('precheck.index') }}">
+          <i class="fa fa-edit"></i> Modificaciones del Sistema
+          <span class="fa fa-chevron-right"></span></a>
+        </li>
+        @endrole
 
         @can('view_users')
         <li><a href="{{ route('users.index') }}">
