@@ -14,7 +14,7 @@
             @include('precheck.anularComprobante') 
         </div>
         <div role="tabpanel" class="tab-pane" id="tabExamen"> 
-            <!-- @include('examen.anularExamen')  -->
+            @include('examen.anularExamen')
         </div>
     </div>
 </div>

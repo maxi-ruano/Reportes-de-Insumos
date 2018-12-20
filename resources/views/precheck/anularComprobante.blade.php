@@ -1,6 +1,7 @@
 <div id="divBuscarPrecheck" class="row">
     <div class="col-sm-12 col-xs-12">
         {!! Form::open(['method'=>'GET','url'=>'precheck','class'=>'navbar-form navbar-left','role'=>'search'])  !!}
+        Número de Documento: <br>
         <div class="input-group">
             <input type="text" class="form-control" id="nro_doc" name="nro_doc" placeholder="Buscar..." value="{{ Request::get('nro_doc') }}">
             <span class="input-group-btn">

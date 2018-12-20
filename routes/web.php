@@ -54,6 +54,9 @@ Route::resource('precheck', 'PreCheckController');
 Route::get('anularPreCheck','PreCheckController@anular')->name('anular');
 //end PRECHECK
 
+Route::get('listado_examenes','EtlExamenController@getExamenes')->name('getExamenes');
+Route::get('anular_examen','EtlExamenController@anular')->name('anular');
+
 Route::post('rendir_examen',['uses' => 'EtlExamenPreguntaController@getPreguntasExamen','as' => 'rendir_examen']);
 Route::get('guardar_respuesta',['uses' => 'EtlExamenPreguntaController@guardarRespuesta','as' => 'guardaRespuesta']);
 Route::post('finalizar_examen',['uses' => 'EtlExamenController@calcularYGuardarResultado','as' => 'finalizar_examen']);

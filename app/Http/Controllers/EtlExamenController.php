@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Tramites;
 use App\EtlExamen;
 use App\EtlPreguntaRespuesta;
 use App\EtlExamenPregunta;
@@ -94,6 +95,39 @@ class EtlExamenController extends Controller
     {
         //
     }
+
+    public function anular(Request $request)
+    {
+        $sql = EtlExamen::where("etl_examen_id",$request->id)->update(array('anulado' => $request->anulado));
+        return $sql;
+    }
+
+    public function getExamenes(Request $request)
+    {
+        $tramite = Tramites::where('tramites.tramite_id', $request->tramite_id)
+                            ->join('datos_personales',function($join) {
+                                $join->on('datos_personales.nro_doc', '=', 'tramites.nro_doc');
+                                $join->on('datos_personales.tipo_doc', '=', 'tramites.tipo_doc');
+                                $join->on('datos_personales.sexo', '=', 'tramites.sexo');
+                            })
+                            ->first();
+        $tramite->fec_inicio = date('d-m-Y h:m:s', strtotime($tramite->fec_inicio));
+        $tramite->estado = $tramite->estado;
+        
+        $examenes = EtlExamen::where('etl_examen.tramite_id', $request->tramite_id)
+                            ->orderby('etl_examen.etl_examen_id')
+                            ->get();
+
+        if(count($examenes)){
+            foreach ($examenes as $key => $examen) {
+              $buscar = EtlExamen::find($examen->etl_examen_id);
+              $examen->fecha_inicio = ($examen->fecha_inicio) ? date('d-m-Y h:m:s', strtotime($examen->fecha_inicio)) : '';
+              $examen->fecha_fin = ($examen->fecha_fin) ? date('d-m-Y h:m:s', strtotime($examen->fecha_fin)) : '';
+            }
+        }
+        return array( 'tramite' =>$tramite, 'examenes' => $examenes);
+    }
+
 
 
     public function guardar_respuesta(Request $request)
