@@ -8,6 +8,7 @@
     <ul class="nav nav-tabs" role="tablist">
         <li role="presentation" class="active"><a href="#tabPrecheck" aria-controls="tabPrecheck" role="tab" data-toggle="tab">Precheck Comprobantes</a></li>
         <li role="presentation"><a href="#tabExamen" aria-controls="tabExamen" role="tab" data-toggle="tab"> Examen Teorico</a></li>
+        <li role="presentation"><a href="#tabTeoricoPc" aria-controls="tabTeoricoPc" role="tab" data-toggle="tab"> Teorico PCs</a></li>
     </ul>
     <div class="tab-content">
         <div role="tabpanel" class="tab-pane active" id="tabPrecheck"> 
@@ -15,6 +16,9 @@
         </div>
         <div role="tabpanel" class="tab-pane" id="tabExamen"> 
             @include('examen.anularExamen')
+        </div>
+        <div role="tabpanel" class="tab-pane" id="tabTeoricoPc"> 
+            @include('teoricopc.index')
         </div>
     </div>
 </div>

@@ -62,6 +62,10 @@ Route::get('guardar_respuesta',['uses' => 'EtlExamenPreguntaController@guardarRe
 Route::post('finalizar_examen',['uses' => 'EtlExamenController@calcularYGuardarResultado','as' => 'finalizar_examen']);
 // Route::get('/address/{id}/destroy',['uses' => 'AddressesController@destroy','as' => 'sysfile.addresses.destroy']);
 
+Route::get('listado_teoicopc','TeoricoPcController@getTeoricoPc')->name('getTeoricoPc');
+Route::get('cambiarPcTeorico','TeoricoPcController@cambiarPcTeorico')->name('cambiarPcTeorico');
+Route::get('desactivarPcTeorico','TeoricoPcController@desactivarPcTeorico')->name('desactivarPcTeorico');
+
 //SAFIT
 Route::get('buscarBoletaPago', 'TramitesAInicarController@buscarBoletaPago');
 Route::post('consultarCenat',['uses' => 'TramitesAInicarController@consultarCenat','as' => 'consultarCenat']);

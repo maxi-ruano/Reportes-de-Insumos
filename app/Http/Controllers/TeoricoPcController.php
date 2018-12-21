@@ -20,6 +20,7 @@ class TeoricoPcController extends Controller
     {
         $teoricopc = TeoricoPc::all();
         dd($teoricopc);
+
     }
 
     /**
@@ -111,6 +112,31 @@ class TeoricoPcController extends Controller
     {
         //
     }
+
+    public function getTeoricoPc(Request $request)
+    {
+        $teoricopc = TeoricoPc::where("sucursal_id",$request->sucursal)
+                            ->where("estado",1)
+                            ->where("activo",$request->activo)
+                            ->orderby('id')
+                            ->get();
+        return $teoricopc;
+    }
+
+    public function desactivarPcTeorico(Request $request)
+    {
+        $desacitivar_pc = TeoricoPc::where("id",$request->pc_id)->update(array('activo' => false));
+        return $desacitivar_pc;
+    }
+
+    public function cambiarPcTeorico(Request $request)
+    {
+        $moverExamen = TeoricoPc::where("id",$request->pc_disponible)->update(array('activo' => true, 'examen_id' => $request->examen_id));
+        if($moverExamen)
+            $desacitivar_pc = TeoricoPc::where("id",$request->pc_id)->update(array('activo' => false));
+        return $moverExamen;
+    }
+    
 
     public function isActive(Request $request) {
       $ip = ip2long($request->ip());

@@ -78,8 +78,11 @@ class PreCheckController extends Controller
                             ->get();
       
       $centrosEmisores = $this->centrosEmisores->getCentrosEmisores();
+      //Se envia listado d elas Sucursales para el select del buscar
+      $SysMultivalue = new SysMultivalue();        
+      $sucursales = $SysMultivalue->sucursales();
 
-      return view('precheck.index', compact('tramites','precheck','centrosEmisores'));
+      return view('precheck.index', compact('tramites','precheck','centrosEmisores','sucursales'));
   }
 
   /**
