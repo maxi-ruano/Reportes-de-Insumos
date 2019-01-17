@@ -233,11 +233,25 @@ class PreCheckController extends Controller
         foreach ($errores as $key => $error){
           if($persona->idcita == $error->idcita){
             $response_ws = json_decode($error->response_ws);
+            
+            //Se asigna ID error para el clasificar e informar al vecino correctamente (solo uso externo)
+            $rspID = ($error->description == 'No existe ninguna boleta valida para esta persona')? '2':isset($response_ws->rspID)?$response_ws->rspID:null;            
+            //Libre Deuda
+            if($error->validation_id == '4'){
+              $rspID = null;
+              if(strpos($error->description,'Existen actas pendientes'))
+                $rspID = '1';
+              if(strpos($error->description,'documento erróneo'))
+                $rspID = '2';
+              if(strpos($error->description,'plan de pagos'))
+                $rspID = '3';
+            }
+
             $datos[$persona->idcita]['error'][] = array(
                           'validation_id' => $error->validation_id, 
                           'validation_nombre' => $error->validation_nombre, 
                           'description' => $error->description, 
-                          'error_id' => isset($response_ws->rspID)?$response_ws->rspID:null, 
+                          'error_id' => $rspID, 
                           'created_at' => $error->created_at);
           }
         }
@@ -277,6 +291,8 @@ class PreCheckController extends Controller
                           validaciones_precheck.validation_id = 3 and validaciones_precheck.validado = false
                         LEFT JOIN sys_multivalue ON sys_multivalue.id = validaciones_precheck.validation_id AND sys_multivalue.type = 'VALP'
                       WHERE sigeci.fecha = '".$fecha."' and tramites_a_iniciar_errores.estado_error IN('2','3') and tramites_a_iniciar_errores.response_ws <> '\"\"'
+                        AND tramites_a_iniciar_errores.response_ws like '%rspID%'
+                        AND tramites_a_iniciar_errores.description not like '%demorado%'
                       GROUP BY tramites_a_iniciar.tipo_doc, tramites_a_iniciar.nro_doc, sigeci_idcita,  tramites_a_iniciar_errores.tramites_a_iniciar_id, validaciones_precheck.validation_id
                       ORDER BY sigeci_idcita ASC ");
 
@@ -285,7 +301,8 @@ class PreCheckController extends Controller
                         INNER JOIN validaciones_precheck ON validaciones_precheck.tramite_a_iniciar_id = tramites_a_iniciar.id and 
                           validaciones_precheck.validation_id = tramites_a_iniciar_errores.estado_error and validaciones_precheck.validado = false
                         LEFT JOIN sys_multivalue ON sys_multivalue.id = validaciones_precheck.validation_id AND sys_multivalue.type = 'VALP'
-                      WHERE sigeci.fecha = '".$fecha."' and tramites_a_iniciar_errores.estado_error IN('4','5') and tramites_a_iniciar_errores.response_ws <> '\"\"'
+                      WHERE sigeci.fecha = '".$fecha."' and tramites_a_iniciar_errores.estado_error IN('4') and tramites_a_iniciar_errores.response_ws <> '\"\"'
+                        AND tramites_a_iniciar_errores.description not like 'ERROR%'
                       GROUP BY tramites_a_iniciar.tipo_doc, tramites_a_iniciar.nro_doc, sigeci_idcita, tramites_a_iniciar_errores.tramites_a_iniciar_id, validaciones_precheck.validation_id, tramites_a_iniciar_errores.estado_error
                       ORDER BY sigeci_idcita ASC, tramites_a_iniciar_errores.estado_error ASC ");
 
