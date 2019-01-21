@@ -42,7 +42,7 @@ function iniciarTimeout (){
     var fecha = $("#fecha").val();
 
     if(fecha == actual)
-        myTimeout = setTimeout(reload, 60000);
+        myTimeout = setTimeout(reload, 30000);
 }
 
 function init_charts() {
