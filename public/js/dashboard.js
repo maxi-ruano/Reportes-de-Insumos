@@ -263,20 +263,10 @@ function init_charts() {
     };
 
     //echart Donut
-    if ($('#echart_sedeRoca').length ){
+    /*if ($('#echart_sedeRoca').length ){
         
         var fecha = $("#fecha").val();
-        var sucursales = [];
         var elementId = '';
-
-        //Obtener sucursales
-        $.ajax({
-            url: '/api/funciones/obtenerSucursales',
-            type: "POST", dataType: "json",
-            success: function(ret){
-               sucursales = ret;
-            }
-        });
 
         //Generar Primer Grafico de forma circula de la sucursal Roca
         $.ajax({
@@ -291,7 +281,21 @@ function init_charts() {
                 var err = eval("(" + xhr.responseText + ")");
             }
         });
-        
+    
+    }*/
+
+    if ($('#echart_sedes').length ){
+        var fecha = $("#fecha").val();      
+        var sucursales = [];
+        //Obtener sucursales
+        $.ajax({
+            url: '/api/funciones/obtenerSucursales',
+            type: "POST", dataType: "json",
+            success: function(ret){
+               sucursales = ret;
+            }
+        });
+
         //Generar Grafico detallado por sucursal
         $.ajax({
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
@@ -300,31 +304,6 @@ function init_charts() {
             type: "GET", 
             success: function(datos){
                 //Solo para manejar los datos de forma manual ---Pierre
-               /* var datos = [
-                    {sucursal_id: 1, estacion_id: 2, estacion: "Fotografia", cant: 4},
-                    {sucursal_id: 1, estacion_id: 3, estacion: "Vision", cant: 1},
-                    {sucursal_id: 1, estacion_id: 4, estacion: "Audio", cant: 2},
-                    {sucursal_id: 1, estacion_id: 5, estacion: "Psicologia", cant: 11},
-                    {sucursal_id: 1, estacion_id: 6, estacion: "Medico", cant:5},
-                    {sucursal_id: 1, estacion_id: 12, estacion: "Auditoría", cant: 6},
-                    {sucursal_id: 1, estacion_id: 13, estacion: "Impresion", cant: 8},
-
-                    {sucursal_id: 10, estacion_id: 2, estacion: "Fotografia", cant: 9},
-                    {sucursal_id: 10, estacion_id: 3, estacion: "Vision", cant: 5},
-                    {sucursal_id: 10, estacion_id: 4, estacion: "Audio", cant: 6},
-                    {sucursal_id: 10, estacion_id: 5, estacion: "Psicologia", cant: 11},
-                    {sucursal_id: 10, estacion_id: 6, estacion: "Medico", cant: 4},
-                    {sucursal_id: 10, estacion_id: 12, estacion: "Auditoría", cant:3},
-                    {sucursal_id: 10, estacion_id: 13, estacion: "Impresion", cant: 2},
-
-                    {sucursal_id: 40, estacion_id: 2, estacion: "Fotografia", cant: 4},
-                    {sucursal_id: 40, estacion_id: 3, estacion: "Vision", cant: 13},
-                    {sucursal_id: 40, estacion_id: 4, estacion: "Audio", cant: 11},
-                    {sucursal_id: 40, estacion_id: 5, estacion: "Psicologia", cant: 17},
-                    {sucursal_id: 40, estacion_id: 6, estacion: "Medico", cant: 12},
-                    {sucursal_id: 40, estacion_id: 12, estacion: "Auditoría", cant: 15},
-                    {sucursal_id: 40, estacion_id: 13, estacion: "Impresion", cant: 6}
-                ];*/
                 generarGraficoSucursales('echart_sedes',datos,sucursales);
             }
         });
@@ -415,10 +394,6 @@ function init_charts() {
         //Obtener la descripcion de las estaciones que se generaron en datos
         var hours = [...(new Set(datos.map(({ estacion }) => estacion)))];
 
-        //Ingresar datos manualmente
-        //var hours = ['Fotográfia','Visión','Audio','Psicología','Médico','Auditoria','Impresion'];
-        
-
         option = {
             title: [],
             singleAxis: [],
@@ -426,18 +401,19 @@ function init_charts() {
         };
 
         echarts.util.each(days, function (day, idx) {
+            //Configurar titulos de sucursales
             option.title.push({
                 textBaseline: 'middle',
                 top: (idx + 0.8) * 97 / days.length + '%',
                 text: day,
                 textStyle:{
                     fontWeight:'bold',
-                    fontSize:'14'
+                    fontSize:'18'
                             
                 }
             });
             option.singleAxis.push({
-                left: 110,
+                left: 130,
                 type: 'category',
                 boundaryGap: true,
                 data: hours,
@@ -453,18 +429,18 @@ function init_charts() {
                 //type: 'scatter',
                 type: 'effectScatter',
                 rippleEffect:{
-                    scale:1.5
+                    scale:2
                 },
-                //symbol:'pin',
-                //symbolOffset:[0,'10%'],
-                //showEffectOn: 'emphasis',
+                /*symbol:'pin',
+                symbolOffset:[0,'10%'],
+                showEffectOn: 'emphasis',*/
                 data: [],
                 itemStyle: {
                     normal: {
                         label:{
                             textStyle:{
                                 fontWeight:'bold',
-                                fontSize:16
+                                fontSize:30
                             },
                             show:true,
                             position: 'inside',
