@@ -764,7 +764,7 @@ class TramitesAInicarController extends Controller
       return "El Ws de Sinalic no responde, por favor revise la conexion, o contactese con Nacion";
 
     $SinalicWS_id_sede = explode(",",SinalicWS_id_sede);
-    $tramites = TramitesAIniciar::select("tramites_a_iniciar.*")
+    $tramites = TramitesAIniciar::selectRaw("tramites_a_iniciar.*, sigeci.sucroca as sucursal")
                                   ->join("sigeci","sigeci.idcita","tramites_a_iniciar.sigeci_idcita")
                                   ->whereIn('sigeci.sucroca',$SinalicWS_id_sede)
                                   ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')

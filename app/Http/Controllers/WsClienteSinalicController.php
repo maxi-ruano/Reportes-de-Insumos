@@ -94,7 +94,7 @@ class WsClienteSinalicController extends Controller
        array(
         "Apellido" => "$tramiteAInicar->apellido",
         "Nombre" => $tramiteAInicar->nombre,
-        "IdCelExpedidor" => AnsvCelExpedidor::where('safit_cem_id', $tramiteAInicar->cem_id)->first()->id_cel_expedidor,//$tramiteAInicar->getAnsvCelExpedidor(),
+        "IdCelExpedidor" => AnsvCelExpedidor::where('sucursal_id', $tramiteAInicar->sucursal)->first()->id_cel_expedidor,
         "NombreUsuario" => $this->nombreUsuario,
         "TipoDocumento" => $tramiteAInicar->tipo_doc,
         "NumeroDocumento" => $tramiteAInicar->nro_doc,
