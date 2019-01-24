@@ -7,6 +7,7 @@
   <div role="main">
     
     <!-- /Grafica - echart_donut -->
+    <!-- 
     <div class="col-lg-5 col-md-12 col-sm-12 col-xs-12">
       <div class="x_panel">
         <div class="x_title">
@@ -24,9 +25,9 @@
         </div>
       </div>
     </div>
-
+-->
     <!-- /Grafica - echart por Sucursal -->
-    <div class="col-lg-7 col-md-12 col-sm-12 col-xs-12">
+    <div class="col-md-12 col-xs-12">
       <div class="x_panel">
         <div class="x_title">
           <h2>Por Sucursal</h2>
@@ -39,7 +40,7 @@
           <div class="clearfix"></div>
         </div>
         <div class="x_content">
-            <div id="echart_sedes" style="height:630px;"> </div>
+            <div id="echart_sedes" style="height:660px;"> </div>
         </div>
       </div>
     </div>

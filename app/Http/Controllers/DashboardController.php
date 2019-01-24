@@ -26,7 +26,7 @@ class DashboardController extends Controller
         //1)TOTAL TURNOS ASIGNADOS POR SIGECI / PRECHECK / SAFIT / LIBRE DEUDA / BUI
         $precheck = \DB::select("SELECT
                                 count(DISTINCT sigeci.numdoc) as turnos,
-                                count (DISTINCT tramites_a_iniciar.sigeci_idcita) as tramitesainiciar,
+                                count (DISTINCT case when tramites_a_iniciar.estado = 7 then tramites_a_iniciar.sigeci_idcita else null end) as sinalic,
                                 count (case when validaciones_precheck.validation_id = 3 and validaciones_precheck.validado=true then 1 else null end) as safit,
                                 count (case when validaciones_precheck.validation_id = 4 and validaciones_precheck.validado=true then 1 else null end) as libredeuda,
                                 count (case when validaciones_precheck.validation_id = 5 and validaciones_precheck.validado=true then 1 else null end) as bui
@@ -35,16 +35,12 @@ class DashboardController extends Controller
                             LEFT JOIN validaciones_precheck ON validaciones_precheck.tramite_a_iniciar_id = tramites_a_iniciar.id
                             WHERE sigeci.fecha = '".$fecha."'");
     
-        $turnos                 = $this->Sigeci->getTurnos($fecha)->count();
-        $tramitesainiciar       = $precheck[0]->tramitesainiciar;
-        $tramitesainiciar_ok    = $this->Tramites->TramitesAIniciarCompletados($fecha)->count();
-        $safit                  = $precheck[0]->safit;
-        $libredeuda             = $precheck[0]->libredeuda;
-        $bui                    = $precheck[0]->bui;
-
-        /*$safit                  = $this->Tramites->getValidacionesPrecheck($fecha,true,'3')->count();
-        $libredeuda             = $this->Tramites->getValidacionesPrecheck($fecha,true,'4')->count();
-        $bui                    = $this->Tramites->getValidacionesPrecheck($fecha,true,'5')->count();*/
+        $turnos         = $this->Sigeci->getTurnos($fecha)->count();
+        $precheck_ok    = $this->Tramites->TramitesAIniciarCompletados($fecha)->count();
+        $safit          = $precheck[0]->safit;
+        $libredeuda     = $precheck[0]->libredeuda;
+        $bui            = $precheck[0]->bui;
+        $sinalic        = $precheck[0]->sinalic;
 
         //2)TOTAL TRAMITES INICIADOS CON PRECHECK ON - OFF
         $total_tramites         = $this->Tramites->consultarTramitesPrecheck($fecha)->count();
@@ -52,21 +48,21 @@ class DashboardController extends Controller
         $tramitesprecheck_off   = $this->Tramites->consultarTramitesPrecheck($fecha,'off')->count();
 
         //Preparar un array para los datos a mostrar
-        $datos_precheck[0] = ['titulo' => 'TURNOS', 'subtitulo' => 'en tramites a iniciar', 'total' => $turnos, 'porc' => '100', 'ico' => 'fa fa-user'];
-        $datos_precheck[1] = ['titulo' => 'PRECHECK', 'subtitulo' => 'de los turnos', 'total' => $tramitesainiciar, 'porc' => $this->porcentaje($tramitesainiciar,$turnos), 'ico' => 'fa fa-check'];
-        $datos_precheck[2] = ['titulo' => 'Precheck ON', 'subtitulo' => 'con PreCheck OK!', 'total' => $tramitesainiciar_ok, 'porc' => $this->porcentaje($tramitesainiciar_ok,$turnos), 'ico' => 'fa fa-clock-o'];
-        $datos_precheck[3] = ['titulo' => 'SAFIT', 'subtitulo' => 'validados', 'total' => $safit, 'porc' => $this->porcentaje($safit,$turnos), 'ico' => 'fa fa-cloud-upload'];
-        $datos_precheck[4] = ['titulo' => 'LIBRE DEUDA', 'subtitulo' => 'validados', 'total' => $libredeuda, 'porc' => $this->porcentaje($libredeuda,$turnos), 'ico' => 'fa fa-cloud-download'];
-        $datos_precheck[5] = ['titulo' => 'BUI', 'subtitulo' => 'validados', 'total' => $bui, 'porc' => $this->porcentaje($bui,$turnos), 'ico' => 'fa fa-cloud-download'];
-
-        $datos_tramites[0] = ['titulo' => 'TRAMITES', 'subtitulo' => 'de los turnos', 'total' => $total_tramites, 'porc' => $this->porcentaje($total_tramites,$turnos), 'ico' => 'fa fa-user'];
-        $datos_tramites[1] = ['titulo' => 'con Precheck ON', 'subtitulo' => 'de los tramites', 'total' => $tramitesprecheck_on, 'porc' => $this->porcentaje($tramitesprecheck_on,$total_tramites), 'ico' => 'fa fa-check'];
-        $datos_tramites[2] = ['titulo' => 'con Precheck OFF', 'subtitulo' => 'de los tramites', 'total' => $tramitesprecheck_off, 'porc' => $this->porcentaje($tramitesprecheck_off,$total_tramites), 'ico' => 'fa fa-clock-o'];
+        $datos_precheck[0] = ['titulo' => 'PRECHECK OK', 'subtitulo' => 'con PreCheck OK!', 'total' => $precheck_ok, 'porc' => $this->porcentaje($precheck_ok,$turnos), 'ico' => 'fa fa-clock-o'];
+        $datos_precheck[1] = ['titulo' => 'SAFIT', 'subtitulo' => 'validados', 'total' => $safit, 'porc' => $this->porcentaje($safit,$turnos), 'ico' => 'fa fa-cloud-upload'];
+        $datos_precheck[2] = ['titulo' => 'LIBRE DEUDA', 'subtitulo' => 'validados', 'total' => $libredeuda, 'porc' => $this->porcentaje($libredeuda,$turnos), 'ico' => 'fa fa-cloud-download'];
+        $datos_precheck[3] = ['titulo' => 'BUI', 'subtitulo' => 'validados', 'total' => $bui, 'porc' => $this->porcentaje($bui,$turnos), 'ico' => 'fa fa-cloud-download'];
+       
+        $datos_tramites[0] = ['titulo' => 'SINALIC', 'subtitulo' => 'Iniciados desde el Preckeck', 'total' => $sinalic, 'porc' => $this->porcentaje($sinalic,$precheck_ok), 'ico' => 'fa fa-cloud-download'];
+        $datos_tramites[1] = ['titulo' => 'TRAMITES', 'subtitulo' => 'se ha iniciado en LICTA', 'total' => $total_tramites, 'porc' => $this->porcentaje($total_tramites,$turnos), 'ico' => 'fa fa-user'];
+        $datos_tramites[2] = ['titulo' => 'TRAMITES OK', 'subtitulo' => 'de tramites en LICTA', 'total' => $tramitesprecheck_on, 'porc' => $this->porcentaje($tramitesprecheck_on,$turnos), 'ico' => 'fa fa-check'];
+        $datos_tramites[3] = ['titulo' => 'TRAMITES OFF', 'subtitulo' => 'de tramites en LICTA', 'total' => $tramitesprecheck_off, 'porc' => $this->porcentaje($tramitesprecheck_off,$turnos), 'ico' => 'fa fa-clock-o'];
 
         //***************************************************************************************
         $fecha = date('d-m-Y', strtotime($fecha));
 
-        return View('safit.consultaDashboard')->with('datos_precheck',$datos_precheck)
+        return View('safit.consultaDashboard')->with('turnos',$turnos)
+                                              ->with('datos_precheck',$datos_precheck)
                                               ->with('datos_tramites',$datos_tramites)
                                               ->with('fecha',$fecha);
         
