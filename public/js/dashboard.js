@@ -14,16 +14,17 @@ $(document).ready(function() {
     });
 
     $("#botoneraDashboard #pagNext").click(function(){
-        $(this).button('loading').delay(500).queue(function(){
-            $(this).button('reset').dequeue();
+        /*$(this).button('loading').delay(10).queue(function(){
+            $(this).button('reset').dequeue();*/
             reload();
-        });        
+        //});
     });
     
     //Configuracion del datepicker
     $('#fecha').daterangepicker({
         singleDatePicker: true,
-        maxDate: moment().add(0, 'day'),
+        drops: 'up',
+        maxDate: moment().add(5, 'day'),
         locale: { format: 'DD-MM-YYYY' }
     }).on('change', function(e) {
         $('#btnConsultar').click();
@@ -35,14 +36,21 @@ $(document).ready(function() {
 
 function iniciarTimeout (){
     var date = new Date();
+    var hora = date.getHours(); 
     var d = date.getDate();
     var m = date.getMonth() + 1;
     var y = date.getFullYear();
     var actual = (d <= 9 ? '0' + d : d) + '-' + (m <= 9 ? '0' + m : m) + '-' + y;
     var fecha = $("#fecha").val();
-
-    if(fecha == actual)
-        myTimeout = setTimeout(reload, 60000);
+    
+    if (hora < 7 && fecha != actual){
+        $("#fecha").val(actual);
+        $('#btnConsultar').click();
+    }else{
+        /*if(fecha == actual)
+            myTimeout = setTimeout(reload, 20000);*/
+    }
+    
 }
 
 function init_charts() {
