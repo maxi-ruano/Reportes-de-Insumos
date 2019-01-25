@@ -28,16 +28,9 @@ class TramitesController extends Controller
       
       $fecha = ($fecha=='')?date("Y-m-d"):$fecha;
 
-      $tramites =  Tramites::selectRaw('tramites.nro_doc,MAX(tramites_a_iniciar.nombre) as nombre,MAX(tramites_a_iniciar.apellido) as apellido,tramites.tramite_id')
-                          ->join('ansv_paises','ansv_paises.id_dgevyl','tramites.pais')
-                          ->join('tramites_a_iniciar',function($join) {
-                              $join->on('tramites_a_iniciar.nacionalidad', '=', 'ansv_paises.id_ansv');
-                              $join->on('tramites.nro_doc', '=', 'tramites_a_iniciar.nro_doc');
-                          })
+      $tramites =  Tramites::selectRaw('tramites.nro_doc,tramites_a_iniciar.nombre,tramites_a_iniciar.apellido,tramites.tramite_id')
+                          ->join('tramites_a_iniciar','tramites_a_iniciar.tramite_dgevyl_id','tramites.tramite_id')
                           ->whereIn('tramites_a_iniciar.sigeci_idcita',$this->Sigeci->getTurnos($fecha)->pluck('idcita')->toArray())
-                          ->whereNotIn('tramites.estado',$this->estadosIgnore)
-                          ->whereRaw("CAST(tramites.fec_inicio as date) >= '".$fecha."' ")
-                          ->groupBy('tramites.tramite_id')
                           ->orderby('tramites.nro_doc');
 
       if($estado == 'on')
