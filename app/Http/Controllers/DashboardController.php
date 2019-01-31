@@ -53,7 +53,7 @@ class DashboardController extends Controller
         $datos_precheck[2] = ['titulo' => 'LIBRE DEUDA', 'subtitulo' => 'validados', 'total' => $libredeuda, 'porc' => $this->porcentaje($libredeuda,$turnos), 'ico' => 'fa fa-cloud-download'];
         $datos_precheck[3] = ['titulo' => 'BUI', 'subtitulo' => 'validados', 'total' => $bui, 'porc' => $this->porcentaje($bui,$turnos), 'ico' => 'fa fa-cloud-download'];
        
-        $datos_tramites[0] = ['titulo' => 'SINALIC', 'subtitulo' => 'Iniciados desde el Preckeck', 'total' => $sinalic, 'porc' => $this->porcentaje($sinalic,$precheck_ok), 'ico' => 'fa fa-cloud-download'];
+        $datos_tramites[0] = ['titulo' => 'SINALIC', 'subtitulo' => 'Iniciados desde el Preckeck', 'total' => $sinalic, 'porc' => $this->porcentaje($sinalic,$turnos), 'ico' => 'fa fa-cloud-download'];
         $datos_tramites[1] = ['titulo' => 'TRAMITES', 'subtitulo' => 'se ha iniciado en LICTA', 'total' => $total_tramites, 'porc' => $this->porcentaje($total_tramites,$turnos), 'ico' => 'fa fa-user'];
         $datos_tramites[2] = ['titulo' => 'TRAMITES OK', 'subtitulo' => 'de tramites en LICTA', 'total' => $tramitesprecheck_on, 'porc' => $this->porcentaje($tramitesprecheck_on,$turnos), 'ico' => 'fa fa-check'];
         $datos_tramites[3] = ['titulo' => 'TRAMITES OFF', 'subtitulo' => 'de tramites en LICTA', 'total' => $tramitesprecheck_off, 'porc' => $this->porcentaje($tramitesprecheck_off,$turnos), 'ico' => 'fa fa-clock-o'];
