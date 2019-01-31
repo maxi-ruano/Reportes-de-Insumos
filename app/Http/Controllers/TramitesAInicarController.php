@@ -922,10 +922,14 @@ class TramitesAInicarController extends Controller
   }
 
   public function esNecesarioAmpliacion($ultimaLicencia){
-    $clases = strtolower($ultimaLicencia->Clases);
-    $clases = str_replace("a","", $clases);
-    $clases = str_replace("b","", $clases);
-    return preg_match("/[a-z]/i", $clases);
+    if(isset($ultimaLicencia->Clases)){
+      $clases = strtolower($ultimaLicencia->Clases);
+      $clases = str_replace("a","", $clases);
+      $clases = str_replace("b","", $clases);
+      return preg_match("/[a-z]/i", $clases);
+    }else{
+      return false;
+    }
   }
 
   public function permisoParaGenerarCenat(){
