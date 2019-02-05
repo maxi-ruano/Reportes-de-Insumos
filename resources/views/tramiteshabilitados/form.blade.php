@@ -137,7 +137,7 @@
                             $("input[name=apellido]").val(ret.apellido);
                             $("input[name=fecha_nacimiento]").val(ret.fecha_nacimiento);
                             $("select[name=sexo]").val(ret.sexo);
-                            $("select[name=pais]").val(ret.pais);
+                            $("select[name=pais]").val(ret.pais);                            
                         }
                     });
                 });
@@ -147,6 +147,7 @@
             $("input[name=fecha], input[name=nro_doc], select[name=motivo_id], input[name=fecha_nacimiento]").change(function(){
                 var fecha = $('input[name=fecha_nacimiento]').val();
                 edad = calcularEdad(fecha);
+                //$("#div_observacion input").val('');
                 validarMotivos();
             });
 
@@ -157,9 +158,10 @@
                 $("#div_observacion input").removeAttr('required minlength maxlength');
                 $("#div_observacion label").html('Observación: ');
                 $("#div_observacion input").attr('placeholder','');
+                $("#div_observacion input").off('change');
 
                 $("#ultimo_turno").empty();
-                $("button[type='submit']").show();
+                $('button[type=submit]').attr("disabled",false);
 
                 switch(motivo) {
                     case 'LEGALES':
@@ -171,6 +173,10 @@
                         //Nro. de Cita (Obligatorio)
                         $("#div_observacion label").html('Nro. de Cita: ');
                         $("#div_observacion input").attr('placeholder','Ingrese el Nro. de la Cita').attr('required','required').attr('minlength','8').attr('maxlength','8');
+                        $('button[type=submit]').attr("disabled",true);
+                        $("#div_observacion input, input[name=fecha], input[name=nro_doc]").change(function(){
+                            validarErrorEnTurno();
+                        });
                         break;
                     case 'REINICIA TRAMITE':
                         //ID del Tramite (Obligatorio)
@@ -187,9 +193,9 @@
                         break;
                     case 'MAYOR DE 65':
                         if(edad >= 65 && edad < 100){
-                            $("button[type='submit']").show();
+                            $('button[type=submit]').attr("disabled",false);
                         }else{
-                            $("button[type='submit']").hide();
+                            $('button[type=submit]').attr("disabled",true);
                             $("#ultimo_turno").html('<h4 class="red"> <i class="fa fa-user-times" style="font-size:20px;"></i> Esta persona no cuenta con la edad permitida! tiene: '+edad+' años </h4>');
                         }
                         break;
@@ -202,6 +208,66 @@
                 
             }
 
+             function validarErrorEnTurno(){
+
+                //$("#div_observacion input").change(function(){
+                var idcita = $("#div_observacion input").val();
+                var nro_doc = $("input[name=nro_doc]").val();
+
+                $('button[type=submit]').attr("disabled",true);
+                
+                if(idcita !='' && nro_doc != ''){
+                    $.ajax({
+                        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                        url: '/consultarTurnoSigeci',
+                        data: {idcita: idcita },
+                        type: "GET", dataType: "json",
+                        success: function(ret){
+
+                            //Calcular los dias entre la dos fecha
+                            var fechaini = new Date(ret.fecha);
+                            var fechafin = new Date($("input[name=fecha]").val());
+                             var diasdif= fechafin.getTime()-fechaini.getTime();
+                            var dias = Math.round(diasdif/(1000*60*60*24));
+
+                            var f = ret.fecha.split('-');
+                            var fecha = f[2]+'/'+f[1]+'/'+f[0];
+
+                            $("#ultimo_turno").html('Información de su turno: <table class="table table-striped jambo_table"><tr><td>'+fecha+'</td><td>'+ret.hora+'</td><td>'+ret.tipodoc+'</td><td>'+ret.numdoc+'</td><td>'+ret.nombre+' '+ret.apellido+'</td><td>'+ret.descsede+'</td><td>'+ret.descprestacion+'</td><td class="red"> '+dias+' días</td><td class="icono"></td></tr></table>');
+
+                            if(dias >= 0 && dias <= 15){
+                                $("#ultimo_turno .icono").html('<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>');
+                                $('button[type=submit]').attr("disabled",false);
+                            }else{
+                                $("#ultimo_turno .icono").html('<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>');
+                                $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno no cumple con los 15 días correspondientes para poder TOMAR TURNO!.</h4>');
+                            }
+
+                            if (nro_doc != ret.numdoc){
+                                $('button[type=submit]').attr("disabled",true);
+                                $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El número de cita ingresado no corresponde a la persona que intenta TOMAR TURNO!.</h4>');
+
+                            }else{
+                                if (ret.tramite_dgevyl_id){
+                                    $('button[type=submit]').attr("disabled",true);
+                                    $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El número de cita ingresado ya cuenta con un tramite en LICTA: '+ret.tramite_dgevyl_id+'</h4>');
+                                }
+                            }
+
+                        },
+                        error: function(err) {
+                            $("#ultimo_turno").html('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> Esta persona no cuenta con turno previo, debe contar con turno entre los 15 días para poder TOMAR TURNO.</h4>');
+                         }
+                    });
+                //});
+                }
+
+                /*//Si es Administrador permitir guardar
+                @role('Administrador Tramites Habilitados')
+                    $('button[type=submit]').attr("disabled",false);
+                @endrole*/
+            }
+
             function validarRetomaTurno(){
                 var motivo = $("select[name=motivo_id] option:selected").text();
                 var tipo_doc = $("select[name=tipo_doc]").val();
@@ -210,7 +276,7 @@
                 //console.log('motivo '+motivo+' nrodoc '+nro_doc);
                 
                 if(nro_doc != ''){
-                    $("button[type='submit']").hide();
+                    $('button[type=submit]').attr("disabled",true);
                     
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
@@ -229,9 +295,9 @@
 
                             $("#ultimo_turno").html('Información de su último turno: <table class="table table-striped jambo_table"><tr><td>'+fecha+'</td><td>'+ret.hora+'</td><td>'+ret.tipodoc+'</td><td>'+ret.numdoc+'</td><td>'+ret.nombre+' '+ret.apellido+'</td><td>'+ret.descsede+'</td><td>'+ret.descprestacion+'</td><td class="red"> '+dias+' días</td><td class="icono"></td></tr></table>');
 
-                            if(dias > 0 && dias <= 15){
+                            if(dias >= 0 && dias <= 15){
                                 $("#ultimo_turno .icono").html('<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>');
-                                $("button[type='submit']").show();
+                                $('button[type=submit]').attr("disabled",false);
                             }else{
                                 $("#ultimo_turno .icono").html('<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>');
                                 $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno previo ha superado el limite de los 15 días para poder RETOMAR TURNO!.</h4>');
@@ -246,7 +312,7 @@
 
                 //Si es Administrador permitir guardar
                 @role('Administrador Tramites Habilitados')
-                    $("button[type='submit']").show();
+                    $('button[type=submit]').attr("disabled",false);
                 @endrole
             }
 

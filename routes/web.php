@@ -29,6 +29,7 @@ Route::resource('tramitesHabilitados','TramitesHabilitadosController');
 Route::get('tramitesHabilitadosHabilitar', ['uses' => 'TramitesHabilitadosController@habilitar','as' => 'tramitesHabilitados.habilitar']);
 Route::get('buscarDatosPersonales', 'TramitesHabilitadosController@buscarDatosPersonales');
 Route::get('consultarUltimoTurno', 'TramitesHabilitadosController@consultarUltimoTurno');
+Route::get('consultarTurnoSigeci', 'TramitesHabilitadosController@consultarTurnoSigeci');
 //end TRAMITES HABILITADOS
 
 //TRAMITES HABILITADOS MOTIVOS
