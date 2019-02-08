@@ -798,12 +798,10 @@ class TramitesAInicarController extends Controller
       $res = $this->interpretarResultado($res, $datos);
       if(!empty($res->error)){
         $this->guardarError($res, $siguienteEstado, $tramite->id);
-        $tramite->response_ws = json_encode($response);
-        $tramite->save();
       }else {
         $tramite->estado = $siguienteEstado;
         $tramite->tramite_sinalic_id = $res->tramite_sinalic_id;
-        $tramite->response_ws = json_encode($response);
+        $tramite->response_ws = json_encode($res);
         $tramite->save();
       }
     }
