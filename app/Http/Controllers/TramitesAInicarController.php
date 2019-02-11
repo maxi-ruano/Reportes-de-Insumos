@@ -774,55 +774,55 @@ class TramitesAInicarController extends Controller
                                   ->get();
     foreach ($tramites as $key => $tramite) {
       $this->asignarTipoTramiteAIniciar($tramite);
+      $response_ws = null;
       $res = null;
-      $response = null;
       $datos = $this->wsSinalic->parseTramiteParaSinalic($tramite);
       switch ($tramite->tipo_tramite) {
         case 2: //RENOVACION
-          $response = $this->wsSinalic->IniciarTramiteRenovarLicencia($datos);
-          $res = (isset($response->IniciarTramiteRenovarLicenciaResult))?$response->IniciarTramiteRenovarLicenciaResult:$response;
+          $response_ws = $this->wsSinalic->IniciarTramiteRenovarLicencia($datos);
+          $res = (isset($response_ws->IniciarTramiteRenovarLicenciaResult))?$response_ws->IniciarTramiteRenovarLicenciaResult:$response_ws;
         break;
         case 1: //OTORGAMIENTO
-          $response = $this->wsSinalic->IniciarTramiteNuevaLicencia($datos);
-          $res = (isset($response->IniciarTramiteNuevaLicenciaResult))?$response->IniciarTramiteNuevaLicenciaResult:$response;
+          $response_ws = $this->wsSinalic->IniciarTramiteNuevaLicencia($datos);
+          $res = (isset($response_ws->IniciarTramiteNuevaLicenciaResult))?$response_ws->IniciarTramiteNuevaLicenciaResult:$response_ws;
         break;
         case 6: //RENOVACION CON AMPLIACION
-          $response = $this->wsSinalic->IniciarTramiteRenovacionConAmpliacion($datos);
-          $res = (isset($response->IniciarTramiteRenovacionConAmpliacionResult))?$response->IniciarTramiteRenovacionConAmpliacionResult:$response;
+          $response_ws = $this->wsSinalic->IniciarTramiteRenovacionConAmpliacion($datos);
+          $res = (isset($response_ws->IniciarTramiteRenovacionConAmpliacionResult))?$response_ws->IniciarTramiteRenovacionConAmpliacionResult:$response_ws;
         break;
         default:
           # code...
           break;
       }
 
-      $res = $this->interpretarResultado($res, $datos);
-      if(!empty($res->error)){
-        $this->guardarError($res, $siguienteEstado, $tramite->id);
+      $resultado = $this->interpretarResultado($datos, $response_ws, $res);
+      if(!empty($resultado->error)){
+        $this->guardarError($resultado, $siguienteEstado, $tramite->id);
       }else {
         $tramite->estado = $siguienteEstado;
-        $tramite->tramite_sinalic_id = $res->tramite_sinalic_id;
-        $tramite->response_ws = json_encode($res);
+        $tramite->tramite_sinalic_id = $resultado->tramite_sinalic_id;
+        $tramite->response_ws = json_encode($response_ws);
         $tramite->save();
       }
     }
   }
 
-  public function interpretarResultado($resultado, $datos){
-    if(isset($resultado->exception)){
-      $res = array('error' => 'El servidor no puede procesar la solicitud',
-                  'request' => $datos,
-                  'response' => $resultado);
+  public function interpretarResultado($datos, $response_ws, $res){
+    if(isset($res->exception)){
+      $resultado = array('error' => 'El servidor no puede procesar la solicitud',
+                         'request' => $datos,
+                         'response' => $response_ws);
     }else{
-      if(intval($resultado->CantidadErrores) > 0){
-        $res = array('error' => $this->getErrores($resultado->MensajesRespuesta),
-                    'request' => $datos,
-                    'response' => $resultado);
+      if(intval($res->CantidadErrores) > 0){
+        $resultado = array('error' => $this->getErrores($res->MensajesRespuesta),
+                           'request' => $datos,
+                           'response' => $response_ws);
       }else{
-        $res = array('mensaje' => $this->getErrores($resultado->MensajesRespuesta) .' Tramite ID: '.$resultado->NumeroTramite,
-                            'tramite_sinalic_id' => $resultado->NumeroTramite);
+        $resultado = array('mensaje' => $this->getErrores($res->MensajesRespuesta), 
+                           'tramite_sinalic_id' => $res->NumeroTramite);
       }
     }
-    return (object)$res;
+    return (object)$resultado;
   }
 
   public function getErrores($lista){
