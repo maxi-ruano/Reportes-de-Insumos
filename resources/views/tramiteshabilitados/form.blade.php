@@ -182,6 +182,10 @@
                         //ID del Tramite (Obligatorio)
                         $("#div_observacion label").html('ID del Tramite: ');
                         $("#div_observacion input").attr('placeholder','Ingrese el ID del Tramite').attr('required','required').attr('minlength','7').attr('maxlength','7');;
+                        $('button[type=submit]').attr("disabled",true);
+                        $("#div_observacion input, input[name=fecha], input[name=nro_doc]").change(function(){
+                            validarReiniciaTramite();
+                        });
                         break;
                     case 'DIRECCIÓN':
                         //Campo Obligatorio dejar constancia de quien viene (Obligatorio)
@@ -209,8 +213,6 @@
             }
 
              function validarErrorEnTurno(){
-
-                //$("#div_observacion input").change(function(){
                 var idcita = $("#div_observacion input").val();
                 var nro_doc = $("input[name=nro_doc]").val();
 
@@ -235,37 +237,82 @@
 
                             $("#ultimo_turno").html('Información de su turno: <table class="table table-striped jambo_table"><tr><td>'+fecha+'</td><td>'+ret.hora+'</td><td>'+ret.tipodoc+'</td><td>'+ret.numdoc+'</td><td>'+ret.nombre+' '+ret.apellido+'</td><td>'+ret.descsede+'</td><td>'+ret.descprestacion+'</td><td class="red"> '+dias+' días</td><td class="icono"></td></tr></table>');
 
-                            if(dias >= 0 && dias <= 15){
-                                $("#ultimo_turno .icono").html('<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>');
-                                $('button[type=submit]').attr("disabled",false);
-                            }else{
-                                $("#ultimo_turno .icono").html('<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>');
-                                $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno no cumple con los 15 días correspondientes para poder TOMAR TURNO!.</h4>');
-                            }
-
                             if (nro_doc != ret.numdoc){
                                 $('button[type=submit]').attr("disabled",true);
                                 $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El número de cita ingresado no corresponde a la persona que intenta TOMAR TURNO!.</h4>');
-
                             }else{
-                                if (ret.tramite_dgevyl_id){
+                                if(ret.tramite_dgevyl_id){
                                     $('button[type=submit]').attr("disabled",true);
                                     $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El número de cita ingresado ya cuenta con un tramite en LICTA: '+ret.tramite_dgevyl_id+'</h4>');
+                                }else{
+                                    if(dias >= 0 && dias <= 15){
+                                        $("#ultimo_turno .icono").html('<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>');
+                                        $('button[type=submit]').attr("disabled",false);
+                                    }else{
+                                        $("#ultimo_turno .icono").html('<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>');
+                                        $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno no cumple con los 15 días correspondientes para poder TOMAR TURNO!.</h4>');
+                                    }
                                 }
                             }
-
                         },
                         error: function(err) {
                             $("#ultimo_turno").html('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> Esta persona no cuenta con turno previo, debe contar con turno entre los 15 días para poder TOMAR TURNO.</h4>');
                          }
                     });
-                //});
                 }
+            }
 
-                /*//Si es Administrador permitir guardar
-                @role('Administrador Tramites Habilitados')
-                    $('button[type=submit]').attr("disabled",false);
-                @endrole*/
+             function validarReiniciaTramite(){
+                 /*alert('entro validarReiniciaTramite');*/
+                var tramite_id = $("#div_observacion input").val();
+                var nro_doc = $("input[name=nro_doc]").val();
+
+                $('button[type=submit]').attr("disabled",true);
+
+                if(tramite_id !='' && nro_doc != ''){
+                    $.ajax({
+                        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                        url: '/consultarTramite',
+                        data: {tramite_id: tramite_id},
+                        type: "GET", dataType: "json",
+                        success: function(ret){
+                          console.log(ret);
+
+                          //Calcular los dias entre las dos fechas
+                            var fechaini = new Date(ret.fec_inicio);
+                            var fechafin = new Date($("input[name=fecha]").val());
+                            var diasdif= fechafin.getTime()-fechaini.getTime();
+                            var dias = Math.round(diasdif/(1000*60*60*24));
+
+                            var f = ret.fec_inicio.split('-');
+                            var fecha = f[2]+'/'+f[1]+'/'+f[0];
+
+                            $("#ultimo_turno").html('Información del Tramite: <table class="table table-striped jambo_table"><tr><td>'+ret.tramite_id+'</td><td>'+ret.tipo_doc+'</td><td>'+ret.nro_doc+'</td><td>'+fecha+'</td><td>'+ret.sucursal+'</td><td>'+ret.estado_description+'</td><td class="red"> '+dias+' días</td><td class="icono"></td></tr></table>');
+
+
+                            if (nro_doc != ret.nro_doc){
+                                $('button[type=submit]').attr("disabled",true);
+                                $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El número de Tramite ID ingresado no corresponde a la persona que intenta REINICIAR TRAMITE!.</h4>');    
+                            }else{
+                                if(ret.estado >= 93 || ret.estado == 14){
+                                    $('button[type=submit]').attr("disabled",true);
+                                    $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El número de Tramite ID ingresado ya cuenta con un tramite en LICTA: '+ret.estado_description+'</h4>');
+                                }else{
+                                    if(dias >= 0 && dias <= 15){
+                                        $("#ultimo_turno .icono").html('<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>');
+                                        $('button[type=submit]').attr("disabled",false);
+                                    }else{
+                                        $("#ultimo_turno .icono").html('<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>');
+                                        $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno no cumple con los 15 días correspondientes para poder REINICIAR TRAMITE!.</h4>');
+                                    }
+                                }
+                            }
+                        },
+                        error: function(err) {
+                            $("#ultimo_turno").html('<h4 class="red"> <i class="fa fa-user-times" style="font-size:20px;"></i> Existe un error en el sistema, comuniquese con el administrador</h4>');
+                        }
+                    });
+                }
             }
 
             function validarRetomaTurno(){
@@ -273,17 +320,17 @@
                 var tipo_doc = $("select[name=tipo_doc]").val();
                 var nro_doc = $("input[name=nro_doc]").val();
                 
-                //console.log('motivo '+motivo+' nrodoc '+nro_doc);
-                
                 if(nro_doc != ''){
                     $('button[type=submit]').attr("disabled",true);
-                    
+                    console.log("paso 1 ");
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                         url: '/consultarUltimoTurno',
                         data: {tipo_doc: tipo_doc, nro_doc: nro_doc },
                         type: "GET", dataType: "json",
                         success: function(ret){
+                            console.log(ret);
+
                             //Calcular los dias entre la dos fecha
                             var fechaini = new Date(ret.fecha);
                             var fechafin = new Date($("input[name=fecha]").val());
@@ -302,11 +349,10 @@
                                 $("#ultimo_turno .icono").html('<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>');
                                 $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno previo ha superado el limite de los 15 días para poder RETOMAR TURNO!.</h4>');
                             }
-
                         },
                         error: function(err) {
                             $("#ultimo_turno").html('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> Esta persona no cuenta con turno previo, debe contar con turno entre los 15 días para poder RETOMAR TURNO.</h4>');
-                         }
+                        }
                     });
                 }
 
