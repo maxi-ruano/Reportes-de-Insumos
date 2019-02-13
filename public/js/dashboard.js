@@ -459,7 +459,7 @@ function init_charts() {
                     }
                 },
                 symbolSize: function (dataItem) {
-                    return dataItem[1] * 4;
+                    return dataItem[1] * 2;
                 }
             });
         });
