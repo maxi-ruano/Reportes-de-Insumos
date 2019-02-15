@@ -125,15 +125,17 @@ class TeoricoPcController extends Controller
 
     public function desactivarPcTeorico(Request $request)
     {
-        $desacitivar_pc = TeoricoPc::where("id",$request->pc_id)->update(array('activo' => false));
-        return $desacitivar_pc;
+        $desactivar_pc = TeoricoPc::where("id",$request->pc_id)->update(array('activo' => false));
+        if($desactivar_pc)
+            EtlExamen::where("etl_examen_id",$request->examen_id)->update(array('anulado' => true));
+        return $desactivar_pc;
     }
 
     public function cambiarPcTeorico(Request $request)
     {
         $moverExamen = TeoricoPc::where("id",$request->pc_disponible)->update(array('activo' => true, 'examen_id' => $request->examen_id));
         if($moverExamen)
-            $desacitivar_pc = TeoricoPc::where("id",$request->pc_id)->update(array('activo' => false));
+            $desactivar_pc = TeoricoPc::where("id",$request->pc_id)->update(array('activo' => false));
         return $moverExamen;
     }
     

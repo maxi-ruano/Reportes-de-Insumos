@@ -10,7 +10,9 @@
         <div class="col-sm-4 col-xs-12">
             <h2>Computadoras ACTIVAS <span class="red">(Procesando examen)</span> </h2>
             {!! Form::select('pc_activas',[], null , ['class' => 'form-control', 'id' => 'pc_activas', 'placeholder' => 'Seleccione ... ']) !!}
-            <input id="btnDesactivarPc" onclick="descativarPc()" class='btn btn-danger btn-xs' type='button' value=' Desactivar Pc seleccionada'> 
+            <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-confirm" data-title="¿Estas seguro que deseas desactivar esta PC?">
+                Desactivar Pc seleccionada
+            </button>
         </div>
     </div>
 
@@ -34,6 +36,13 @@
             $("#divTeoricoPc #sucursal").change(function(){
                 mostrarPcs();
             });
+
+            //Modal confirmacion antes de desactivar
+            $('#modal-confirm').on('click', '#btn-aceptar', function(){
+                desactivarPc();
+                $('#modal-confirm').modal('hide');
+            });
+         
 
             $("#pc_disponibles").change(function(){
                 var pc_disponibles = $(this).val();
@@ -93,14 +102,14 @@
             });
         }
 
-        function descativarPc(){            
+        function desactivarPc(){            
             var pc_activa = $('#pc_activas').val().split('-');
             var pc_id = pc_activa[0];
-
+            var examen_id = pc_activa[1];
             $.ajax({
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                 url: 'desactivarPcTeorico',
-                data: {pc_id: pc_id },
+                data: {pc_id: pc_id, examen_id: examen_id},
                 type: "GET", 
                 success: function(ret){
                     mostrarPcs();

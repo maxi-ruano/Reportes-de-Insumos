@@ -40,7 +40,7 @@
                     <th class="column-title">Sucursal</th>
                     <th class="column-title">Motivo</th>
                     <th class="column-title">Usuario</th>
-                    <! -- /*Establecer condicion para mostrar u ocultar el boton Habilitar */ -->
+                    <!-- Establecer condicion para mostrar u ocultar el boton Habilitar -->
                     @can('habilita_tramites_habilitados')
                         <th class="column-title" style="width:auto!important;">Habilitado</th>
                     @endcan
