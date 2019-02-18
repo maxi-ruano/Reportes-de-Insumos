@@ -10,7 +10,7 @@
         <div class="col-sm-4 col-xs-12">
             <h2>Computadoras ACTIVAS <span class="red">(Procesando examen)</span> </h2>
             {!! Form::select('pc_activas',[], null , ['class' => 'form-control', 'id' => 'pc_activas', 'placeholder' => 'Seleccione ... ']) !!}
-            <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-confirm" data-title="¿Estas seguro que deseas desactivar esta PC?">
+            <button id="btnDesactivarPc" type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-confirm" data-title="¿Estas seguro que deseas desactivar esta PC?">
                 Desactivar Pc seleccionada
             </button>
         </div>
@@ -42,7 +42,6 @@
                 desactivarPc();
                 $('#modal-confirm').modal('hide');
             });
-         
 
             $("#pc_disponibles").change(function(){
                 var pc_disponibles = $(this).val();
