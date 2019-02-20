@@ -174,7 +174,7 @@
                         $("#div_observacion label").html('Nro. de Cita: ');
                         $("#div_observacion input").attr('placeholder','Ingrese el Nro. de la Cita').attr('required','required').attr('minlength','8').attr('maxlength','8');
                         $('button[type=submit]').attr("disabled",true);
-                        $("#div_observacion input, input[name=fecha], input[name=nro_doc]").change(function(){
+                        $("#div_observacion input, input[name=fecha], input[name=nro_doc], input[name=nombre], input[name=apellido]").change(function(){
                             validarErrorEnTurno();
                         });
                         break;
@@ -215,6 +215,8 @@
              function validarErrorEnTurno(){
                 var idcita = $("#div_observacion input").val();
                 var nro_doc = $("input[name=nro_doc]").val();
+                var nombre = $("input[name=nombre]").val();
+                var apellido = $("input[name=apellido]").val();
 
                 $('button[type=submit]').attr("disabled",true);
                 
@@ -237,7 +239,7 @@
 
                             $("#ultimo_turno").html('Información de su turno: <table class="table table-striped jambo_table"><tr><td>'+fecha+'</td><td>'+ret.hora+'</td><td>'+ret.tipodoc+'</td><td>'+ret.numdoc+'</td><td>'+ret.nombre+' '+ret.apellido+'</td><td>'+ret.descsede+'</td><td>'+ret.descprestacion+'</td><td class="red"> '+dias+' días</td><td class="icono"></td></tr></table>');
 
-                            if (nro_doc != ret.numdoc){
+                            if (nro_doc != ret.numdoc && nombre != ret.nombre && apellido != ret.apellido){
                                 $('button[type=submit]').attr("disabled",true);
                                 $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El número de cita ingresado no corresponde a la persona que intenta TOMAR TURNO!.</h4>');
                             }else{
