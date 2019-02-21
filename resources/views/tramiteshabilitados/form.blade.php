@@ -296,11 +296,11 @@
                                 $('button[type=submit]').attr("disabled",true);
                                 $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El número de Tramite ID ingresado no corresponde a la persona que intenta REINICIAR TRAMITE!.</h4>');    
                             }else{
-                                if(ret.estado >= 93 || ret.estado == 14){
+                                if(ret.estado >= 95 || ret.estado == 14){
                                     $('button[type=submit]').attr("disabled",true);
                                     $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El número de Tramite ID ingresado ya cuenta con un tramite en LICTA: '+ret.estado_description+'</h4>');
                                 }else{
-                                    if(dias >= 0 && dias <= 15){
+                                    if(dias >= 0 && dias <= 90){
                                         $("#ultimo_turno .icono").html('<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>');
                                         $('button[type=submit]').attr("disabled",false);
                                     }else{
