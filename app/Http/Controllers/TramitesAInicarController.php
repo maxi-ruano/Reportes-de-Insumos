@@ -1158,18 +1158,14 @@ class TramitesAInicarController extends Controller
                                   ->update(['estado' => TURNO_VENCIDO]);
       \Log::info('['.date('h:i:s').'] revisarTurnosVencidos - Se da por TURNO_VENCIDO a los turnos menores igual a : '.$last_date);
 
-      //Preguntar si se debe dar por vencidos los precheck realizados con tramites habilitados
-      /*$habilitados_vencidos = TramitesAIniciar::join('tramites_habilitados', 'tramites_a_iniciar.id', '=', 'tramites_habilitados.tramites_a_iniciar_id')
-                                  ->where('tramites_habilitados.fecha', '<=', $last_date)
-                                  ->where('tramites_a_iniciar.estado', '!=', TURNO_VENCIDO)
-                                  ->whereNull('tramites_a_iniciar.sigeci_idcita')
-                                  ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
-                                  //->update(['tramites_a_iniciar.estado' => TURNO_VENCIDO])
-                                  ; */
-
       //PENDIENTE: anular los tramites iniciados en SINALIC que pasaron a VENCIDOS  y actualizar en tramites_a_iniciar
-      $tramites = TramitesAIniciar::where('estado', TURNO_VENCIDO)->whereNotNull('tramites_a_iniciar.tramite_sinalic_id')->get();
-
+      $tramites = TramitesAIniciar::leftjoin("ansv_tramite","ansv_tramite.numero_tramite_ansv","tramites_a_iniciar.tramite_sinalic_id")
+                    ->where('tramites_a_iniciar.estado', TURNO_VENCIDO)
+                    ->whereNotNull('tramites_a_iniciar.tramite_sinalic_id')
+                    ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
+                    ->whereNull('ansv_tramite.numero_tramite_ansv')
+                    ->get();
+      
       $this->wsSinalic->iniciarSesion();
       if(is_null($this->wsSinalic->cliente))
         return "El Ws de Sinalic no responde, por favor revise la conexion, o contactese con Nacion";
