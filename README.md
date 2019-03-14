@@ -1,3 +1,5 @@
-Proyecto para la toma de los examenes.
+Proyecto desarrollado en Laravel
 
-https://trello.com/c/0GI02TOT/15-teorico-crear-proyecto-para-la-toma-de-los-examenes
+* Precheck
+* Tramites Habilitados
+* Dashboard
