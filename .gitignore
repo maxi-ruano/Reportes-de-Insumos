@@ -12,3 +12,5 @@ npm-debug.log
 worker.log
 readme.md
 /resources/views/vendor/
+
+composer.phar
