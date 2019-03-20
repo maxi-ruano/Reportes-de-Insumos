@@ -62,7 +62,19 @@ class AuthController extends Controller
 
     public function user(Request $request)
     {
-        //return response()->json(['message' => 'Acceso valido prueba']);
-        return response()->json($request->user());
+        $user = $request->user();
+        $usuario = User::select('id','name','email','sys_user_id')->find($user->id);
+        $roles = $user->roles;
+
+        $user_roles  = [];
+        foreach($roles as $key => $rol){
+            $user_roles[$key]['id']  = $rol->id;
+            $user_roles[$key]['name']  = $rol->name;
+            $user_roles[$key]['permisos'] = $rol->permissions()->pluck('name');
+        }
+
+        $usuario->roles = $user_roles;
+
+        return response()->json($usuario);
     }
 }
