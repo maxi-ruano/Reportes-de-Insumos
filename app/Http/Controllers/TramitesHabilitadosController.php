@@ -37,10 +37,8 @@ class TramitesHabilitadosController extends Controller
     {
         $fecha = isset($_GET['fecha'])?$_GET['fecha']:'';
 
-        $data = TramitesHabilitados::selectRaw('tramites_habilitados.*, tramites_habilitados_observaciones.observacion, roles.name as rol')
+        $data = TramitesHabilitados::selectRaw('tramites_habilitados.*, tramites_habilitados_observaciones.observacion')
                     ->leftjoin('tramites_habilitados_observaciones','tramites_habilitados_observaciones.tramite_habilitado_id','tramites_habilitados.id')
-                    ->leftjoin('model_has_roles','model_has_roles.model_id','tramites_habilitados.user_id')
-                    ->leftjoin('roles','roles.id','model_has_roles.role_id')
                     ->whereIn('tramites_habilitados.motivo_id', $this->getRoleMotivos('role_motivos_lis'))
                     ->where(function($query) use ($request) {
                         $query->where('nombre', 'iLIKE', '%'. $request->search .'%')
@@ -70,7 +68,8 @@ class TramitesHabilitadosController extends Controller
             foreach ($data as $key => $value) {
                 $buscar = TramitesHabilitados::find($value->id);
                 $value->tipo_doc = $buscar->tipoDocText();
-                $value->pais = $buscar->paisTexto();
+		$value->pais = $buscar->paisTexto();
+		$value->rol = $buscar->rolTexto();
                 $value->user_id = $buscar->userTexto($value->user_id);
                 $value->habilitado_user_id = $buscar->userTexto($value->habilitado_user_id);
                 $value->motivo_id = $buscar->motivoTexto();

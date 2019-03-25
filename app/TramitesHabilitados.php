@@ -27,6 +27,14 @@ class TramitesHabilitados extends Model
         return "";  
     }
 
+    public function rolTexto(){
+        $rol = \DB::table('roles')->join('model_has_roles','model_has_roles.role_id','roles.id')->where('model_has_roles.model_id', $this->user_id)->first();
+        if($rol)
+            return $rol->name;
+        else
+            return "";
+    }
+
     public function userTexto($id){
         $user = User::where('id', $id)->first();
     
