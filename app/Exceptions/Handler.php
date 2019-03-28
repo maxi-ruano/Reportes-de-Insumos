@@ -60,6 +60,10 @@ class Handler extends ExceptionHandler
      */
     protected function unauthenticated($request, AuthenticationException $exception)
     {
+        if (in_array('api', \Route::getCurrentRoute()->computedMiddleware)) {
+            return response()->json(['error' => ['code' => 401, 'message' => 'Acesso no authorizado']], 401);
+        }
+
         if ($request->expectsJson()) {
             return response()->json(['error' => 'Unauthenticated.'], 401);
         }

@@ -13,10 +13,6 @@ use Illuminate\Http\Request;
 |
 */
 
-/*Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});*/
-
 //API para authenticar el acceso con Laravel/passport
 Route::group(['prefix' => 'auth'], function () {
     Route::post('login', 'AuthController@login');
@@ -26,6 +22,11 @@ Route::group(['prefix' => 'auth'], function () {
         Route::get('logout', 'AuthController@logout');
         Route::get('user', 'AuthController@user');
     });
+});
+
+Route::group(['prefix'=>'user', 'middleware' => 'auth:api'], function() {
+    Route::get('roles', 'RoleController@getRolesPermissions');
+    Route::get('roles/{id}','RoleController@getRolesPermissions');
 });
 
 //API desarrolladas para consultar externas
@@ -41,3 +42,7 @@ Route::group(['prefix'=>'funciones', 'middleware'=>'cors'], function(){
     Route::post('actualizarPaseATurno', 'PreCheckController@actualizarPaseATurno')->name('actualizarPaseATurno');
     Route::post('obtenerSucursales', 'DashboardController@obtenerSucursales')->name('obtenerSucursales');
 });
+
+Route::fallback(function(){
+    return response()->json(['message' => 'Not Found.'], 404);
+})->name('api.fallback.404');

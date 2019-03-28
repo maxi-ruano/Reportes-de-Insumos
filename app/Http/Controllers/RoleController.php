@@ -68,4 +68,29 @@ class RoleController extends Controller
 
         return redirect()->route('roles.index');
     }
+
+    public function getRolesPermissions(Request $request)
+    {
+        $response = [];
+
+        if(isset($request->id)){
+            $rol = Role::select('id', 'name')->find($request->id);
+            if($rol){
+                $permisos = $rol->permissions()->pluck('name');
+
+                $response['roles']  = [
+                        'id' =>  $rol['id'],
+                        'name' =>  $rol['name'],
+                        'permisos' =>  $permisos
+                ];
+            }else{
+                $response['message'] = 'No se encuentra registrado';
+            }
+
+        }else{
+            $response['roles'] = Role::select('id', 'name')->get();
+        }
+
+        return response()->json($response);
+    }
 }
