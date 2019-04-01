@@ -168,7 +168,7 @@ class PreCheckController extends Controller
     $tramites = [];
     //Seleccionar solo un tramite por cada persona tomando en cuenta que exista en validaciones_precheck validado
     foreach ($personas as $key => $persona){
-      $busqueda = TramitesAIniciar::select('tramites_a_iniciar.*','sigeci.fecha','sigeci.hora','sigeci.descsede as sede')
+      $busqueda = TramitesAIniciar::select('tramites_a_iniciar.*','sigeci.fecha','sigeci.hora','sigeci.sucroca as sucursal')
                                   ->where([
                                     'nro_doc' => $persona->nro_doc,
                                     'tipo_doc'=> $persona->tipo_doc,
@@ -188,6 +188,7 @@ class PreCheckController extends Controller
         $buscar = TramitesAIniciar::find($value->id);
         $value->nacionalidad = $buscar->nacionalidadTexto();
         $value->tipo_doc = $buscar->tipoDocText();
+        $value->sucursal = $buscar->sucursalTexto($value->sucursal);
       }
       return response()->json(['res' => $tramites]);
     }else{

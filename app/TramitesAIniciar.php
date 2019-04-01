@@ -36,6 +36,14 @@ class TramitesAIniciar extends Model
       return "";  
   }
 
+  public function sucursalTexto($id){
+    $sucursal = SysMultivalue::where('type','SUCU')->where('id', $id)->first();
+    if($sucursal)
+      return $sucursal->description;
+    else
+      return "";  
+  }
+
   public function sigeci(){
      return $this->hasOne('App\Sigeci','tramite_a_iniciar_id','id');
   }
