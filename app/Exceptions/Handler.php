@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Http\Utils\Response;
 use Exception;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
@@ -61,7 +62,10 @@ class Handler extends ExceptionHandler
     protected function unauthenticated($request, AuthenticationException $exception)
     {
         if (in_array('api', \Route::getCurrentRoute()->computedMiddleware)) {
-            return response()->json(['error' => ['code' => 401, 'message' => 'Acesso no authorizado']], 401);
+            $response = new Response();
+            $response->setSuccess(false);
+            $response->setError('Acesso no authorizado');
+            return response()->json($response->toArray(), 401);
         }
 
         if ($request->expectsJson()) {

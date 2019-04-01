@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,8 +14,19 @@ use Illuminate\Http\Request;
 |
 */
 
+//Permitir el acceso desde otro cliente por hhtp
+Route::options('*', function () {
+    $response = Response::make('');
+    $response->header('Access-Control-Allow-Origin', '*');
+    $response->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    $response->header('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, X-Token-Auth, Authorization');
+    $response->header('Access-Control-Allow-Credentials' ,'true');
+
+});
+
+
 //API para authenticar el acceso con Laravel/passport
-Route::group(['prefix' => 'auth'], function () {
+Route::group(['prefix' => 'auth', 'middleware' => 'cors'], function () {
     Route::post('login', 'AuthController@login');
     Route::post('signup', 'AuthController@signup');
 
