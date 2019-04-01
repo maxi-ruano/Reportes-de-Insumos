@@ -56,25 +56,39 @@ class TramitesController extends Controller
       return $consulta;
     }
 
-  //function get para API listar los tramites con licencias emitidas
-  public function get_licencias_emitidas(Request $request){
-    $ip = $request->ip();
-    //IP permitidas para realizar la consulta: Daniela / Juan Ojeda / Pierre 
-    $autorizadas = array('192.168.76.136','192.168.76.215','192.168.76.230');
-    ///Secretaria de Atencion Ciudadana autorizados:
-    array_push($autorizadas, '10.67.51.55','10.67.51.58','10.67.51.59','10.67.51.60');
-    array_push($autorizadas, '10.10.14.37', '10.10.5.95');
+    //function get para API listar los tramites con licencias emitidas
+    public function get_licencias_emitidas(Request $request){
+      $ip = $request->ip();
+      //IP permitidas para realizar la consulta (Roca): Daniela / Yonibel / Guido
+      $autorizadas = array('192.168.76.136','192.168.76.215','192.168.76.230');
+      ///Secretaria de Atencion Ciudadana autorizados:
+      array_push($autorizadas, '10.67.51.55','10.67.51.58','10.67.51.59','10.67.51.60','10.10.14.37', '10.10.5.95');
+      ///Gerencia de Taxistas
+      array_push($autorizadas,'200.51.83.43','192.220.158.154');
 
-    if(in_array($ip, $autorizadas)){ 
+      $consulta = [];
 
-      $estado_finalizado = '95'; 
-      $estado_completado = '14';
+      if(in_array($ip, $autorizadas)){
+        if((isset($request->desde) && isset($request->hasta)) || isset($request->nrodoc)){
 
-      //No limitar el limit Memory de PHP
-      ini_set('memory_limit', '-1');
+          $estado_finalizado = '95';
+          $estado_completado = '14';
 
-      $tramites =  Tramites::selectRaw('
-                        tramites.nro_doc,
+          //No limitar el limit Memory de PHP
+          ini_set('memory_limit', '-1');
+
+          if(isset($request->nrodoc)){
+            //Mostrar solo la ultima licencia otrogada - Consulta para la Gerencia de Taxista
+            $campos = " tramites.nro_doc,
+                        datos_personales.apellido,
+                        datos_personales.nombre,
+                        CAST(tramites.fec_emision AS DATE),
+                        CAST(tramites.fec_vencimiento AS DATE),
+                        licencias_otorgadas.clase AS categoria,
+                        (CASE WHEN CAST(tramites.fec_vencimiento AS DATE) < current_date THEN 'Si' ELSE 'No' END) as vencida";
+          }else{
+            //Mostrar listado de licencia otrogada - Consulta para la Atención al Ciudadano
+            $campos = ' tramites.nro_doc,
                         datos_personales.apellido,
                         datos_personales.nombre,
                         datos_personales.sexo,
@@ -92,43 +106,66 @@ class TramitesController extends Controller
                         CAST(tramites_log.modification_date AS TIME(0)) as hora_finalizacion,
                         CAST(tramites.fec_emision AS DATE),
                         CAST(tramites.fec_vencimiento AS DATE),
-                        licencias_otorgadas.clase AS categoria')
-                      ->join('licencias_otorgadas','licencias_otorgadas.tramite_id','tramites.tramite_id')
-                      ->join('tipo_tramites','tipo_tramites.tipo_tramite_id','tramites.tipo_tramite_id')
-                      ->join('datos_personales',function($join) {
-                          $join->on('datos_personales.nro_doc', '=', 'tramites.nro_doc');
-                          $join->on('datos_personales.tipo_doc', '=', 'tramites.tipo_doc');
-                          $join->on('datos_personales.sexo', '=', 'tramites.sexo');
-                      })
-                      ->join('tramites_log',function($join) use($estado_finalizado) {
-                        $join->on('tramites_log.tramite_id', 'tramites.tramite_id');
-                        $join->where('tramites_log.estado', $estado_finalizado);
-                      })
-                      ->where('tramites.estado',$estado_completado)
-                      ->orderby('tramites.fec_inicio');
-      
-      //validar si existen los parametros de busqueda por fecha (desde, hasta)
-      if(!isset($request->desde) || !isset($request->hasta))
-        return '<h2>Estimado usuario:</h2> Para realizar la consulta debe ingresar los parametros de búsqueda por fecha (desde,hasta). <br> Ejemplo: <h5>...api/reportes/get_licencias_emitidas?desde=2018-07-01&hasta=2018-07-31</h5>  <p>Puedes incluir tambien el parámetro de vencida para listar solo las licencias vencidas en ese rango de fechas.  <br> Ejemplo: <h5> ...api/reportes/get_licencias_emitidas?desde=2018-07-01&hasta=2018-07-31&vencida=true </h5> </p>';
+                        licencias_otorgadas.clase AS categoria';
+          }
 
-      //Comprobar si este el parametro de vencida para poder hacer el filtro
-      if($request->vencida) 
-        $tramites->whereBetween('tramites.fec_vencimiento',[$request->desde,$request->hasta]);
-      else
-        $tramites->whereBetween('tramites.fec_emision',[$request->desde,$request->hasta]);
+          //Consulta de licencias otorgadas
+          $tramites =  Tramites::selectRaw($campos)
+                          ->join('licencias_otorgadas','licencias_otorgadas.tramite_id','tramites.tramite_id')
+                          ->join('tipo_tramites','tipo_tramites.tipo_tramite_id','tramites.tipo_tramite_id')
+                          ->join('datos_personales',function($join) {
+                              $join->on('datos_personales.nro_doc', '=', 'tramites.nro_doc');
+                              $join->on('datos_personales.tipo_doc', '=', 'tramites.tipo_doc');
+                              $join->on('datos_personales.sexo', '=', 'tramites.sexo');
+                          })
+                          ->join('tramites_log',function($join) use($estado_finalizado) {
+                            $join->on('tramites_log.tramite_id', 'tramites.tramite_id');
+                            $join->where('tramites_log.estado', $estado_finalizado);
+                          })
+                          ->where('tramites.estado',$estado_completado)
+                          ->orderby('tramites.fec_inicio','DESC');
 
-      //Se ejecuta la consulta final obtenida
-      $consulta = $tramites->get();
+          //Comrpobar si existe el filtro por Nro. Documento
+          if(isset($request->nrodoc)){
+            $tramites->where('tramites.nro_doc',$request->nrodoc);
+            $consulta = $tramites->first();
+            if($consulta == NULL)
+              $consulta['message'] = "No se encontraron resultados de los datos ingresados.";
+          }else{
+            //validar si existen los parametros de busqueda por fecha (desde, hasta)
+            if(isset($request->desde) && isset($request->hasta)){
+              $fecha_desde = explode('-',$request->desde);
+              $fecha_hasta = explode('-',$request->hasta);
+              if(checkdate($fecha_desde[1], $fecha_desde[2], $fecha_desde[0]) && checkdate($fecha_hasta[1], $fecha_hasta[2], $fecha_hasta[0])){
+                //Comprobar si este el parametro de vencida para poder hacer el filtro
+                if($request->vencida)
+                  $tramites->whereBetween('tramites.fec_vencimiento',[$request->desde,$request->hasta]);
+                else
+                  $tramites->whereBetween('tramites.fec_emision',[$request->desde,$request->hasta]);
+
+                //Se ejecuta la consulta final obtenida
+                $consulta = $tramites->get();
+
+                if(count($consulta)){
+                  if($request->export) //Solo si existe el parametro para export en: xls, xlsx, txt, csv, entre otros.
+                    $this->exportFile($consulta, $request->export, 'licenciasEmitidas');
+                }else{
+                  $consulta['message'] = "No se encontraron resultados de los datos ingresados.";
+                }
       
-      //Solo si existe el parametro para export en: xls, xlsx, txt, csv, entre otros.
-      if($request->export) 
-        $this->exportFile($consulta, $request->export, 'licenciasEmitidas');
-    
-    }else{
-      $consulta = "Acceso denegado: IP no permitida!..";
+              }else{
+                $consulta['message'] = "Las fechas ingresadas son incorrectas!";
+              }
+            }
+          }
+        }else{
+          $consulta['error'] = "Los parametros ingresados son incorrectos.";
+        }
+      }else{
+        $consulta['error'] = "Acceso denegado: IP no permitida!..";
+      }
+      return $consulta;
     }
-    return $consulta;
-  }
 
     public function TramitesAIniciarCompletados($fecha) {
       $consulta = \DB::table('tramites_a_iniciar')
@@ -146,21 +183,5 @@ class TramitesController extends Controller
       return $consulta;
       
     }
-
-  /*
-  public function getValidacionesPrecheck($fecha, $validado='', $estado='') {
-
-      $consulta = \DB::table("validaciones_precheck")
-                      ->join('tramites_a_iniciar','tramites_a_iniciar.id','validaciones_precheck.tramite_a_iniciar_id')
-                      ->whereIn('tramites_a_iniciar.sigeci_idcita',$this->Sigeci->getTurnos($fecha)->pluck('idcita')->toArray());
-      if($estado)
-        $consulta->where('validaciones_precheck.validation_id',$estado);
-      
-      if($validado)
-        $consulta->where('validaciones_precheck.validado',$validado);
-
-    return $consulta->get();
-    
-  }*/
 
 }
