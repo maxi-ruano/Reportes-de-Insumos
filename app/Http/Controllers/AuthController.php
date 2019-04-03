@@ -35,9 +35,15 @@ class AuthController extends Controller
             'password'    => 'required|string'
         ]);
         $credentials = request(['email', 'password']);
-        if (!Auth::attempt($credentials)) {
+        if(User::whereIn('email',request(['email']))->count()){
+            if (!Auth::attempt($credentials)) {
+                $response->setSuccess(false);
+                $response->setMessage('Su contraseña es incorrecta, por favor intente nuevamente.');
+                return response()->json($response->toArray(), 401);
+            }
+        }else{
             $response->setSuccess(false);
-            $response->setMessage('Acceso no autorizado');
+            $response->setMessage('El email ingresado no se encuentra registrado!');
             return response()->json($response->toArray(), 401);
         }
         $user = $request->user();
