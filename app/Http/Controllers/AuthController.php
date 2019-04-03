@@ -6,6 +6,7 @@ use App\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Utils\Response;
 
 class AuthController extends Controller
 {
@@ -28,13 +29,16 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        $response = new Response();
         $request->validate([
             'email'       => 'required|string|email',
             'password'    => 'required|string'
         ]);
         $credentials = request(['email', 'password']);
         if (!Auth::attempt($credentials)) {
-            return response()->json(['message' => 'Acceso no autorizado'], 401);
+            $response->setSuccess(false);
+            $response->setMessage('Acceso no autorizado');
+            return response()->json($response->toArray(), 401);
         }
         $user = $request->user();
         $tokenResult = $user->createToken('Personal Access Token');
@@ -43,11 +47,17 @@ class AuthController extends Controller
             $token->expires_at = Carbon::now()->addWeeks(1);
         }
         $token->save();
-        return response()->json([
+
+        $access = [
             'access_token' => $tokenResult->accessToken,
             'token_type'   => 'Bearer',
             'expires_at'   => Carbon::parse($tokenResult->token->expires_at)->toDateTimeString(),
-        ]);
+        ];
+
+        $response->setSuccess(true);
+        $response->setEntities($access);
+        $response->setMessage('OK');
+        return response()->json($response->toArray(), 200);
     }
 
     public function logout(Request $request)
@@ -58,19 +68,30 @@ class AuthController extends Controller
 
     public function user(Request $request)
     {
-        $user = $request->user();
-        $usuario = User::select('id','name','email','sys_user_id')->find($user->id);
-        $roles = $user->roles;
+        $response = new Response();
 
-        $user_roles  = [];
-        foreach($roles as $key => $rol){
-            $user_roles[$key]['id']  = $rol->id;
-            $user_roles[$key]['name']  = $rol->name;
-            $user_roles[$key]['permisos'] = $rol->permissions()->pluck('name');
+        try
+        {
+            $user = User::select('id','name','email','sys_user_id')->find($request->user()->id);
+            $roles = $user->roles;
+            $user_roles  = [];
+            foreach($roles as $key => $rol){
+                $user_roles[$key]['id']  = $rol->id;
+                $user_roles[$key]['name']  = $rol->name;
+                $user_roles[$key]['permisos'] = $rol->permissions()->pluck('name');
+            }
+            $user->roles = $user_roles;
+
+            $response->setSuccess(true);
+            $response->setEntities($user);
+            $response->setMessage('OK');
+        }
+        catch(\Exception $e)
+        {
+            $response->setSuccess(false);
+            $response->setError($e->getMessage());
         }
 
-        $usuario->roles = $user_roles;
-
-        return response()->json($usuario);
+        return response()->json($response->toArray());
     }
 }

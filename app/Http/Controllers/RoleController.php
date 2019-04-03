@@ -6,6 +6,7 @@ use App\Authorizable;
 use App\Permission;
 use App\Role;
 use Illuminate\Http\Request;
+use App\Http\Utils\Response;
 
 class RoleController extends Controller
 {
@@ -71,26 +72,41 @@ class RoleController extends Controller
 
     public function getRolesPermissions(Request $request)
     {
-        $response = [];
+        $response = new Response();
 
-        if(isset($request->id)){
-            $rol = Role::select('id', 'name')->find($request->id);
-            if($rol){
-                $permisos = $rol->permissions()->pluck('name');
+        try
+        {
+            $consulta = [];
+            $message = 'OK';
 
-                $response['roles']  = [
-                        'id' =>  $rol['id'],
-                        'name' =>  $rol['name'],
-                        'permisos' =>  $permisos
-                ];
+            if(isset($request->id)){
+                $rol = Role::select('id', 'name')->find($request->id);
+                if($rol){
+                    $permisos = $rol->permissions()->pluck('name');
+
+                    $consulta['roles']  = [
+                            'id' =>  $rol['id'],
+                            'name' =>  $rol['name'],
+                            'permisos' =>  $permisos
+                    ];
+                }else{
+                    $message = 'No se encuentra registrado';
+                }
+
             }else{
-                $response['message'] = 'No se encuentra registrado';
+                $consulta['roles'] = Role::select('id', 'name')->get();
             }
 
-        }else{
-            $response['roles'] = Role::select('id', 'name')->get();
+            $response->setSuccess(true);
+            $response->setEntities($consulta);
+            $response->setMessage($message);
+        }
+        catch(\Exception $e)
+        {
+            $response->setSuccess(false);
+            $response->setError($e->getMessage());
         }
 
-        return response()->json($response);
+        return response()->json($response->toArray());
     }
 }

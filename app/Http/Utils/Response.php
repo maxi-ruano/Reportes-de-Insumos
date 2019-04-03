@@ -102,8 +102,8 @@ class Response
     public function toArray() {
         $arr['success'] = $this->success;
         if($this->entities !== null) {
-            $arr['entities'] = $this->entities;
-            $arr['count'] = count($this->entities);
+            $arr['entities'] = [$this->entities];
+            $arr['count'] = count($arr['entities']);
         }
         if($this->message !== null) {
             $arr['message'] = $this->message;
