@@ -43,7 +43,7 @@ class AuthController extends Controller
             }
         }else{
             $response->setSuccess(false);
-            $response->setMessage('El email ingresado no se encuentra registrado!');
+            $response->setMessage('El email ingresado no se encuentra registrado.');
             return response()->json($response->toArray(), 401);
         }
         $user = $request->user();
@@ -69,7 +69,11 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $request->user()->token()->revoke();
-        return response()->json(['message' => 'Successfully logged out']);
+
+        $response = new Response();
+        $response->setSuccess(true);
+        $response->setMessage('Tu sesión ha sido cerrada correctamente');
+        return response()->json($response->toArray(), 200);
     }
 
     public function user(Request $request)
@@ -78,7 +82,8 @@ class AuthController extends Controller
 
         try
         {
-            $user = User::select('id','name','email','sys_user_id')->find($request->user()->id);
+            $user = $request->user();
+            $usuario = User::select('id','name','email','sys_user_id')->find($user->id);
             $roles = $user->roles;
             $user_roles  = [];
             foreach($roles as $key => $rol){
@@ -86,10 +91,10 @@ class AuthController extends Controller
                 $user_roles[$key]['name']  = $rol->name;
                 $user_roles[$key]['permisos'] = $rol->permissions()->pluck('name');
             }
-            $user->roles = $user_roles;
+            $usuario->roles = $user_roles;
 
             $response->setSuccess(true);
-            $response->setEntities($user);
+            $response->setEntities($usuario);
             $response->setMessage('OK');
         }
         catch(\Exception $e)
