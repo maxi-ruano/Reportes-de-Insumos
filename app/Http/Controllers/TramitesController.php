@@ -64,7 +64,7 @@ class TramitesController extends Controller
       ///Secretaria de Atencion Ciudadana autorizados:
       array_push($autorizadas, '10.67.51.55','10.67.51.58','10.67.51.59','10.67.51.60','10.10.14.37', '10.10.5.95');
       ///Gerencia de Taxistas
-      array_push($autorizadas,'200.51.83.43','192.220.158.154');
+      array_push($autorizadas,'200.51.83.43','190.220.158.154');
 
       $consulta = [];
 
