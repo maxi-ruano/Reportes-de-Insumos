@@ -89,6 +89,7 @@ class RoleMotivosController extends Controller
         }
         
         return view('rolemotivos.form')->with('roles', $roles)
+                                            ->with('role_id', $request->role_id)      
                                             ->with('motivos', $motivos)
                                             ->with('motivos_select', $motivos_select)
                                             ->with('motivos_list',$motivos_list);

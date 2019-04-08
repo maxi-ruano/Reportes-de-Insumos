@@ -8,7 +8,7 @@
     
         <div class="form-group col-md-12 col-xs-12">                
             {!! Form::label('role_id', ' Rol de Usuario') !!}
-            {!! Form::select('role_id', $roles, null , ['class' => 'form-control', 'placeholder' => 'Seleccione', 'required' => 'required']) !!}                
+            {!! Form::select('role_id', $roles, ($role_id) ? $role_id: null , ['class' => 'form-control', 'placeholder' => 'Seleccione', 'required' => 'required']) !!}                
         </div>
 
         <div class="form-group col-md-6 col-xs-12">
