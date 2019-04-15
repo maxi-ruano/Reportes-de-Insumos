@@ -63,8 +63,8 @@ class TramitesController extends Controller
       $autorizadas = array('192.168.76.136','192.168.76.215','192.168.76.230');
       ///Secretaria de Atencion Ciudadana autorizados:
       array_push($autorizadas, '10.67.51.55','10.67.51.58','10.67.51.59','10.67.51.60','10.10.14.37', '10.10.5.95');
-      ///Gerencia de Taxistas
-      array_push($autorizadas,'200.51.83.43','190.220.158.154');
+      ///Gerencia de SACTA
+      array_push($autorizadas,'10.209.73.19','10.209.73.23','10.209.73.24','10.209.73.26','10.209.73.38','10.209.73.39','10.209.73.40','10.209.73.54','10.209.73.54','10.209.73.123','10.209.73.166');
 
       $consulta = [];
 
