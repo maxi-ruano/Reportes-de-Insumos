@@ -724,7 +724,7 @@ class TramitesAInicarController extends Controller
   }
 
   public function validacionesTerminadas($id){
-      $res = ValidacionesPrecheck::where("tramite_a_iniciar_id", $id)->get();
+      $res = ValidacionesPrecheck::where("tramite_a_iniciar_id", $id)->whereNotIn('validation_id',[SINALIC])->get();
       foreach($res as $key => $validacion)
         if (!$validacion->validado)
           return false;
@@ -803,6 +803,8 @@ class TramitesAInicarController extends Controller
         $tramite->tramite_sinalic_id = $resultado->tramite_sinalic_id;
         $tramite->response_ws = json_encode($response_ws);
         $tramite->save();
+        //ACTUALIZAMOS en validaciones_precheck
+        $this->guardarValidacion($tramite, true, SINALIC, $tramite->tramite_sinalic_id);
       }
     }
   }
@@ -1047,7 +1049,6 @@ class TramitesAInicarController extends Controller
     $emision = EmisionBoletaSafit::whereRaw(" CAST(numero_boleta AS text) IN(SELECT bop_id from tramites_a_iniciar where bop_id = '".$bop_cb."' and id = ".$tramiteAIniciar->id.") ")->first();
 
     if($emision){
-      //dd($emision->tipo_doc.' | '. $tramiteAIniciar->tipo_doc .' | '. $emision->nro_doc.' | '. $tramiteAIniciar->nro_doc .' | '. $emision->sexo.' | '. $tramiteAIniciar->sexo);
       if($emision->tipo_doc == $tramiteAIniciar->tipo_doc && $emision->nro_doc == $tramiteAIniciar->nro_doc && $emision->sexo == $tramiteAIniciar->sexo){
           $this->guardarValidacion($tramiteAIniciar, true, $validation_id, $emision->numero_boleta);
           $actualizo = true;

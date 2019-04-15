@@ -93,6 +93,7 @@
         <div id="div_observacion" class="form-group">    
             {!! Form::label('observacion', ' Observación: ') !!}
             {!! Form::text('observacion', isset($edit) ? $edit->observacion : null, ['class' => 'form-control', 'required' => 'required']) !!}
+            <input type="hidden" name="precheck_id" id="precheck_id" value="">
         </div>
  
         
@@ -144,10 +145,10 @@
             @endif
 
            
-            $("input[name=fecha], input[name=nro_doc], select[name=motivo_id], input[name=fecha_nacimiento]").change(function(){
+            $("input[name=fecha], select[name=sucursal], input[name=nro_doc], select[name=motivo_id], input[name=fecha_nacimiento]").change(function(){
                 var fecha = $('input[name=fecha_nacimiento]').val();
                 edad = calcularEdad(fecha);
-                //$("#div_observacion input").val('');
+                $("#precheck_id").val('');
                 validarMotivos();
             });
 
@@ -174,7 +175,7 @@
                         $("#div_observacion label").html('Nro. de Cita: ');
                         $("#div_observacion input").attr('placeholder','Ingrese el Nro. de la Cita').attr('required','required').attr('minlength','8').attr('maxlength','8');
                         $('button[type=submit]').attr("disabled",true);
-                        $("#div_observacion input, input[name=fecha], input[name=nro_doc], input[name=nombre], input[name=apellido]").change(function(){
+                        $("#div_observacion input, input[name=fecha],  select[name=sucursal], input[name=nro_doc], input[name=nombre], input[name=apellido]").change(function(){
                             validarErrorEnTurno();
                         });
                         break;
@@ -183,7 +184,7 @@
                         $("#div_observacion label").html('ID del Tramite: ');
                         $("#div_observacion input").attr('placeholder','Ingrese el ID del Tramite').attr('required','required').attr('minlength','7').attr('maxlength','7');;
                         $('button[type=submit]').attr("disabled",true);
-                        $("#div_observacion input, input[name=fecha], input[name=nro_doc]").change(function(){
+                        $("#div_observacion input, input[name=fecha],  select[name=sucursal], input[name=nro_doc]").change(function(){
                             validarReiniciaTramite();
                         });
                         break;
@@ -217,6 +218,7 @@
                 var nro_doc = $("input[name=nro_doc]").val();
                 var nombre = $("input[name=nombre]").val();
                 var apellido = $("input[name=apellido]").val();
+                var sucursal = $("select[name=sucursal]").val();
 
                 $('button[type=submit]').attr("disabled",true);
                 
@@ -227,11 +229,11 @@
                         data: {idcita: idcita },
                         type: "GET", dataType: "json",
                         success: function(ret){
-
+                            var precheck_id = ret.tramite_a_iniciar_id;
                             //Calcular los dias entre la dos fecha
                             var fechaini = new Date(ret.fecha);
                             var fechafin = new Date($("input[name=fecha]").val());
-                             var diasdif= fechafin.getTime()-fechaini.getTime();
+                            var diasdif= fechafin.getTime()-fechaini.getTime();
                             var dias = Math.round(diasdif/(1000*60*60*24));
 
                             var f = ret.fecha.split('-');
@@ -247,12 +249,18 @@
                                     $('button[type=submit]').attr("disabled",true);
                                     $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El número de cita ingresado ya cuenta con un tramite en LICTA: '+ret.tramite_dgevyl_id+'</h4>');
                                 }else{
-                                    if(dias >= 0 && dias <= 15){
-                                        $("#ultimo_turno .icono").html('<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>');
-                                        $('button[type=submit]').attr("disabled",false);
+                                    if(sucursal == ret.sucroca){
+                                        if(dias >= 0 && dias <= 15){
+                                            $("#ultimo_turno .icono").html('<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>');
+                                            $('button[type=submit]').attr("disabled",false);
+                                            $("#precheck_id").val(precheck_id);
+                                        }else{
+                                            $("#ultimo_turno .icono").html('<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>');
+                                            $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno no cumple con los 15 días correspondientes para poder TOMAR TURNO!.</h4>');
+                                        }
                                     }else{
                                         $("#ultimo_turno .icono").html('<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>');
-                                        $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno no cumple con los 15 días correspondientes para poder TOMAR TURNO!.</h4>');
+                                        $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno ingresado no corresponde con la Sucursal que intenta registrar!.</h4>');
                                     }
                                 }
                             }
@@ -265,7 +273,6 @@
             }
 
              function validarReiniciaTramite(){
-                 /*alert('entro validarReiniciaTramite');*/
                 var tramite_id = $("#div_observacion input").val();
                 var nro_doc = $("input[name=nro_doc]").val();
 
@@ -278,8 +285,7 @@
                         data: {tramite_id: tramite_id},
                         type: "GET", dataType: "json",
                         success: function(ret){
-                          console.log(ret);
-
+                
                           //Calcular los dias entre las dos fechas
                             var fechaini = new Date(ret.fec_inicio);
                             var fechafin = new Date($("input[name=fecha]").val());
@@ -303,6 +309,7 @@
                                     if(dias >= 0 && dias <= 90){
                                         $("#ultimo_turno .icono").html('<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>');
                                         $('button[type=submit]').attr("disabled",false);
+                                        $("#precheck_id").val(precheck_id);
                                     }else{
                                         $("#ultimo_turno .icono").html('<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>');
                                         $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno no cumple con los 15 días correspondientes para poder REINICIAR TRAMITE!.</h4>');
@@ -321,17 +328,17 @@
                 var motivo = $("select[name=motivo_id] option:selected").text();
                 var tipo_doc = $("select[name=tipo_doc]").val();
                 var nro_doc = $("input[name=nro_doc]").val();
+                var sucursal = $("select[name=sucursal]").val();
                 
                 if(nro_doc != ''){
                     $('button[type=submit]').attr("disabled",true);
-                    console.log("paso 1 ");
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                         url: '/consultarUltimoTurno',
                         data: {tipo_doc: tipo_doc, nro_doc: nro_doc },
                         type: "GET", dataType: "json",
                         success: function(ret){
-                            console.log(ret);
+                            var precheck_id = ret.tramite_a_iniciar_id;
 
                             //Calcular los dias entre la dos fecha
                             var fechaini = new Date(ret.fecha);
@@ -343,13 +350,18 @@
                             var fecha = f[2]+'/'+f[1]+'/'+f[0];
 
                             $("#ultimo_turno").html('Información de su último turno: <table class="table table-striped jambo_table"><tr><td>'+fecha+'</td><td>'+ret.hora+'</td><td>'+ret.tipodoc+'</td><td>'+ret.numdoc+'</td><td>'+ret.nombre+' '+ret.apellido+'</td><td>'+ret.descsede+'</td><td>'+ret.descprestacion+'</td><td class="red"> '+dias+' días</td><td class="icono"></td></tr></table>');
-
-                            if(dias >= 0 && dias <= 15){
-                                $("#ultimo_turno .icono").html('<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>');
-                                $('button[type=submit]').attr("disabled",false);
+                            
+                            if(sucursal == ret.sucroca){
+                                if(dias >= 0 && dias <= 15){
+                                    $("#ultimo_turno .icono").html('<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>');
+                                    $('button[type=submit]').attr("disabled",false);
+                                }else{
+                                    $("#ultimo_turno .icono").html('<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>');
+                                    $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno previo ha superado el limite de los 15 días para poder RETOMAR TURNO!.</h4>');
+                                }
                             }else{
                                 $("#ultimo_turno .icono").html('<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>');
-                                $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno previo ha superado el limite de los 15 días para poder RETOMAR TURNO!.</h4>');
+                                $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno ingresado no corresponde con la Sucursal que intenta registrar!.</h4>');
                             }
                         },
                         error: function(err) {

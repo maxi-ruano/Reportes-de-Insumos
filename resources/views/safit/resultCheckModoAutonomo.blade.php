@@ -71,7 +71,7 @@
             if(msg.error){
               mostrarMensajeError(msg.error)
             }else if(msg){
-              mostrarPreCheck(msg.precheck)
+              mostrarPreCheck(msg.precheck, msg.datosPersona)
               mostrarDatosPersona(msg.datosPersona)
 
               //Bloquear todas las opciones del PreCheck para el Rol Auditoria
@@ -89,10 +89,10 @@
       });
   }
 
-  function mostrarPreCheck(res){
+  function mostrarPreCheck(res, tramite){
       $('#logPreCheck').empty();
       for (var i = 0; i < res.length; i++) {
-      crearMensajePrecheck(res[i])
+      crearMensajePrecheck(res[i], tramite)
       }
   }
 
@@ -119,7 +119,7 @@
      $('#logPreCheck').html('<li><label class="btn btn-danger">'+error+'</label></li>')
   }
 
-  function crearMensajePrecheck(msj){
+  function crearMensajePrecheck(msj, tramite){
       console.log(msj);
 
       $("#tramite_a_iniciar_id").val(msj.tramite_a_iniciar_id);
@@ -131,31 +131,29 @@
           type = 'success'
           fecha_error = (msj.comprobante) ? 'Comprobante Nro. '+msj.comprobante : '';
       }else{
-          var prop = 'description'
-          if (msj.error){
+        var prop = 'description'
+        if (msj.error){
           if(msj.error.description)
-              error =  msj.error.description
-          }else{
+            error =  msj.error.description
+        }else{
           error =  'No verificado'
-          }
+        }
 
-          //Si tiene un Plan de Pagos mostrar su fecha de vencimiento
-          if(error.toUpperCase().indexOf("PLAN DE PAGO") > -1){
+        //Si tiene un Plan de Pagos mostrar su fecha de vencimiento
+        if(error.toUpperCase().indexOf("PLAN DE PAGO") > -1){
           var metadata = JSON.parse(msj.error.response_ws);
           var data = metadata.filter(metadataObj => metadataObj.tag.indexOf("AUTORIZACION") > -1);
           var fecha_vencimiento = JSON.stringify(data[0]['attributes']['FECHAVTOLICENCIA']);
           fecha_error = '<span class="red"> Plan de Pago con Fecha Vencimiento: '+fecha_vencimiento+'</span>';
           type = 'warning';
-
-          }else{
+        }else{
           fecha_error = ((msj.error) ? msj.error.created_at : '')
-          }
-
+        }
       }
 
       //Colocar el metodo onclick solo si no se ha verificado (type=danger)
       var precheckOnclick = '';
-      if(type=='danger')
+      if(type=='danger' && msj.description != 'SINALIC')
           precheckOnclick = 'onclick="runPrecheck('+msj.tramite_a_iniciar_id+','+msj.validation_id+')" ';
 
       //Boton del Log Prec-Check con su descripcion y fecha de ejecucion o Nro. Comrpobante

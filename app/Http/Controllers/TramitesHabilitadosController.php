@@ -68,8 +68,8 @@ class TramitesHabilitadosController extends Controller
             foreach ($data as $key => $value) {
                 $buscar = TramitesHabilitados::find($value->id);
                 $value->tipo_doc = $buscar->tipoDocText();
-		$value->pais = $buscar->paisTexto();
-		$value->rol = $buscar->rolTexto();
+		        $value->pais = $buscar->paisTexto();
+		        $value->rol = $buscar->rolTexto();
                 $value->user_id = $buscar->userTexto($value->user_id);
                 $value->habilitado_user_id = $buscar->userTexto($value->habilitado_user_id);
                 $value->motivo_id = $buscar->motivoTexto();
@@ -155,12 +155,30 @@ class TramitesHabilitadosController extends Controller
                 $tramiteshabilitados->habilitado = false;               
                 $tramiteshabilitados->save();
 
-                
                 if(isset($request->observacion))
                     $this->guardarObservacion($tramiteshabilitados->id, $request->observacion);
 
-                //Crear registro en tramitesAIniciar y procesar el Precheck
-                ProcessPrecheck::dispatch($tramiteshabilitados);
+                //Vincular con el precheck generado solo si coinciden los datos 
+                if($request->precheck_id){
+                    $precheck = TramitesAIniciar::find($request->precheck_id);
+                    if($precheck->nro_doc == $tramiteshabilitados->nro_doc && $precheck->tipo_doc == $tramiteshabilitados->tipo_doc){
+                        $tramiteshabilitados->tramites_a_iniciar_id = $request->precheck_id;
+                        $tramiteshabilitados->save();
+
+                        //Corregimos la nacionalidad en el Precheck que asociamos
+                        $nacionalidad = AnsvPaises::where('id_dgevyl', $tramiteshabilitados->pais)->first()->id_ansv;
+                        if($precheck->nacionalidad != $nacionalidad){
+                            $precheck->nacionalidad = $nacionalidad;
+                            $precheck->save();
+                        }
+                    }else{
+                        //Crear registro en tramitesAIniciar y procesar el Precheck
+                        ProcessPrecheck::dispatch($tramiteshabilitados);
+                    }
+                }else{
+                    //Crear registro en tramitesAIniciar y procesar el Precheck
+                    ProcessPrecheck::dispatch($tramiteshabilitados);
+                }
 
                 Flash::success('El Tramite se ha creado correctamente');
                 return redirect()->route('tramitesHabilitados.create');
@@ -169,7 +187,7 @@ class TramitesHabilitadosController extends Controller
                 return back();  
             }
         }
-        catch(Exception $e){   
+        catch(Exception $e){
             return "Fatal error - ".$e->getMessage();
         }
     }
@@ -418,8 +436,6 @@ class TramitesHabilitadosController extends Controller
             $acceso = true;
         }
 
-        //dd($role_id.' | '.$sucursal.' | '.$motivo.' limite: '.$roles_limites->limite.' '.$acceso);
-
         return $acceso;  
     }
 
@@ -431,8 +447,6 @@ class TramitesHabilitadosController extends Controller
         return $motivos;
     }
 
-    /*
-    //Comentado porque de tantos llamas se colapsa colocandolos en cola en la tabla jobs 
     //Se envia masivamente los turnos que no ha inciado a procesar Precheck con el queque (Demonio)
     public function verificarPrecheckHabilitados(){
         $turnos =  TramitesHabilitados::whereNull('tramites_a_iniciar_id')->where('fecha',date('Y-m-d'))->get();
@@ -440,5 +454,5 @@ class TramitesHabilitadosController extends Controller
             //Crear registro en tramitesAIniciar y procesar el Precheck
             ProcessPrecheck::dispatch($turno);
         }
-    }*/
+    }
 }
