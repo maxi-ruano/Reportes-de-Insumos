@@ -274,11 +274,14 @@ class TramitesAInicarController extends Controller
   public function crearValidacionesPrecheck($id){
     $validaciones = SysMultivalue::where('type','VALP')->get();
     foreach ($validaciones as $key => $value) {
-      $validaciones = new ValidacionesPrecheck();
-      $validaciones->tramite_a_iniciar_id = $id;
-      $validaciones->validation_id = $value->id;
-      $validaciones->validado = false;
-      $validaciones->save();
+      $existe = ValidacionesPrecheck::where('tramite_a_iniciar_id',$id)->where('validation_id',$value->id)->count();
+      if(!$existe){
+        $validaciones = new ValidacionesPrecheck();
+        $validaciones->tramite_a_iniciar_id = $id;
+        $validaciones->validation_id = $value->id;
+        $validaciones->validado = false;
+        $validaciones->save();
+      }
     }
   }
 
@@ -737,6 +740,7 @@ class TramitesAInicarController extends Controller
    */
 
   public function guardarValidacion($tramitesAIniciar, $estado, $validation, $comprobante){
+    $this->crearValidacionesPrecheck($tramitesAIniciar->id);
     $validacion = ValidacionesPrecheck::where('validation_id', $validation)
                                       ->where('tramite_a_iniciar_id', $tramitesAIniciar->id)
                                       ->first();
