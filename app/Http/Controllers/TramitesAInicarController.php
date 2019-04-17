@@ -740,7 +740,6 @@ class TramitesAInicarController extends Controller
    */
 
   public function guardarValidacion($tramitesAIniciar, $estado, $validation, $comprobante){
-    $this->crearValidacionesPrecheck($tramitesAIniciar->id);
     $validacion = ValidacionesPrecheck::where('validation_id', $validation)
                                       ->where('tramite_a_iniciar_id', $tramitesAIniciar->id)
                                       ->first();
@@ -798,6 +797,9 @@ class TramitesAInicarController extends Controller
           # code...
           break;
       }
+
+      //Verificamos si existen cargadas todas las validaciones correspondientes  en el Precheck
+      $this->crearValidacionesPrecheck($tramites->id);
 
       $resultado = $this->interpretarResultado($datos, $response_ws, $res);
       if(!empty($resultado->error)){
