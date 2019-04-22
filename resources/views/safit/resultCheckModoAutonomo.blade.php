@@ -64,7 +64,7 @@
       $.ajax({
           headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
           type: "GET",
-          url: '/consultarPreCheck',
+          url: 'consultarPreCheck',
           data: { id: id, },
           async:false,
           success: function( msg ) {
@@ -213,7 +213,7 @@
       $.ajax({
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
         type: "GET",
-        url: '/generarCenatPrecheck',
+        url: 'generarCenatPrecheck',
         data: {id: id, bop_cb: bop_cb, cem_id: cem_id },
         beforeSend: function(){
           $('#logPreCheck').html('<img src="/img/buffer.gif" width="200" > Generando CENAT... espere.');
@@ -235,7 +235,7 @@
     $.ajax({
       headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
       type: "GET",
-      url: '/runPrecheck',
+      url: 'runPrecheck',
       data: { id: id, validation: validation },
       Async:true,
       beforeSend: function(){
@@ -256,7 +256,7 @@
   function getPaseTurno(id){
     $.ajax({
         type: "POST",
-        url: '/api/funciones/actualizarPaseATurno',
+        url: 'api/funciones/actualizarPaseATurno',
         data: { id: id},
         success: function( msg ) {
           getPreCheck(id);

@@ -168,7 +168,7 @@
             var valor = $("#habilitado"+id).prop('checked');
             $.ajax({
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                url: '/tramitesHabilitadosHabilitar',
+                url: 'tramitesHabilitadosHabilitar',
                 data: {id: id, valor:valor },
                 type: "GET", 
                 success: function(ret){

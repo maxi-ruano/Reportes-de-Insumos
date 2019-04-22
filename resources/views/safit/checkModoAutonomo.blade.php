@@ -104,7 +104,7 @@
       $.ajax({
           headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
           type: "GET",
-          url: '/buscarTramitesPrecheck',
+          url: 'buscarTramitesPrecheck',
           data: { nro_doc: $('#nro_doc').val(), },
           success: function( msg ) {
             if(msg.error)

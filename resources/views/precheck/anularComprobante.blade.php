@@ -131,7 +131,7 @@
             console.log('anular el comprobante del Precheck id: '+id);
             $.ajax({
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                url: '/anularPreCheck',
+                url: 'anularPreCheck',
                 data: {id: id },
                 type: "GET", 
                 success: function(ret){

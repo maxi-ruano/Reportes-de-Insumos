@@ -55,7 +55,7 @@
             $("#table_tramite tbody, #table_examenes tbody").empty();
             $.ajax({
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                url: '/listado_examenes',
+                url: 'listado_examenes',
                 data: {tramite_id: tramite_id },
                 type: "GET", 
                 success: function(ret){
@@ -117,7 +117,7 @@
             //console.log(id+' '+anulado);
             $.ajax({
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                url: '/anular_examen',
+                url: 'anular_examen',
                 data: {id: id, anulado:anulado },
                 type: "GET", 
                 success: function(ret){

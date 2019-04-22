@@ -86,7 +86,7 @@
             var activo = $("#motivo"+id).prop('checked');
             $.ajax({
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                url: '/tramitesHabilitadosMotivosHabilitar',
+                url: 'tramitesHabilitadosMotivosHabilitar',
                 data: {id: id, activo:activo },
                 type: "GET", 
                 success: function(ret){

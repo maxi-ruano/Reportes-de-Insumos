@@ -64,7 +64,7 @@
             $('#pc_activas').empty();
             $.ajax({
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                url: '/listado_teoicopc',
+                url: 'listado_teoicopc',
                 data: {sucursal: sucursal, activo: 1 },
                 type: "GET", 
                 success: function(pcs){
@@ -89,7 +89,7 @@
 
             $.ajax({
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                url: '/listado_teoicopc',
+                url: 'listado_teoicopc',
                 data: {sucursal: sucursal, activo: 0 },
                 type: "GET", 
                 success: function(pcs){

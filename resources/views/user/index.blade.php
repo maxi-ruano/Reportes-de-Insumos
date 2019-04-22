@@ -102,7 +102,7 @@
             var activo = $("#activo"+id).prop('checked');
             $.ajax({
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                url: '/activarCuentaUser',
+                url: 'activarCuentaUser',
                 data: {id: id, activo: activo },
                 type: "GET", 
                 success: function(ret){

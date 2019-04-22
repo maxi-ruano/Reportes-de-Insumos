@@ -129,7 +129,7 @@
             
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                        url: '/buscarDatosPersonales',
+                        url: 'buscarDatosPersonales',
                         data: {tipo_doc: tipo_doc, nro_doc: nro_doc },
                         type: "GET", dataType: "json",
                         success: function(ret){
@@ -225,7 +225,7 @@
                 if(idcita !='' && nro_doc != ''){
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                        url: '/consultarTurnoSigeci',
+                        url: 'consultarTurnoSigeci',
                         data: {idcita: idcita },
                         type: "GET", dataType: "json",
                         success: function(ret){
@@ -281,7 +281,7 @@
                 if(tramite_id !='' && nro_doc != ''){
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                        url: '/consultarTramite',
+                        url: 'consultarTramite',
                         data: {tramite_id: tramite_id},
                         type: "GET", dataType: "json",
                         success: function(ret){
@@ -334,7 +334,7 @@
                     $('button[type=submit]').attr("disabled",true);
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                        url: '/consultarUltimoTurno',
+                        url: 'consultarUltimoTurno',
                         data: {tipo_doc: tipo_doc, nro_doc: nro_doc },
                         type: "GET", dataType: "json",
                         success: function(ret){
