@@ -708,18 +708,14 @@ class TramitesAInicarController extends Controller
    * MicroservicioController: 6) Metodos asociados para revisarValidaciones
    */
   public function revisarValidaciones($siguienteEstado){
-    $validaciones = \DB::table('validaciones_precheck')
-                  ->select('validaciones_precheck.tramite_a_iniciar_id')  
-                  ->join('tramites_a_iniciar', 'tramites_a_iniciar.id', '=', 'validaciones_precheck.tramite_a_iniciar_id')
+    $validaciones = TramitesAIniciar::select('tramites_a_iniciar.id','tramites_a_iniciar.estado')
                   ->join('sigeci', 'sigeci.idcita', '=', 'tramites_a_iniciar.sigeci_idcita')
                   ->whereBetween('sigeci.fecha', [$this->fecha_inicio, $this->fecha_fin])
                   ->whereNotIn('tramites_a_iniciar.estado',[VALIDACIONES_COMPLETAS, INICIO_EN_SINALIC, TURNO_VENCIDO])
-                  ->groupBy('validaciones_precheck.tramite_a_iniciar_id')
                   ->get();
-
     foreach ($validaciones as $key => $validacion) {
-      if($this->validacionesTerminadas($validacion->tramite_a_iniciar_id)){
-        $tramite = TramitesAIniciar::find($validacion->tramite_a_iniciar_id);
+      if($this->validacionesTerminadas($validacion->id)){
+        $tramite = TramitesAIniciar::find($validacion->id);
         $tramite->estado = $siguienteEstado; 
         $tramite->save();
       }
@@ -799,7 +795,7 @@ class TramitesAInicarController extends Controller
       }
 
       //Verificamos si existen cargadas todas las validaciones correspondientes  en el Precheck
-      $this->crearValidacionesPrecheck($tramites->id);
+      $this->crearValidacionesPrecheck($tramite->id);
 
       $resultado = $this->interpretarResultado($datos, $response_ws, $res);
       if(!empty($resultado->error)){

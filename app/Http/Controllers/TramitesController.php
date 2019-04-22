@@ -177,6 +177,7 @@ class TramitesController extends Controller
                                 ->join('tramites_a_iniciar','tramites_a_iniciar.id','validaciones_precheck.tramite_a_iniciar_id')
                                 ->join('sigeci','sigeci.idcita','tramites_a_iniciar.sigeci_idcita')
                                 ->where('sigeci.fecha',$fecha)
+                                ->whereNotIn('validaciones_precheck.validation_id',[SINALIC])
                                 ->where('validaciones_precheck.validado','false')
                                 ->groupBy('validaciones_precheck.tramite_a_iniciar_id');  
                         })->get();
