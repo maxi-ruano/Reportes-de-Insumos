@@ -216,7 +216,8 @@
         url: 'generarCenatPrecheck',
         data: {id: id, bop_cb: bop_cb, cem_id: cem_id },
         beforeSend: function(){
-          $('#logPreCheck').html('<img src="/img/buffer.gif" width="200" > Generando CENAT... espere.');
+          var img = "{{  URL::to('/') }}/img/buffer.gif";
+          $('#logPreCheck').html('<img src="'+img+'" width="200" > Generando CENAT... espere.');
         },
         success: function( msg ) {          
             getPreCheck(id);
@@ -239,7 +240,8 @@
       data: { id: id, validation: validation },
       Async:true,
       beforeSend: function(){
-        $('#logPreCheck').html('<img src="/img/buffer.gif" width="200" > Verificando... ');
+        var img = "{{  URL::to('/') }}/img/buffer.gif";
+        $('#logPreCheck').html('<img src="'+img+'" width="200" > Verificando... ');
       },
       success: function( msg ) {
         console.log('Finalizo: '+msg);
