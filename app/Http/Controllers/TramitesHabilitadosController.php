@@ -308,11 +308,22 @@ class TramitesHabilitadosController extends Controller
     public function destroy($id)
     {
         try{
-            $tramiteshabilitados = TramitesHabilitados::find($id);
-            $tramiteshabilitados->delete();
-           
-            Flash::success('El Tramite se ha eliminado correctamente');
-            return redirect()->route('tramitesHabilitados.index');
+            
+            $t = TramitesHabilitados::find($id);
+                    
+            $inicio_tramite = ($t->tramites_a_iniciar_id)?TramitesAIniciar::find($t->tramites_a_iniciar_id)->tramite_dgevyl_id:'';
+            //No realizar ninguna modificacion si el tramiteAIniciar inicio en Fotografia
+            if($inicio_tramite){
+                Flash::error('El Tramite ya se inicio en LICTA no se puede eliminar!');
+                return redirect()->route('tramitesHabilitados.index');
+            }else{
+            
+                $tramiteshabilitados = TramitesHabilitados::find($id);
+                $tramiteshabilitados->delete();
+            
+                Flash::success('El Tramite se ha eliminado correctamente');
+                return redirect()->route('tramitesHabilitados.index');
+            }
         }
         catch(Exception $e){   
             return "Fatal error - ".$e->getMessage();
