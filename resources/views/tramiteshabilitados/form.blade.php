@@ -225,7 +225,7 @@
                 if(idcita !='' && nro_doc != ''){
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                        url: 'consultarTurnoSigeci',
+                        url: '/consultarTurnoSigeci',
                         data: {idcita: idcita },
                         type: "GET", dataType: "json",
                         success: function(ret){
@@ -281,7 +281,7 @@
                 if(tramite_id !='' && nro_doc != ''){
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                        url: 'consultarTramite',
+                        url: '/consultarTramite',
                         data: {tramite_id: tramite_id},
                         type: "GET", dataType: "json",
                         success: function(ret){
@@ -329,15 +329,16 @@
                 var tipo_doc = $("select[name=tipo_doc]").val();
                 var nro_doc = $("input[name=nro_doc]").val();
                 var sucursal = $("select[name=sucursal]").val();
-                
+                console.log(tipo_doc+' | '+nro_doc);
                 if(nro_doc != ''){
                     $('button[type=submit]').attr("disabled",true);
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                        url: 'consultarUltimoTurno',
+                        url: '/consultarUltimoTurno',
                         data: {tipo_doc: tipo_doc, nro_doc: nro_doc },
                         type: "GET", dataType: "json",
                         success: function(ret){
+                            console.log(ret);
                             var precheck_id = ret.tramite_a_iniciar_id;
 
                             //Calcular los dias entre la dos fecha
