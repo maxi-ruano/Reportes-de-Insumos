@@ -127,15 +127,33 @@ class TramitesHabilitadosController extends Controller
                 else
                     $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^(\d+)?$)/u']);
 
-                //Validar que no exista el mismo registro
+                //Validar si existe en tramites habilitados
                 $existe = TramitesHabilitados::where('tipo_doc',$request->tipo_doc)
                             ->where('nro_doc',$request->nro_doc)
                             ->where('pais',$request->pais)
                             ->where('fecha',$request->fecha)
                             ->count();
                 if($existe){
-                    Flash::error('El Documento Nro. '.$request->nro_doc.' Ya tiene un turno asignado para el día '.$request->fecha);
-                    return back();   
+                    Flash::error('El Documento Nro. '.$request->nro_doc.' tiene un turno asignado para el día '.$request->fecha.' por tramites habilitados');
+                    return back();
+                }
+
+                //Validar si tiene turno en sigeci si el motivo es diferente de ERROR EN TURNO
+                if($request->motivo_id != '13'){
+                    $existeturno = $this->existeTurnoSigeci($request->tipo_doc, $request->nro_doc, $request->fecha);
+                    if($existeturno){
+                        Flash::error('El Documento Nro. '.$request->nro_doc.' tiene un turno por SIGECI para el día '.$request->fecha);
+                        return back();
+                    }
+                }
+
+                 //Validar si tiene turno en LICTA, si el motivo es diferente a REINICIA TRAMITE
+                if($request->motivo_id != '14'){
+                    $existetramite = $this->existeTramiteEnCurso($request->tipo_doc, $request->nro_doc, $request->pais);
+                    if($existetramite){
+                        Flash::error('El Documento Nro. '.$request->nro_doc.' tiene un turno iniciado en LICTA '.$existetramite->tramite_id.' Por favor agregar por REINICIA TRAMITE');
+                        return back();
+                    }
                 }
 
                 //Si no existe entonces crear el registro
@@ -169,6 +187,10 @@ class TramitesHabilitadosController extends Controller
                         $nacionalidad = AnsvPaises::where('id_dgevyl', $tramiteshabilitados->pais)->first()->id_ansv;
                         if($precheck->nacionalidad != $nacionalidad){
                             $precheck->nacionalidad = $nacionalidad;
+                            $precheck->save();
+                        }
+                        if($precheck->fecha_nacimiento != $tramiteshabilitados->fecha_nacimiento){
+                            $precheck->fecha_nacimiento = $tramiteshabilitados->fecha_nacimiento;
                             $precheck->save();
                         }
                     }else{
@@ -257,6 +279,22 @@ class TramitesHabilitadosController extends Controller
         else
             $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^(\d+)?$)/u']);
 
+        //Validar si tiene turno en sigeci si el motivo es diferente de ERROR EN TURNO
+        if($request->motivo_id != '13'){
+            $editurno = $this->existeTurnoSigeci($request->tipo_doc, $request->nro_doc, $request->fecha);
+            if($editurno){
+                Flash::error('El Documento Nro. '.$request->nro_doc.' tiene un turno por SIGECI para el día '.$request->fecha);
+                return back();
+            }
+        }
+        //Validar si tiene turno en LICTA, si el motivo es diferente a REINICIA TRAMITE
+        if($request->motivo_id != '14'){
+            $editramite = $this->existeTramiteEnCurso($request->tipo_doc, $request->nro_doc, $request->pais);
+            if($editramite){
+                Flash::error('El Documento Nro. '.$request->nro_doc.' tiene un turno iniciado en LICTA '.$editramite->tramite_id.' Por favor agregar por REINICIA TRAMITE');
+                return back();
+            }
+        }
         //Buscar tramites habilitado, guardarmos tipo y nro de documento actual para comparar luego si fueron modificaron
         $tramitesHabilitados = TramitesHabilitados::find($id);
         $tipodoc = $tramitesHabilitados->tipo_doc;
@@ -378,7 +416,6 @@ class TramitesHabilitadosController extends Controller
                         ->first();
         return $consulta;
     }
-
     public function consultarUltimoTurno(Request $request){
         $consulta = Sigeci::selectRaw("sigeci.*")
                         ->join("tipo_doc","tipo_doc.id_sigeci","sigeci.idtipodoc")
@@ -391,7 +428,24 @@ class TramitesHabilitadosController extends Controller
                         ->first();
         return $consulta;
     }
-
+    public function existeTurnoSigeci($tipo_doc, $nro_doc, $fecha){
+        $sigeci = Sigeci::join("tipo_doc","tipo_doc.id_sigeci","sigeci.idtipodoc")
+                        ->where("tipo_doc.id_dgevyl",$tipo_doc)
+                        ->where("sigeci.numdoc",$nro_doc)
+                        ->where("sigeci.fecha",$fecha)
+                        ->whereNotIn('sigeci.idprestacion', $this->prestacionesCursos)
+                        ->count();
+        return $sigeci;
+    }
+    public function existeTramiteEnCurso($tipo_doc, $nro_doc, $pais){
+        $tramite = \DB::table('tramites')
+                        ->whereRaw("estado <= '13'")
+                        ->where("tipo_doc",$tipo_doc)
+                        ->where("nro_doc",$nro_doc)
+                        ->where("pais",$pais)
+                        ->first();
+        return $tramite;
+    }
     public function calcularFecha(){
         $fecha = date('Y-m-d');
         $dia_semana = date('w');
@@ -406,7 +460,6 @@ class TramitesHabilitadosController extends Controller
             
         return $fecha;
     }
-
     public function verificarLimite($sucursal, $motivo, $fecha){
         $acceso= false;
         $user = Auth::user();
@@ -449,7 +502,6 @@ class TramitesHabilitadosController extends Controller
 
         return $acceso;  
     }
-
     public function getRoleMotivos($tabla){
         $user = Auth::user();
         $roles = $user->roles->pluck('id')->toArray();
