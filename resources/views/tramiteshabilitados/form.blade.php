@@ -277,7 +277,7 @@
                 var nro_doc = $("input[name=nro_doc]").val();
 
                 $('button[type=submit]').attr("disabled",true);
-
+                console.log(tramite_id);
                 if(tramite_id !='' && nro_doc != ''){
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
@@ -285,13 +285,14 @@
                         data: {tramite_id: tramite_id},
                         type: "GET", dataType: "json",
                         success: function(ret){
-                
-                          //Calcular los dias entre las dos fechas
+                            
+                            //var precheck_id = ret.tramite_id;
+                            //Calcular los dias entre las dos fechas
                             var fechaini = new Date(ret.fec_inicio);
                             var fechafin = new Date($("input[name=fecha]").val());
                             var diasdif= fechafin.getTime()-fechaini.getTime();
                             var dias = Math.round(diasdif/(1000*60*60*24));
-
+                            console.log(precheck_id);
                             var f = ret.fec_inicio.split('-');
                             var fecha = f[2]+'/'+f[1]+'/'+f[0];
 
@@ -309,7 +310,7 @@
                                     if(dias >= 0 && dias <= 90){
                                         $("#ultimo_turno .icono").html('<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>');
                                         $('button[type=submit]').attr("disabled",false);
-                                        $("#precheck_id").val(precheck_id);
+                                        //$("#precheck_id").val(precheck_id);
                                     }else{
                                         $("#ultimo_turno .icono").html('<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>');
                                         $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno no cumple con los 15 días correspondientes para poder REINICIAR TRAMITE!.</h4>');

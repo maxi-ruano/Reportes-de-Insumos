@@ -176,30 +176,37 @@ class TramitesHabilitadosController extends Controller
                 if(isset($request->observacion))
                     $this->guardarObservacion($tramiteshabilitados->id, $request->observacion);
 
-                //Vincular con el precheck generado solo si coinciden los datos 
-                if($request->precheck_id){
-                    $precheck = TramitesAIniciar::find($request->precheck_id);
-                    if($precheck->nro_doc == $tramiteshabilitados->nro_doc && $precheck->tipo_doc == $tramiteshabilitados->tipo_doc){
-                        $tramiteshabilitados->tramites_a_iniciar_id = $request->precheck_id;
-                        $tramiteshabilitados->save();
+                
+                if($request->motivo_id == '14' && $request->observacion > 0){
+                    $precheck = TramitesAIniciar::where('tramite_dgevyl_id',$request->observacion)->first();
+                    $tramiteshabilitados->tramites_a_iniciar_id = $precheck->id;
+                    $tramiteshabilitados->save();
+                }else{
+                    //Vincular con el precheck generado solo si coinciden los datos 
+                    if($request->precheck_id){
+                        $precheck = TramitesAIniciar::find($request->precheck_id);
+                        if($precheck->nro_doc == $tramiteshabilitados->nro_doc && $precheck->tipo_doc == $tramiteshabilitados->tipo_doc){
+                            $tramiteshabilitados->tramites_a_iniciar_id = $request->precheck_id;
+                            $tramiteshabilitados->save();
 
-                        //Corregimos la nacionalidad en el Precheck que asociamos
-                        $nacionalidad = AnsvPaises::where('id_dgevyl', $tramiteshabilitados->pais)->first()->id_ansv;
-                        if($precheck->nacionalidad != $nacionalidad){
-                            $precheck->nacionalidad = $nacionalidad;
-                            $precheck->save();
-                        }
-                        if($precheck->fecha_nacimiento != $tramiteshabilitados->fecha_nacimiento){
-                            $precheck->fecha_nacimiento = $tramiteshabilitados->fecha_nacimiento;
-                            $precheck->save();
+                            //Corregimos la nacionalidad en el Precheck que asociamos
+                            $nacionalidad = AnsvPaises::where('id_dgevyl', $tramiteshabilitados->pais)->first()->id_ansv;
+                            if($precheck->nacionalidad != $nacionalidad){
+                                $precheck->nacionalidad = $nacionalidad;
+                                $precheck->save();
+                            }
+                            if($precheck->fecha_nacimiento != $tramiteshabilitados->fecha_nacimiento){
+                                $precheck->fecha_nacimiento = $tramiteshabilitados->fecha_nacimiento;
+                                $precheck->save();
+                            }
+                        }else{
+                            //Crear registro en tramitesAIniciar y procesar el Precheck
+                            ProcessPrecheck::dispatch($tramiteshabilitados);
                         }
                     }else{
                         //Crear registro en tramitesAIniciar y procesar el Precheck
                         ProcessPrecheck::dispatch($tramiteshabilitados);
                     }
-                }else{
-                    //Crear registro en tramitesAIniciar y procesar el Precheck
-                    ProcessPrecheck::dispatch($tramiteshabilitados);
                 }
 
                 Flash::success('El Tramite se ha creado correctamente');

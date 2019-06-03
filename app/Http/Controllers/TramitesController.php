@@ -26,11 +26,13 @@ class TramitesController extends Controller
     public function consultarTramite(Request $request){
       $consulta = Tramites::where("tramites.tramite_id",$request->tramite_id)->first();
       //Se reemplaza id por texto de cada tabla relacionada
-      if(count($consulta)){
-        $consulta->tipo_doc = $consulta->tipoDocTexto();
-        $consulta->sucursal = $consulta->sucursalTexto();
-        $consulta->estado_description = $consulta->estadoTexto();
-        $consulta->fec_inicio = date('Y-m-d', strtotime($consulta->fec_inicio));
+      if(isset($consulta->tramite_id)){
+        if($consulta->tramite_id){
+          $consulta->tipo_doc = $consulta->tipoDocTexto();
+          $consulta->sucursal = $consulta->sucursalTexto();
+          $consulta->estado_description = $consulta->estadoTexto();
+          $consulta->fec_inicio = date('Y-m-d', strtotime($consulta->fec_inicio));
+        }
       }
       return $consulta;
     }
