@@ -149,7 +149,7 @@ class TramitesHabilitadosController extends Controller
 
                  //Validar si tiene turno en LICTA, si el motivo es diferente a REINICIA TRAMITE
                 if($request->motivo_id != '14'){
-                    $existetramite = $this->existeTramiteEnCurso($request->tipo_doc, $request->nro_doc, $request->pais);
+                    $existetramite = $this->existeTramiteEnCurso($request->tipo_doc, $request->nro_doc, $request->pais, $request->fecha);
                     if($existetramite){
                         Flash::error('El Documento Nro. '.$request->nro_doc.' tiene un turno iniciado en LICTA '.$existetramite->tramite_id.' Por favor agregar por REINICIA TRAMITE');
                         return back();
@@ -296,7 +296,7 @@ class TramitesHabilitadosController extends Controller
         }
         //Validar si tiene turno en LICTA, si el motivo es diferente a REINICIA TRAMITE
         if($request->motivo_id != '14'){
-            $editramite = $this->existeTramiteEnCurso($request->tipo_doc, $request->nro_doc, $request->pais);
+            $editramite = $this->existeTramiteEnCurso($request->tipo_doc, $request->nro_doc, $request->pais, $request->fecha);
             if($editramite){
                 Flash::error('El Documento Nro. '.$request->nro_doc.' tiene un turno iniciado en LICTA '.$editramite->tramite_id.' Por favor agregar por REINICIA TRAMITE');
                 return back();
@@ -444,12 +444,14 @@ class TramitesHabilitadosController extends Controller
                         ->count();
         return $sigeci;
     }
-    public function existeTramiteEnCurso($tipo_doc, $nro_doc, $pais){
+    public function existeTramiteEnCurso($tipo_doc, $nro_doc, $pais, $fecha){
+        $fecha_inicio = strtotime ( '-3 month' , strtotime ( $fecha ) ) ;
         $tramite = \DB::table('tramites')
                         ->whereRaw("estado <= '13'")
                         ->where("tipo_doc",$tipo_doc)
                         ->where("nro_doc",$nro_doc)
                         ->where("pais",$pais)
+                        ->whereRaw("fec_inicio >= ".$fecha_inicio)
                         ->first();
         return $tramite;
     }
