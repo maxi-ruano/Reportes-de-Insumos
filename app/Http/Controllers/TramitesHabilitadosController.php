@@ -445,13 +445,12 @@ class TramitesHabilitadosController extends Controller
         return $sigeci;
     }
     public function existeTramiteEnCurso($tipo_doc, $nro_doc, $pais, $fecha){
-        $fecha_inicio = strtotime ( '-3 month' , strtotime ( $fecha ) ) ;
         $tramite = \DB::table('tramites')
                         ->whereRaw("estado <= '13'")
                         ->where("tipo_doc",$tipo_doc)
                         ->where("nro_doc",$nro_doc)
                         ->where("pais",$pais)
-                        ->whereRaw("fec_inicio >= ".$fecha_inicio)
+                        ->whereRaw("fec_inicio > current_date - interval '3 month' ")
                         ->first();
         return $tramite;
     }
