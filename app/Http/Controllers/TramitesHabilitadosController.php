@@ -183,7 +183,7 @@ class TramitesHabilitadosController extends Controller
                     $tramiteshabilitados->save();
                 }
                 
-                if($tramiteshabilitados->tramites_a_iniciar_id == null){}
+                if($tramiteshabilitados->tramites_a_iniciar_id == null){
                     //Vincular con el precheck generado solo si coinciden los datos 
                     if($request->precheck_id){
                         $precheck = TramitesAIniciar::find($request->precheck_id);
