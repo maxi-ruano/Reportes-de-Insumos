@@ -181,7 +181,9 @@ class TramitesHabilitadosController extends Controller
                     $precheck = TramitesAIniciar::where('tramite_dgevyl_id',$request->observacion)->first();
                     $tramiteshabilitados->tramites_a_iniciar_id = $precheck->id;
                     $tramiteshabilitados->save();
-                }else{
+                }
+                
+                if($tramiteshabilitados->tramites_a_iniciar_id == null){}
                     //Vincular con el precheck generado solo si coinciden los datos 
                     if($request->precheck_id){
                         $precheck = TramitesAIniciar::find($request->precheck_id);
