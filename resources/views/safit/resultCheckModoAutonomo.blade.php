@@ -153,7 +153,7 @@
 
       //Colocar el metodo onclick solo si no se ha verificado (type=danger)
       var precheckOnclick = '';
-      if(type=='danger' && msj.description != 'SINALIC')
+      if(type!='success' && tramite.tramite_dgevyl_id == null && msj.description != 'SINALIC')
           precheckOnclick = 'onclick="runPrecheck('+msj.tramite_a_iniciar_id+','+msj.validation_id+')" ';
 
       //Boton del Log Prec-Check con su descripcion y fecha de ejecucion o Nro. Comrpobante
