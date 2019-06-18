@@ -35,7 +35,7 @@ class AuthController extends Controller
             'password'    => 'required|string'
         ]);
         $credentials = request(['email', 'password']);
-        if(User::whereIn('email',request(['email']))->count()){
+        if(User::whereIn('email',request(['email']))->whereNotNUll('sys_user_id')->count()){
             if (!Auth::attempt($credentials)) {
                 $response->setSuccess(false);
                 $response->setMessage('Su contraseña es incorrecta, por favor intente nuevamente.');

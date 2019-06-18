@@ -113,11 +113,13 @@ class TramitesAIniciar extends Model
     }
 
     //Casos DNI con Libreta Enrolamiento o Libreta Civica
-    if(intval($this->nro_doc) < 10000000 && $this->sexo == 'M')
-      $tipoDoc = 'LE';
-    if(intval($this->nro_doc) < 10000000 && $this->sexo == 'F')
-      $tipoDoc = 'LC';
-      
+    if($this->tipo_doc == 1 && intval($this->nro_doc) < 10000000 ){
+      if($this->sexo == 'M')
+        $tipoDoc = 'LE';
+      if($this->sexo == 'F')
+        $tipoDoc = 'LC';
+    }
+    
     return $tipoDoc;
   }
 }
