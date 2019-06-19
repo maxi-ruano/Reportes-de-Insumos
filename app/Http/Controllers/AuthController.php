@@ -47,23 +47,33 @@ class AuthController extends Controller
             return response()->json($response->toArray(), 401);
         }
         $user = $request->user();
-        $tokenResult = $user->createToken('Personal Access Token');
-        $token = $tokenResult->token;
-        if ($request->remember_me) {
-            $token->expires_at = Carbon::now()->addWeeks(1);
+
+        if($user->hasPermissionTo('add_datos_biometricos')){
+            $tokenResult = $user->createToken('Personal Access Token');
+            $token = $tokenResult->token;
+            if ($request->remember_me) {
+                $token->expires_at = Carbon::now()->addWeeks(1);
+            }
+            $token->save();
+
+            $access = [
+                'access_token' => $tokenResult->accessToken,
+                'token_type'   => 'Bearer',
+                'expires_at'   => Carbon::parse($tokenResult->token->expires_at)->toDateTimeString(),
+            ];
+
+            $response->setSuccess(true);
+            $response->setEntities($access);
+            $response->setMessage('OK');
+
+            return response()->json($response->toArray(), 200);
+
+        }else{
+            $response->setSuccess(false);
+            $response->setMessage('El usuario no cuenta con los permisos requeridos.');
+            return response()->json($response->toArray(), 401);
         }
-        $token->save();
 
-        $access = [
-            'access_token' => $tokenResult->accessToken,
-            'token_type'   => 'Bearer',
-            'expires_at'   => Carbon::parse($tokenResult->token->expires_at)->toDateTimeString(),
-        ];
-
-        $response->setSuccess(true);
-        $response->setEntities($access);
-        $response->setMessage('OK');
-        return response()->json($response->toArray(), 200);
     }
 
     public function logout(Request $request)

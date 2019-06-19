@@ -41,7 +41,7 @@
                 <th>Created At</th>
                 <th>Activo</th>
                 @can('edit_users', 'delete_users')
-                <th class="text-center">Actions</th>
+                    <th class="text-center">Actions</th>
                 @endcan
             </tr>
             </thead>
@@ -56,10 +56,14 @@
                     <td>{{ $item->created_at->toFormattedDateString() }}</td>
 
                     <td class="text-center">
+                        @can('edit_users')
+                            @php $add_onchange = 'onchange="activarCuenta({{ $item->id }})" ' @endphp
+                        @endcan
+                        
                         @if($item->activo)
-                            <input id="activo{{ $item->id }}" type="checkbox" onchange="activarCuenta({{ $item->id }})" data-toggle="toggle" data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60" checked>
+                            <input id="activo{{ $item->id }}" type="checkbox" {{ isset($add_onchange)?$add_onchange:'disabled="disabled"' }} data-toggle="toggle" data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60" checked>
                         @else
-                            <input id="activo{{ $item->id }}" type="checkbox" onchange="activarCuenta({{ $item->id }})" data-toggle="toggle"  data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60" >
+                            <input id="activo{{ $item->id }}" type="checkbox"  {{ isset($add_onchange)?$add_onchange:'disabled="disabled"' }} data-toggle="toggle"  data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60" >
                         @endif
                     </td>
                     
