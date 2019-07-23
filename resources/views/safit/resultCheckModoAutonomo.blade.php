@@ -89,10 +89,10 @@
       });
   }
 
-  function mostrarPreCheck(res, tramite){
+  function mostrarPreCheck(precheck, tramite){
       $('#logPreCheck').empty();
-      for (var i = 0; i < res.length; i++) {
-      crearMensajePrecheck(res[i], tramite)
+      for (var i = 0; i < precheck.length; i++) {
+        crearMensajePrecheck(precheck[i], tramite)
       }
   }
 
@@ -119,49 +119,55 @@
      $('#logPreCheck').html('<li><label class="btn btn-danger">'+error+'</label></li>')
   }
 
-  function crearMensajePrecheck(msj, tramite){
-      console.log(msj);
+  function crearMensajePrecheck(precheck, tramite){
+      console.log(precheck);
 
-      $("#tramite_a_iniciar_id").val(msj.tramite_a_iniciar_id);
+      $("#tramite_a_iniciar_id").val(precheck.tramite_a_iniciar_id);
 
       type = 'danger'
-      fecha_error = ''
-      if(msj.validado){
+      info = ''
+      if(precheck.validado){
           error = 'Verificado'
           type = 'success'
-          fecha_error = (msj.comprobante) ? 'Comprobante Nro. '+msj.comprobante : '';
+
+          if(precheck.description == 'BUI'){
+            info = (precheck.boleta) ? ' Boleta Nro. <span class="red">' + precheck.boleta.nro_boleta + '</span> Importe <span class="red"> $ ' + precheck.boleta.importe_total + '</span> Fecha de pago <span class="green"> ' + precheck.boleta.fecha_pago + '</span>' : '';
+          }else{
+            info = (precheck.comprobante) ? 'Comprobante Nro. '+precheck.comprobante : '';
+          }
+
       }else{
         var prop = 'description'
-        if (msj.error){
-          if(msj.error.description)
-            error =  msj.error.description
+        if (precheck.error){
+          if(precheck.error.description)
+            error =  precheck.error.description
         }else{
           error =  'No verificado'
         }
 
         //Si tiene un Plan de Pagos mostrar su fecha de vencimiento
         if(error.toUpperCase().indexOf("PLAN DE PAGO") > -1){
-          var metadata = JSON.parse(msj.error.response_ws);
+          var metadata = JSON.parse(precheck.error.response_ws);
           var data = metadata.filter(metadataObj => metadataObj.tag.indexOf("AUTORIZACION") > -1);
           var fecha_vencimiento = JSON.stringify(data[0]['attributes']['FECHAVTOLICENCIA']);
-          fecha_error = '<span class="red"> Plan de Pago con Fecha Vencimiento: '+fecha_vencimiento+'</span>';
+          info = '<span class="red"> Plan de Pago con Fecha Vencimiento: '+fecha_vencimiento+'</span>';
           type = 'warning';
         }else{
-          fecha_error = ((msj.error) ? msj.error.created_at : '')
+          info = ((precheck.error) ? precheck.error.created_at : '')
         }
       }
 
       //Colocar el metodo onclick solo si no se ha verificado (type=danger)
       var precheckOnclick = '';
-      if(type!='success' && tramite.tramite_dgevyl_id == null && msj.description != 'SINALIC')
-          precheckOnclick = 'onclick="runPrecheck('+msj.tramite_a_iniciar_id+','+msj.validation_id+')" ';
+      if(type!='success' && tramite.tramite_dgevyl_id == null && precheck.description != 'SINALIC')
+          precheckOnclick = 'onclick="runPrecheck('+precheck.tramite_a_iniciar_id+','+precheck.validation_id+')" ';
 
       //Boton del Log Prec-Check con su descripcion y fecha de ejecucion o Nro. Comrpobante
       html = '<li>'+
           '<div class="block_precheck">'+
           '<div class="tags_precheck">'+
               '<a id="buttonValidacion" '+precheckOnclick+' class="btn btn-'+type+' btn-xs btn-block">'+
-              '<span>'+msj.description+'</span>'+
+              '<span>'+precheck.description+'</span>'+
               '</a>'+
           '</div>'+
           '<div class="block_content">'+
@@ -169,7 +175,7 @@
                   '<a id="textoValidacion">'+ error +'</a>'+
               '</h2>'+
               '<div class="byline">'+
-              '<span>'+fecha_error+'</span>'+
+              '<span>'+info+'</span>'+
               '</div>'+
 
           '</div>'+
@@ -178,7 +184,7 @@
 
       //Emitir Certificado SAFIT si no se encontro por WS
       
-      if(msj.validation_id == '3' && type=='danger' && error != 'No verificado'){
+      if(precheck.validation_id == '3' && type=='danger' && error != 'No verificado'){
         var options;
         @foreach ($centrosEmisores as $key => $value)
           @if($value->safit_cem_id == 1)

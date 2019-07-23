@@ -119,16 +119,19 @@ class TramitesAInicarController extends Controller
     \Log::info('['.date('h:i:s').'] '.'se procede iniciarTramiteEnPrecheck(), '.$turno->id);
 
     $nacionalidad = AnsvPaises::where('id_dgevyl', $turno->pais)->first()->id_ansv;
+
     //Verificar si existe un precheck realizado recientemente para vincular con este tramite habilitado
     $tramiteAIniciar = $this->existeTramiteAIniciarConPrecheck($turno->nro_doc, $turno->tipo_doc, $nacionalidad);
-    if(isset($tramiteAIniciar->id)){
-        \Log::info('['.date('h:i:s').'] '.'se vincula con un tramiteAIniciar que existe, '.$turno->id);
-        $turno->tramites_a_iniciar_id = $tramiteAIniciar->id;
-        $turno->save();
-        $this->eliminarVinculosEnTramitesHabilitados($turno->id, $tramiteAIniciar->id);
+
+    //Asociar si existe un Precheck y no es TURNO EN EL DIA
+    if(isset($tramiteAIniciar->id) && $turno->motivo_id != 25){
+      \Log::info('['.date('h:i:s').'] '.'se vincula con un tramiteAIniciar que existe, '.$turno->id);
+      $turno->tramites_a_iniciar_id = $tramiteAIniciar->id;
+      $turno->save();
+      $this->eliminarVinculosEnTramitesHabilitados($turno->id, $tramiteAIniciar->id);
     }else{
-      \Log::info('['.date('h:i:s').'] '.'se creo en tramiteAIniciar, '.$turno->id);
-      //1)Registrar datos en tramites_a_iniciar
+
+      //1)CREAR UN PRECHECK EN TRAMITES A INICIAR
       $tramiteAIniciar = new TramitesAIniciar();
       $tramiteAIniciar->apellido = $turno->apellido;
       $tramiteAIniciar->nombre = $turno->nombre;
@@ -139,6 +142,7 @@ class TramitesAInicarController extends Controller
       $tramiteAIniciar->fecha_nacimiento = $turno->fecha_nacimiento;
       $tramiteAIniciar->estado = '1';
       $saved = $tramiteAIniciar->save();
+      \Log::info('['.date('h:i:s').'] '.'se creo en tramiteAIniciar, '.$turno->id);
 
       //Vincular tramites_a_iniciar_id en tramites_habilitados
       $turno->tramites_a_iniciar_id = $tramiteAIniciar->id;
@@ -146,7 +150,6 @@ class TramitesAInicarController extends Controller
 
       //Crear registros en validaciones_precheck
       $this->crearValidacionesPrecheck($tramiteAIniciar->id);
-        
     }
     
     //2)REALIZAR PRECHECK DEL TRAMITE A INICIAR CREADO
@@ -176,6 +179,16 @@ class TramitesAInicarController extends Controller
     \Log::info('['.date('h:i:s').'] '.'fin validaciones precheck');
     
     return true;
+  }
+
+  //Cambiar el concepto de BUI solo si motivo es TURNO EN EL DIA
+  public function esTurnoEnElDia($tramite) {
+    $existe = TramitesHabilitados::where('tramites_a_iniciar_id',$tramite->id)->where('motivo_id', '25')->count();
+    if($existe){
+      $this->conceptoBui = [["07.02.30"]];
+      return true;
+    }
+    return false;
   }
 
   public function existeTramiteAIniciarConPrecheck($nro_doc, $tipo_doc, $nacionalidad){
@@ -584,6 +597,7 @@ class TramitesAInicarController extends Controller
   }
 
   public function gestionarBui($tramite, $estadoValidacion, $siguienteEstado){
+    $this->esTurnoEnElDia($tramite);
     $error = 'ninguno';
       foreach ($this->conceptoBui as $key => $value) {
         $res = $this->verificarBui($tramite, $value);

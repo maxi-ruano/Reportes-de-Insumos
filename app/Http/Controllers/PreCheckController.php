@@ -12,6 +12,7 @@ use App\TramitesAIniciarCheckprecheck;
 use App\AnsvCelExpedidor;
 use App\Http\Controllers\TramitesController;
 use App\Sigeci;
+use App\BoletaBui;
 
 class PreCheckController extends Controller
 {
@@ -132,6 +133,7 @@ class PreCheckController extends Controller
                       
       if(count($precheck)){
         $precheck = $this->getErroresTramite($precheck);
+        $precheck = $this->getComprobantes($precheck);
         return response()->json(['datosPersona' => $tramiteAIniciar, 'precheck' => $precheck]);
       }else{
         //Tramites antiguos que no tenian registros en validaciones_precheck
@@ -145,13 +147,24 @@ class PreCheckController extends Controller
 
   public function  getErroresTramite($precheck){
     foreach ($precheck as $key => $value) {
-      $estado = ($value->validation_id == 3)?[2,3]:[$value->validation_id];
-      $value->error = TramitesAIniciarErrores::whereIn('estado_error', $estado)
+      if($value->validado == false){
+        $estado = ($value->validation_id == 3)?[2,3]:[$value->validation_id];
+        $value->error = TramitesAIniciarErrores::whereIn('estado_error', $estado)
                              ->where('tramites_a_iniciar_id', $value->tramite_a_iniciar_id)
                              ->where('response_ws', '!=','""')
                              ->select('description', 'id', 'created_at','response_ws')
                              ->orderBy('id', 'desc')
                              ->first();
+      }
+    }
+    return $precheck;
+  }
+
+  public function getComprobantes($precheck){
+    foreach ($precheck as $key => $value) {
+      if($value->validation_id == BUI){
+        $value->boleta = BoletaBui::where('tramite_a_iniciar_id', $value->tramite_a_iniciar_id)->first();
+      }
     }
     return $precheck;
   }

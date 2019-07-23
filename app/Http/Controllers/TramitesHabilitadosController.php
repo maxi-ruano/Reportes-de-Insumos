@@ -147,7 +147,7 @@ class TramitesHabilitadosController extends Controller
                     }
                 }
 
-                 //Validar si tiene turno en LICTA, si el motivo es diferente a REINICIA TRAMITE
+                //Validar si tiene turno en LICTA, si el motivo es diferente a REINICIA TRAMITE
                 if($request->motivo_id != '14'){
                     $existetramite = $this->existeTramiteEnCurso($request->tipo_doc, $request->nro_doc, $request->pais, $request->fecha);
                     if($existetramite){
@@ -158,7 +158,6 @@ class TramitesHabilitadosController extends Controller
 
                 //Si no existe entonces crear el registro
                 $tramiteshabilitados = new TramitesHabilitados();
-
                 $tramiteshabilitados->fecha         = $request->fecha;
                 $tramiteshabilitados->apellido      = strtoupper($request->apellido);
                 $tramiteshabilitados->nombre        = strtoupper($request->nombre);
@@ -176,16 +175,14 @@ class TramitesHabilitadosController extends Controller
                 if(isset($request->observacion))
                     $this->guardarObservacion($tramiteshabilitados->id, $request->observacion);
 
-                
-                if($request->motivo_id == '14' && $request->observacion > 0){
+                //Si motivo es REINICIA TRAMITE lo relacionamos con el Precheck que tiene el tramite de LICTA
+                if($tramiteshabilitados->motivo_id == '14' && $request->observacion > 0){
                     $precheck = TramitesAIniciar::where('tramite_dgevyl_id',$request->observacion)->first();
                     $tramiteshabilitados->tramites_a_iniciar_id = $precheck->id;
                     $tramiteshabilitados->save();
-                }
-                
-                if($tramiteshabilitados->tramites_a_iniciar_id == null){
-                    //Vincular con el precheck generado solo si coinciden los datos 
-                    if($request->precheck_id){
+                }else{
+                    //Si motivo es diferente de TURNO EN EL DIA asociar con el precheck encontrado solo si coinciden los datos 
+                    if($tramiteshabilitados->motivo_id != '25'  && $request->precheck_id > 0){
                         $precheck = TramitesAIniciar::find($request->precheck_id);
                         if($precheck->nro_doc == $tramiteshabilitados->nro_doc && $precheck->tipo_doc == $tramiteshabilitados->tipo_doc){
                             $tramiteshabilitados->tramites_a_iniciar_id = $request->precheck_id;
@@ -201,14 +198,13 @@ class TramitesHabilitadosController extends Controller
                                 $precheck->fecha_nacimiento = $tramiteshabilitados->fecha_nacimiento;
                                 $precheck->save();
                             }
-                        }else{
-                            //Crear registro en tramitesAIniciar y procesar el Precheck
-                            ProcessPrecheck::dispatch($tramiteshabilitados);
                         }
-                    }else{
-                        //Crear registro en tramitesAIniciar y procesar el Precheck
-                        ProcessPrecheck::dispatch($tramiteshabilitados);
                     }
+                }
+
+                //Si no tiene ningún precheck relacionado entonces creamos el Precheck
+                if($tramiteshabilitados->tramites_a_iniciar_id == null){
+                    ProcessPrecheck::dispatch($tramiteshabilitados);
                 }
 
                 Flash::success('El Tramite se ha creado correctamente');
