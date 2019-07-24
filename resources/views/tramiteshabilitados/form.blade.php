@@ -145,7 +145,7 @@
             @endif
 
            
-            $("input[name=fecha], select[name=sucursal], input[name=nro_doc], select[name=motivo_id], input[name=fecha_nacimiento]").change(function(){
+            $("input[name=fecha], select[name=sucursal], input[name=nro_doc], input[name=tipo_doc], select[name=motivo_id], input[name=fecha_nacimiento]").change(function(){
                 var fecha = $('input[name=fecha_nacimiento]').val();
                 edad = calcularEdad(fecha);
                 $("#precheck_id").val('');

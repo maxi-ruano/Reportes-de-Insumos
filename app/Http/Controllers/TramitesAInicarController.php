@@ -39,6 +39,7 @@ class TramitesAInicarController extends Controller
   private $urlLibreDeuda;
 
   //BUI
+  private $motivoTurnoEnElDia = '25';
   private $conceptoBui = [["07.02.28"], ["07.02.31"], ["07.02.32"], ["07.02.33"], ["07.02.34"], ["07.02.35"]];
   private $userBui;
   private $passwordBui;
@@ -124,13 +125,12 @@ class TramitesAInicarController extends Controller
     $tramiteAIniciar = $this->existeTramiteAIniciarConPrecheck($turno->nro_doc, $turno->tipo_doc, $nacionalidad);
 
     //Asociar si existe un Precheck y no es TURNO EN EL DIA
-    if(isset($tramiteAIniciar->id) && $turno->motivo_id != 25){
-      \Log::info('['.date('h:i:s').'] '.'se vincula con un tramiteAIniciar que existe, '.$turno->id);
+    if(isset($tramiteAIniciar->id) && $turno->motivo_id != $this->motivoTurnoEnElDia){
       $turno->tramites_a_iniciar_id = $tramiteAIniciar->id;
       $turno->save();
+      \Log::info('['.date('h:i:s').'] '.'se vincula con un tramiteAIniciar que existe, '.$turno->id);
       $this->eliminarVinculosEnTramitesHabilitados($turno->id, $tramiteAIniciar->id);
     }else{
-
       //1)CREAR UN PRECHECK EN TRAMITES A INICIAR
       $tramiteAIniciar = new TramitesAIniciar();
       $tramiteAIniciar->apellido = $turno->apellido;
@@ -147,43 +147,43 @@ class TramitesAInicarController extends Controller
       //Vincular tramites_a_iniciar_id en tramites_habilitados
       $turno->tramites_a_iniciar_id = $tramiteAIniciar->id;
       $turno->save();
-
-      //Crear registros en validaciones_precheck
-      $this->crearValidacionesPrecheck($tramiteAIniciar->id);
     }
-    
+
     //2)REALIZAR PRECHECK DEL TRAMITE A INICIAR CREADO
-    /**Se ejecuta de forma Async el usuario no debe esperar el tiempo de respuesta */
-    \Log::info('['.date('h:i:s').'] '.'inicio validaciones precheck con tramiteAIniciar ID: '.$tramiteAIniciar->id);
-
-      if(!$this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,LIBRE_DEUDA)){
-        \Log::info('['.date('h:i:s').'] '.'> > > gestionarLibreDeuda() tramites_habilitado ID = '.$turno->id);
-        $this->gestionarLibreDeuda($tramiteAIniciar, LIBRE_DEUDA, VALIDACIONES);
-      }
-
-      if(!$this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,BUI)){
-        \Log::info('['.date('h:i:s').'] '.'> > > gestionarBui('.BUI.') tramites_habilitado ID = '.$turno->id);
-        $this->gestionarBui($tramiteAIniciar, BUI, VALIDACIONES);        
-      }
-
-      \Log::info('['.date('h:i:s').'] '.' comprobando SAFIT '.EMISION_BOLETA_SAFIT);
-      if(!$this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,EMISION_BOLETA_SAFIT)){
-        \Log::info('['.date('h:i:s').'] '.'> > > buscarBoletaSafit() tramites_habilitado ID = '.$turno->id);
-        if($this->buscarBoletaSafit($tramiteAIniciar, SAFIT)){
-          //Ejecutar gestionarBoletaSafit() solo si encuenctra datos en buscarBoloetaSafit()
-          \Log::info('['.date('h:i:s').'] '.'> > > gestionarBoletaSafit() tramites_habilitado ID = '.$turno->id);
-          $this->gestionarBoletaSafit($tramiteAIniciar, EMISION_BOLETA_SAFIT, VALIDACIONES);
-        }
-      }
-
-    \Log::info('['.date('h:i:s').'] '.'fin validaciones precheck');
+    if ($this->crearValidacionesPrecheck($tramiteAIniciar->id) ) {
     
+      /**Se ejecuta de forma Async el usuario no debe esperar el tiempo de respuesta */
+      \Log::info('['.date('h:i:s').'] '.'inicio validaciones precheck con tramiteAIniciar ID: '.$tramiteAIniciar->id);
+
+        if(!$this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,LIBRE_DEUDA)){
+          \Log::info('['.date('h:i:s').'] '.'> > > gestionarLibreDeuda() tramites_habilitado ID = '.$turno->id);
+          $this->gestionarLibreDeuda($tramiteAIniciar, LIBRE_DEUDA, VALIDACIONES);
+        }
+
+        if(!$this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,BUI)){
+          \Log::info('['.date('h:i:s').'] '.'> > > gestionarBui('.BUI.') tramites_habilitado ID = '.$turno->id);
+          $this->gestionarBui($tramiteAIniciar, BUI, VALIDACIONES);        
+        }
+
+        \Log::info('['.date('h:i:s').'] '.' comprobando SAFIT '.EMISION_BOLETA_SAFIT);
+        if(!$this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,EMISION_BOLETA_SAFIT)){
+          \Log::info('['.date('h:i:s').'] '.'> > > buscarBoletaSafit() tramites_habilitado ID = '.$turno->id);
+          if($this->buscarBoletaSafit($tramiteAIniciar, SAFIT)){
+            //Ejecutar gestionarBoletaSafit() solo si encuenctra datos en buscarBoloetaSafit()
+            \Log::info('['.date('h:i:s').'] '.'> > > gestionarBoletaSafit() tramites_habilitado ID = '.$turno->id);
+            $this->gestionarBoletaSafit($tramiteAIniciar, EMISION_BOLETA_SAFIT, VALIDACIONES);
+          }
+        }
+
+      \Log::info('['.date('h:i:s').'] '.'fin validaciones precheck');
+    }
+      
     return true;
   }
 
   //Cambiar el concepto de BUI solo si motivo es TURNO EN EL DIA
   public function esTurnoEnElDia($tramite) {
-    $existe = TramitesHabilitados::where('tramites_a_iniciar_id',$tramite->id)->where('motivo_id', '25')->count();
+    $existe = TramitesHabilitados::where('tramites_a_iniciar_id',$tramite->id)->where('motivo_id', $this->motivoTurnoEnElDia)->count();
     if($existe){
       $this->conceptoBui = [["07.02.30"]];
       return true;
@@ -276,17 +276,15 @@ class TramitesAInicarController extends Controller
       $turno->tramite_a_iniciar_id = $tramiteAIniciar->id;
       $turno->save();
       if($saved)
-        $this->crearValidacionesPrecheck($tramiteAIniciar->id);
-      else
-        dd($saved);
+        $validaciones = $this->crearValidacionesPrecheck($tramiteAIniciar->id);
       
       return $tramiteAIniciar;
     
   }
 
   public function crearValidacionesPrecheck($id){
-    $validaciones = SysMultivalue::where('type','VALP')->get();
-    foreach ($validaciones as $key => $value) {
+    $valp = SysMultivalue::where('type','VALP')->get();
+    foreach ($valp as $key => $value) {
       $existe = ValidacionesPrecheck::where('tramite_a_iniciar_id',$id)->where('validation_id',$value->id)->count();
       if(!$existe){
         $validaciones = new ValidacionesPrecheck();
@@ -296,6 +294,7 @@ class TramitesAInicarController extends Controller
         $validaciones->save();
       }
     }
+    return true;
   }
 
   /**
