@@ -16,6 +16,7 @@ use App\ValidacionesPrecheck;
 use App\Jobs\ProcessPrecheck;
 use App\Sigeci;
 use App\TramitesHabilitadosMotivos;
+use App\Http\Controllers\TramitesAInicarController;
 
 class TramitesHabilitadosController extends Controller
 {
@@ -121,94 +122,80 @@ class TramitesHabilitadosController extends Controller
     {
         try{
             if($this->verificarLimite($request->sucursal, $request->motivo_id, $request->fecha)){
-                //validar nro_doc solo si es pasaporte acepte letras y numeros de lo contrario solo numeros
-                if($request->tipo_doc== '4')
+
+                $tipo_doc   = $request->tipo_doc;
+                $nro_doc    = strtoupper($request->nro_doc);
+                $pais       = $request->pais;
+                $fecha      = $request->fecha;
+                $motivo_id  = $request->motivo_id;
+
+                //validar PASAPORTE acepte letras y numeros de lo contrario solo numeros
+                if($tipo_doc == '4')
                     $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/^[0-9a-zA-Z]+$/']);
                 else
                     $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^(\d+)?$)/u']);
 
                 //Validar si existe en tramites habilitados
-                $existe = TramitesHabilitados::where('tipo_doc',$request->tipo_doc)
-                            ->where('nro_doc',$request->nro_doc)
-                            ->where('pais',$request->pais)
-                            ->where('fecha',$request->fecha)
-                            ->count();
+                $existe = TramitesHabilitados::where('tipo_doc',$tipo_doc)
+                                                ->where('nro_doc',$nro_doc)
+                                                ->where('pais',$pais)
+                                                ->where('fecha',$fecha)
+                                                ->count();
                 if($existe){
-                    Flash::error('El Documento Nro. '.$request->nro_doc.' tiene un turno asignado para el día '.$request->fecha.' por tramites habilitados');
+                    Flash::error('El Documento Nro. '.$nro_doc.' tiene un turno asignado para el día '.$fecha.' por tramites habilitados');
                     return back();
                 }
 
                 //Validar si tiene turno en sigeci si el motivo es diferente de ERROR EN TURNO
-                if($request->motivo_id != '13'){
-                    $existeturno = $this->existeTurnoSigeci($request->tipo_doc, $request->nro_doc, $request->fecha);
+                if($motivo_id != '13'){
+                    $existeturno = $this->existeTurnoSigeci($tipo_doc, $nro_doc, $fecha);
                     if($existeturno){
-                        Flash::error('El Documento Nro. '.$request->nro_doc.' tiene un turno por SIGECI para el día '.$request->fecha);
+                        Flash::error('El Documento Nro. '.$nro_doc.' tiene un turno por SIGECI para el día '.$fecha);
                         return back();
                     }
                 }
 
                 //Validar si tiene turno en LICTA, si el motivo es diferente a REINICIA TRAMITE
-                if($request->motivo_id != '14'){
-                    $existetramite = $this->existeTramiteEnCurso($request->tipo_doc, $request->nro_doc, $request->pais, $request->fecha);
-                    if($existetramite){
-                        Flash::error('El Documento Nro. '.$request->nro_doc.' tiene un turno iniciado en LICTA '.$existetramite->tramite_id.' Por favor agregar por REINICIA TRAMITE');
+                if($motivo_id != '14'){
+                    $tramite = $this->existeTramiteEnCurso($tipo_doc, $nro_doc, $pais, $fecha);
+                    if($tramite){
+                        Flash::error('El Documento Nro. '.$nro_doc.' tiene un turno iniciado en LICTA '.$tramite->tramite_id.' Por favor agregar por REINICIA TRAMITE');
                         return back();
                     }
                 }
 
-                //Si no existe entonces crear el registro
+                //Si no existe ninguna restriccion entonces creamos el registro
                 $tramiteshabilitados = new TramitesHabilitados();
-                $tramiteshabilitados->fecha         = $request->fecha;
+                $tramiteshabilitados->fecha         = $fecha;
                 $tramiteshabilitados->apellido      = strtoupper($request->apellido);
                 $tramiteshabilitados->nombre        = strtoupper($request->nombre);
-                $tramiteshabilitados->tipo_doc      = $request->tipo_doc;
-                $tramiteshabilitados->nro_doc       = strtoupper($request->nro_doc);
+                $tramiteshabilitados->tipo_doc      = $tipo_doc;
+                $tramiteshabilitados->nro_doc       = $nro_doc;
                 $tramiteshabilitados->sexo          = $request->sexo;
                 $tramiteshabilitados->fecha_nacimiento     = $request->fecha_nacimiento;
-                $tramiteshabilitados->pais          = $request->pais;
+                $tramiteshabilitados->pais          = $pais;
                 $tramiteshabilitados->user_id       = $request->user_id;
                 $tramiteshabilitados->sucursal      = $request->sucursal;
-                $tramiteshabilitados->motivo_id     = $request->motivo_id;
+                $tramiteshabilitados->motivo_id     = $motivo_id;
                 $tramiteshabilitados->habilitado = false;               
-                $tramiteshabilitados->save();
+                $saved = $tramiteshabilitados->save();
 
-                if(isset($request->observacion))
-                    $this->guardarObservacion($tramiteshabilitados->id, $request->observacion);
+                if($saved){
 
-                //Si motivo es REINICIA TRAMITE lo relacionamos con el Precheck que tiene el tramite de LICTA
-                if($tramiteshabilitados->motivo_id == '14' && $request->observacion > 0){
-                    $precheck = TramitesAIniciar::where('tramite_dgevyl_id',$request->observacion)->first();
-                    $tramiteshabilitados->tramites_a_iniciar_id = $precheck->id;
-                    $tramiteshabilitados->save();
+                    if(isset($request->observacion))
+                        $this->guardarObservacion($tramiteshabilitados->id, $request->observacion);
+
+                    //ASIGNAR O GENERAR PRECHECK
+                    $this->asignarPrecheck($tramiteshabilitados->id);
+
+                    Flash::success('El Tramite se ha creado correctamente');
+                    return redirect()->route('tramitesHabilitados.create');
+
                 }else{
-                    //Si motivo es diferente de TURNO EN EL DIA asociar con el precheck encontrado solo si coinciden los datos 
-                    if($tramiteshabilitados->motivo_id != '25'  && $request->precheck_id > 0){
-                        $precheck = TramitesAIniciar::find($request->precheck_id);
-                        if($precheck->nro_doc == $tramiteshabilitados->nro_doc && $precheck->tipo_doc == $tramiteshabilitados->tipo_doc){
-                            $tramiteshabilitados->tramites_a_iniciar_id = $request->precheck_id;
-                            $tramiteshabilitados->save();
-
-                            //Corregimos la nacionalidad en el Precheck que asociamos
-                            $nacionalidad = AnsvPaises::where('id_dgevyl', $tramiteshabilitados->pais)->first()->id_ansv;
-                            if($precheck->nacionalidad != $nacionalidad){
-                                $precheck->nacionalidad = $nacionalidad;
-                                $precheck->save();
-                            }
-                            if($precheck->fecha_nacimiento != $tramiteshabilitados->fecha_nacimiento){
-                                $precheck->fecha_nacimiento = $tramiteshabilitados->fecha_nacimiento;
-                                $precheck->save();
-                            }
-                        }
-                    }
+                    Flash::error('Ha ocurrido un error al guardar en Tramites Habilitados');
+                    return back();
                 }
 
-                //Si no tiene ningún precheck relacionado entonces creamos el Precheck
-                if($tramiteshabilitados->tramites_a_iniciar_id == null){
-                    ProcessPrecheck::dispatch($tramiteshabilitados);
-                }
-
-                Flash::success('El Tramite se ha creado correctamente');
-                return redirect()->route('tramitesHabilitados.create');
             }else{
                 Flash::error('LIMITE DIARIO PERMITIDO para la sucursal seleccionada.!!');
                 return back();  
@@ -217,6 +204,101 @@ class TramitesHabilitadosController extends Controller
         catch(Exception $e){
             return "Fatal error - ".$e->getMessage();
         }
+    }
+
+    public function asignarPrecheck($id) {
+
+        $tramiteshabilitados = TramitesHabilitados::find($id);
+        $nacionalidad = AnsvPaises::where('id_dgevyl', $tramiteshabilitados->pais)->first()->id_ansv;
+        $motivo = TramitesHabilitadosMotivos::where('id', $tramiteshabilitados->motivo_id)->first()->description;
+        $precheck = null;
+
+        $tramiteAIniciarController = new TramitesAInicarController();
+        $precheck_disponible = $tramiteAIniciarController->existeTramiteAIniciarConPrecheck($tramiteshabilitados->nro_doc, $tramiteshabilitados->tipo_doc, $nacionalidad);
+
+        switch ($motivo) {
+            case "REINICIA TRAMITE":
+                //Buscamos el precheck que tenia asociado el tramite de LICTA
+                $tramite_id = $tramiteshabilitados->observacion();
+                $precheck = TramitesAIniciar::where('tramite_dgevyl_id',$tramite_id)->first();
+
+                //En caso de no encontrar el precheck asociado con tramite_id de LICTA buscamos uno disponible
+                if(!$precheck)
+                    $precheck = $precheck_disponible;
+
+                break;
+
+            case "ERROR EN TURNO":
+                //Buscamos el precheck que tenia asociado el turno de SIGECI
+                $idcita = $tramiteshabilitados->observacion();
+                $precheck = TramitesAIniciar::where('sigeci_idcita',$idcita)->where('estado', '!=', TURNO_VENCIDO)->orderby('id','desc')->first();
+
+                if($precheck){
+                    $precheck = TramitesAIniciar::find($precheck->id);
+                    if($precheck->nro_doc == $tramiteshabilitados->nro_doc && $precheck->tipo_doc == $tramiteshabilitados->tipo_doc){
+
+                        $tramiteshabilitados->tramites_a_iniciar_id = $precheck->id;
+                        $tramiteshabilitados->save();
+
+                        //Corregimos datos incorrectos al tomar el turno en Sigeci
+                        if($precheck->nacionalidad != $nacionalidad){
+                            $precheck->nacionalidad = $nacionalidad;
+                            $precheck->save();
+                        }
+                        if($precheck->fecha_nacimiento != $tramiteshabilitados->fecha_nacimiento){
+                            $precheck->fecha_nacimiento = $tramiteshabilitados->fecha_nacimiento;
+                            $precheck->save();
+                        }
+                    }else{
+                        $precheck = $precheck_disponible;
+                    }
+                }
+                break;
+
+            case "RETOMA TURNO":
+                //Buscamos el precheck que tenia asociado el turno de SIGECI
+                $idcita = $tramiteshabilitados->observacion();
+                $precheck = TramitesAIniciar::where('sigeci_idcita',$idcita)->where('estado', '!=', TURNO_VENCIDO)->orderby('id','desc')->first();
+                break;
+
+            case "TURNO EN EL DIA":
+                $precheck = null;
+                break;
+
+            default:
+                $precheck = $precheck_disponible;
+
+        }
+
+        //ASOCIAR PRECHECK A TRAMITES HABILITADOS
+        if($precheck){
+            $tramiteAIniciar = TramitesAIniciar::find($precheck->id);
+            $tramiteshabilitados->tramites_a_iniciar_id = $tramiteAIniciar->id;
+            $tramiteshabilitados->save();
+        }else{
+            //CREAR UN PRECHECK EN TRAMITES A INICIAR
+            $tramiteAIniciar = new TramitesAIniciar();
+            $tramiteAIniciar->apellido          = $tramiteshabilitados->apellido;
+            $tramiteAIniciar->nombre            = $tramiteshabilitados->nombre;
+            $tramiteAIniciar->tipo_doc          = $tramiteshabilitados->tipo_doc;
+            $tramiteAIniciar->nro_doc           = $tramiteshabilitados->nro_doc;
+            $tramiteAIniciar->sexo              = $tramiteshabilitados->sexo;
+            $tramiteAIniciar->nacionalidad      = $nacionalidad;
+            $tramiteAIniciar->fecha_nacimiento  = $tramiteshabilitados->fecha_nacimiento;
+            $tramiteAIniciar->estado            = '1';
+            $tramiteAIniciar->save();
+
+            $tramiteshabilitados->tramites_a_iniciar_id = $tramiteAIniciar->id;
+            $tramiteshabilitados->save();
+
+            $validaciones = $tramiteAIniciarController->crearValidacionesPrecheck($tramiteAIniciar->id);
+        }
+
+        //Enviamos al QUEUE para procesar las validaciones Precheck en segundo plano
+        if ($tramiteAIniciar->tramite_dgevyl_id == null)
+            ProcessPrecheck::dispatch($tramiteshabilitados);
+
+        return true;
     }
 
     /**

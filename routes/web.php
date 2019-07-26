@@ -30,7 +30,7 @@ Route::group( ['middleware' => ['auth']], function() {
   Route::get('consultarUltimoTurno', 'TramitesHabilitadosController@consultarUltimoTurno');
   Route::get('consultarTurnoSigeci', 'TramitesHabilitadosController@consultarTurnoSigeci');
   Route::get('consultarTramite', 'TramitesController@consultarTramite');
-
+  
   //TRAMITES HABILITADOS MOTIVOS
   Route::resource('tramitesHabilitadosMotivos','TramitesHabilitadosMotivosController');
   Route::get('tramitesHabilitadosMotivosHabilitar', ['uses' => 'TramitesHabilitadosMotivosController@habilitar','as' => 'tramitesHabilitadosMotivos.habilitar']);
@@ -59,6 +59,7 @@ Route::get('consultaTurnosEnEsperaPorSucursal', ['uses' => 'DashboardController@
 //PRECHECK
 Route::get('run', 'MicroservicioController@run');
 Route::get('runPrecheck','MicroservicioController@runPrecheck')->name('runPrecheck');
+Route::get('actualizarPaseATurno', 'PreCheckController@actualizarPaseATurno');
 Route::get('generarCenatPrecheck','TramitesAInicarController@generarCenatPrecheck')->name('generarCenatPrecheck');
 //end PRECHECK
 

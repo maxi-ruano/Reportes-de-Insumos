@@ -175,7 +175,7 @@
                         $("#div_observacion label").html('Nro. de Cita: ');
                         $("#div_observacion input").attr('placeholder','Ingrese el Nro. de la Cita').attr('required','required').attr('minlength','8').attr('maxlength','8');
                         $('button[type=submit]').attr("disabled",true);
-                        $("#div_observacion input, input[name=fecha],  select[name=sucursal], input[name=nro_doc], input[name=nombre], input[name=apellido]").change(function(){
+                        $("#formTramitesHabilitados input, #formTramitesHabilitados select").change(function(){
                             validarErrorEnTurno();
                         });
                         break;
@@ -184,7 +184,7 @@
                         $("#div_observacion label").html('ID del Tramite: ');
                         $("#div_observacion input").attr('placeholder','Ingrese el ID del Tramite').attr('required','required').attr('minlength','7').attr('maxlength','7');;
                         $('button[type=submit]').attr("disabled",true);
-                        $("#div_observacion input, input[name=fecha],  select[name=sucursal], input[name=nro_doc]").change(function(){
+                        $("#formTramitesHabilitados input, #formTramitesHabilitados select").change(function(){
                             validarReiniciaTramite();
                         });
                         break;
@@ -277,7 +277,7 @@
                 var nro_doc = $("input[name=nro_doc]").val();
 
                 $('button[type=submit]').attr("disabled",true);
-                console.log(tramite_id);
+
                 if(tramite_id !='' && nro_doc != ''){
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
@@ -286,13 +286,12 @@
                         type: "GET", dataType: "json",
                         success: function(ret){
                             
-                            //var precheck_id = ret.tramite_id;
                             //Calcular los dias entre las dos fechas
                             var fechaini = new Date(ret.fec_inicio);
                             var fechafin = new Date($("input[name=fecha]").val());
                             var diasdif= fechafin.getTime()-fechaini.getTime();
                             var dias = Math.round(diasdif/(1000*60*60*24));
-                            console.log(precheck_id);
+                            
                             var f = ret.fec_inicio.split('-');
                             var fecha = f[2]+'/'+f[1]+'/'+f[0];
 
@@ -305,15 +304,14 @@
                             }else{
                                 if(ret.estado >= 95 || ret.estado == 14){
                                     $('button[type=submit]').attr("disabled",true);
-                                    $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El número de Tramite ID ingresado ya cuenta con un tramite en LICTA: '+ret.estado_description+'</h4>');
+                                    $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El númerop de tramite de LICTA ingresado se encuentra en estado: '+ret.estado_description+'</h4>');
                                 }else{
                                     if(dias >= 0 && dias <= 90){
                                         $("#ultimo_turno .icono").html('<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>');
                                         $('button[type=submit]').attr("disabled",false);
-                                        //$("#precheck_id").val(precheck_id);
                                     }else{
                                         $("#ultimo_turno .icono").html('<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>');
-                                        $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno no cumple con los 15 días correspondientes para poder REINICIAR TRAMITE!.</h4>');
+                                        $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno no cumple con los 90 días correspondientes para poder REINICIAR TRAMITE!.</h4>');
                                     }
                                 }
                             }
@@ -339,7 +337,7 @@
                         data: {tipo_doc: tipo_doc, nro_doc: nro_doc },
                         type: "GET", dataType: "json",
                         success: function(ret){
-                            console.log(ret);
+                            
                             var precheck_id = ret.tramite_a_iniciar_id;
 
                             //Calcular los dias entre la dos fecha

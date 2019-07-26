@@ -60,4 +60,13 @@ class TramitesHabilitados extends Model
         else
           return "";  
     }
+
+    public function observacion(){
+        $res = \DB::table('tramites_habilitados_observaciones')->where('tramite_habilitado_id', $this->id)->first();
+    
+        if($res)
+            return $res->observacion;
+        else
+            return "";  
+    }
 }

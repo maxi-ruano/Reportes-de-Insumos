@@ -116,41 +116,11 @@ class TramitesAInicarController extends Controller
 
   //Proceso utilizado en segundo plano mediante Queue
   public function iniciarTramiteEnPrecheck($t){
+    
     $turno = TramitesHabilitados::find($t->id);
+    $tramiteAIniciar = TramitesAIniciar::find($turno->tramites_a_iniciar_id);
+
     \Log::info('['.date('h:i:s').'] '.'se procede iniciarTramiteEnPrecheck(), '.$turno->id);
-
-    $nacionalidad = AnsvPaises::where('id_dgevyl', $turno->pais)->first()->id_ansv;
-
-    //Verificar si existe un precheck realizado recientemente para vincular con este tramite habilitado
-    $tramiteAIniciar = $this->existeTramiteAIniciarConPrecheck($turno->nro_doc, $turno->tipo_doc, $nacionalidad);
-
-    //Asociar si existe un Precheck y no es TURNO EN EL DIA
-    if(isset($tramiteAIniciar->id) && $turno->motivo_id != $this->motivoTurnoEnElDia){
-      $turno->tramites_a_iniciar_id = $tramiteAIniciar->id;
-      $turno->save();
-      \Log::info('['.date('h:i:s').'] '.'se vincula con un tramiteAIniciar que existe, '.$turno->id);
-      $this->eliminarVinculosEnTramitesHabilitados($turno->id, $tramiteAIniciar->id);
-    }else{
-      //1)CREAR UN PRECHECK EN TRAMITES A INICIAR
-      $tramiteAIniciar = new TramitesAIniciar();
-      $tramiteAIniciar->apellido = $turno->apellido;
-      $tramiteAIniciar->nombre = $turno->nombre;
-      $tramiteAIniciar->tipo_doc = $turno->tipo_doc;
-      $tramiteAIniciar->nro_doc = $turno->nro_doc;
-      $tramiteAIniciar->sexo = $turno->sexo;
-      $tramiteAIniciar->nacionalidad = $nacionalidad; 
-      $tramiteAIniciar->fecha_nacimiento = $turno->fecha_nacimiento;
-      $tramiteAIniciar->estado = '1';
-      $saved = $tramiteAIniciar->save();
-      \Log::info('['.date('h:i:s').'] '.'se creo en tramiteAIniciar, '.$turno->id);
-
-      //Vincular tramites_a_iniciar_id en tramites_habilitados
-      $turno->tramites_a_iniciar_id = $tramiteAIniciar->id;
-      $turno->save();
-    }
-
-    //2)REALIZAR PRECHECK DEL TRAMITE A INICIAR CREADO
-    if ($this->crearValidacionesPrecheck($tramiteAIniciar->id) ) {
     
       /**Se ejecuta de forma Async el usuario no debe esperar el tiempo de respuesta */
       \Log::info('['.date('h:i:s').'] '.'inicio validaciones precheck con tramiteAIniciar ID: '.$tramiteAIniciar->id);
@@ -175,8 +145,7 @@ class TramitesAInicarController extends Controller
           }
         }
 
-      \Log::info('['.date('h:i:s').'] '.'fin validaciones precheck');
-    }
+      \Log::info('['.date('h:i:s').'] '.'fin validaciones precheck de '.$turno->id);
       
     return true;
   }
@@ -266,9 +235,7 @@ class TramitesAInicarController extends Controller
       $tramiteAIniciar->tipo_doc = $turno->tipoDocLicta();
       $tramiteAIniciar->nro_doc = $turno->numdoc;
       $tramiteAIniciar->nacionalidad = $this->getIdPais($turno->nacionalidad());
-      $tramiteAIniciar->fecha_nacimiento = $turno->fechaNacimiento();
-      if(!$tramiteAIniciar->fecha_nacimiento) 
-        $tramiteAIniciar->fecha_nacimiento = $turno->fechanac;
+      $tramiteAIniciar->fecha_nacimiento = $turno->fechanac;
       $tramiteAIniciar->estado = $siguienteEstado;
       $tramiteAIniciar->sigeci_idcita = $turno->idcita;
       $tramiteAIniciar->sexo = $turno->getSexo();
@@ -806,9 +773,6 @@ class TramitesAInicarController extends Controller
           # code...
           break;
       }
-
-      //Verificamos si existen cargadas todas las validaciones correspondientes  en el Precheck
-      $this->crearValidacionesPrecheck($tramite->id);
 
       $resultado = $this->interpretarResultado($datos, $response_ws, $res);
       if(!empty($resultado->error)){

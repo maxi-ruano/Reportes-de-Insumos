@@ -1,4 +1,3 @@
-
 <div class="clearfix"></div>
 <div class="row">
   <div class="col-md-6 col-sm-6 col-xs-12">
@@ -60,17 +59,20 @@
   <script>
     
     /* TODO este codigo debera ir en un js compilado, ya q es reutilizado en checkModoAutonomo.blade.php*/
-    function getPreCheck(id){
+    function getPreCheck(id, tramite_habilitado_id = null){
+      $("#nombre_texto, #documento_texto, #fecha_nacimiento_texto, #nacionalidad_texto").empty();
+
       $.ajax({
           headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
           type: "GET",
           url: 'consultarPreCheck',
-          data: { id: id, },
+          data: { id: id },
           async:false,
           success: function( msg ) {
             if(msg.error){
-              mostrarMensajeError(msg.error)
+              mostrarMensajeError(msg.error, tramite_habilitado_id);
             }else if(msg){
+
               mostrarPreCheck(msg.precheck, msg.datosPersona)
               mostrarDatosPersona(msg.datosPersona)
 
@@ -91,14 +93,14 @@
 
   function mostrarPreCheck(precheck, tramite){
       $('#logPreCheck').empty();
+      //localStorage.setItem("precheck",false);
       for (var i = 0; i < precheck.length; i++) {
-        crearMensajePrecheck(precheck[i], tramite)
+        verificado = crearMensajePrecheck(precheck[i], tramite);
+        //localStorage.setItem("precheck", verificado);
       }
   }
 
   function mostrarDatosPersona(datosPersona){
-
-      console.log(datosPersona);
 
       //Convertir fecha a dd-mm-yyyy
       var f = datosPersona.fecha_nacimiento.split('-');
@@ -108,6 +110,8 @@
       $('#documento_texto').html(datosPersona.nro_doc);
       $('#fecha_nacimiento_texto').html(fecha_nac);
       $('#nacionalidad_texto').html(datosPersona.nacionalidad);
+      
+      //$precheck = localStorage.getItem("precheck");
 
       if (datosPersona.fecha_paseturno == null)
           $('#logTurno').html(' <a id="btnFechaPaseTruno" onclick="getPaseTurno('+datosPersona.id+')" class="btn btn-danger btn-block"><span>SIGUIENTE SECTOR</span> <i class="fa fa-sign-in"></i></a> ');
@@ -115,20 +119,21 @@
           $('#logTurno').html(' <a id="btnFechaPaseTruno" class="btn btn-success btn-block"><i class="fa fa-check-circle"></i> <span>PASO AL SIGUIENTE SECTOR <b>'+datosPersona.fecha_paseturno+'</b> </span> </a> ');
   }
 
-  function mostrarMensajeError(error){
-     $('#logPreCheck').html('<li><label class="btn btn-danger">'+error+'</label></li>')
+  function mostrarMensajeError(error, tramite_habilitado_id){
+    $('#logPreCheck').html('<li><label class="btn btn-danger">'+error+'</label></li>')
   }
 
   function crearMensajePrecheck(precheck, tramite){
-      console.log(precheck);
 
-      $("#tramite_a_iniciar_id").val(precheck.tramite_a_iniciar_id);
+    $("#tramite_a_iniciar_id").val(precheck.tramite_a_iniciar_id);
+    var type = 'danger';
+    var info = '';
+    var verificado = false;
 
-      type = 'danger'
-      info = ''
       if(precheck.validado){
-          error = 'Verificado'
-          type = 'success'
+          error = 'Verificado';
+          type = 'success';
+          verificado = true;
 
           if(precheck.description == 'BUI'){
             info = (precheck.boleta) ? ' Boleta Nro. <span class="red">' + precheck.boleta.nro_boleta + '</span> Importe <span class="red"> $ ' + precheck.boleta.importe_total + '</span> Fecha de pago <span class="green"> ' + precheck.boleta.fecha_pago + '</span>' : '';
@@ -139,8 +144,10 @@
       }else{
         var prop = 'description'
         if (precheck.error){
-          if(precheck.error.description)
+          if(precheck.error.description){
             error =  precheck.error.description
+            verificado = true;
+          }
         }else{
           error =  'No verificado'
         }
@@ -152,6 +159,7 @@
           var fecha_vencimiento = JSON.stringify(data[0]['attributes']['FECHAVTOLICENCIA']);
           info = '<span class="red"> Plan de Pago con Fecha Vencimiento: '+fecha_vencimiento+'</span>';
           type = 'warning';
+          verificado = true;
         }else{
           info = ((precheck.error) ? precheck.error.created_at : '')
         }
@@ -166,7 +174,7 @@
       html = '<li>'+
           '<div class="block_precheck">'+
           '<div class="tags_precheck">'+
-              '<a id="buttonValidacion" '+precheckOnclick+' class="btn btn-'+type+' btn-xs btn-block">'+
+              '<a id="btn_precheck_'+precheck.validation_id+'" '+precheckOnclick+' class="btn btn-'+type+' btn-xs btn-block">'+
               '<span>'+precheck.description+'</span>'+
               '</a>'+
           '</div>'+
@@ -183,7 +191,6 @@
       '</li>';
 
       //Emitir Certificado SAFIT si no se encontro por WS
-      
       if(precheck.validation_id == '3' && type=='danger' && error != 'No verificado'){
         var options;
         @foreach ($centrosEmisores as $key => $value)
@@ -204,8 +211,9 @@
 
         html+='<div class="col-md-2 col-sm-2 col-xs-12"> <button type="button" onclick="generarCenat()" class="btn btn-primary btn-block" title="Generar Certificado Virtual"> <i class="fa fa-cloud-download fa-lg"></i> </div>';
       }
-      
-      $('#logPreCheck').append(html)
+
+      $('#logPreCheck').append(html);
+      return verificado;
   }
 
   function generarCenat(){
@@ -263,8 +271,9 @@
   
   function getPaseTurno(id){
     $.ajax({
-        type: "POST",
-        url: 'api/funciones/actualizarPaseATurno',
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+        type: "GET",
+        url: 'actualizarPaseATurno',
         data: { id: id},
         success: function( msg ) {
           getPreCheck(id);

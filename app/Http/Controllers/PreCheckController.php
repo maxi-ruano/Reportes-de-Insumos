@@ -327,7 +327,7 @@ class PreCheckController extends Controller
 
 
   public function actualizarPaseATurno(Request $request) {
-    $fecha = ($request->fecha=='')?date("Y-m-d H:i:s"):$request->fecha;
+    $fecha = date("Y-m-d H:i:s");
     return TramitesAIniciar::where('id',$request->id)->update(['fecha_paseturno' => $fecha]);
   }
 
