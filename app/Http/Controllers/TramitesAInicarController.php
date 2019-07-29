@@ -585,7 +585,7 @@ class TramitesAInicarController extends Controller
 
     \Log::info('['.date('h:i:s').'] Se inicia verificarBui() tramiteAIniciar ID: '.$tramite->id); 
 
-    $nro_boleta = '';
+    $nro_boleta = null;
     $tramite = TramitesAIniciar::find($tramite->id);
     $data = array("TipoDocumento" => $tramite->tipoDocBui(),
                   "NroDocumento" => $tramite->nro_doc,
@@ -609,9 +609,7 @@ class TramitesAInicarController extends Controller
           'lugar_pago'=>$boleta->LugarPago,
           'medio_pago'=>$boleta->MedioPago,
           'tramite_a_iniciar_id'=>$tramite->id));
-	        //$res = "Se utilizo la Boleta con el Nro: ".$boletaBui->nro_boleta;
           $nro_boleta = $boleta->NroBoleta;
-          $res = true;
         }else{
           $mensaje = "La boleta habilitada ya a sido utilizado en el sistema de la direccion general de licencias";
         }
@@ -619,7 +617,7 @@ class TramitesAInicarController extends Controller
         $mensaje = "No dispone de ninguna boleta habilitada";
       }
     }
-    if($res == true)
+    if($nro_boleta)
       $res = array('comprobante' => $nro_boleta);  
     else
       $res = array('error' => $mensaje, 'request' => $data, 'response' => $res);
