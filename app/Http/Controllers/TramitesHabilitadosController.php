@@ -180,21 +180,13 @@ class TramitesHabilitadosController extends Controller
                 $tramiteshabilitados->habilitado = false;               
                 $saved = $tramiteshabilitados->save();
 
-                if($saved){
+                $this->guardarObservacion($tramiteshabilitados->id, $request->observacion);
 
-                    if(isset($request->observacion))
-                        $this->guardarObservacion($tramiteshabilitados->id, $request->observacion);
+                //ASIGNAR O GENERAR PRECHECK
+                $this->asignarPrecheck($tramiteshabilitados->id);
 
-                    //ASIGNAR O GENERAR PRECHECK
-                    $this->asignarPrecheck($tramiteshabilitados->id);
-
-                    Flash::success('El Tramite se ha creado correctamente');
-                    return redirect()->route('tramitesHabilitados.create');
-
-                }else{
-                    Flash::error('Ha ocurrido un error al guardar en Tramites Habilitados');
-                    return back();
-                }
+                Flash::success('El Tramite se ha creado correctamente');
+                return redirect()->route('tramitesHabilitados.create');
 
             }else{
                 Flash::error('LIMITE DIARIO PERMITIDO para la sucursal seleccionada.!!');
