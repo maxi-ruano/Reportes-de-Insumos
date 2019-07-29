@@ -205,6 +205,9 @@
                         }
                         break;
                     case 'RETOMA TURNO':
+                        //Nro. de Cita (Obligatorio)
+                        $("#div_observacion label").html('Nro. de Cita: ');
+                        $("#div_observacion input").attr('placeholder','Ingrese el Nro. de la Cita').attr('required','required').attr('minlength','8').attr('maxlength','8');
                         validarRetomaTurno();
                         break;
                     default:
@@ -328,9 +331,10 @@
                 var tipo_doc = $("select[name=tipo_doc]").val();
                 var nro_doc = $("input[name=nro_doc]").val();
                 var sucursal = $("select[name=sucursal]").val();
-                console.log(tipo_doc+' | '+nro_doc);
+
+                $('button[type=submit]').attr("disabled",true);
+                
                 if(nro_doc != ''){
-                    $('button[type=submit]').attr("disabled",true);
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                         url: '/consultarUltimoTurno',
@@ -355,7 +359,7 @@
                                 if(dias >= 0 && dias <= 15){
                                     $("#ultimo_turno .icono").html('<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>');
                                     $('button[type=submit]').attr("disabled",false);
-                                    $("#div_observacion input").val(ret.id);
+                                    $("#div_observacion input").val(ret.idcita);
                                 }else{
                                     $("#ultimo_turno .icono").html('<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>');
                                     $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno previo ha superado el limite de los 15 días para poder RETOMAR TURNO!.</h4>');
