@@ -355,6 +355,7 @@
                                 if(dias >= 0 && dias <= 15){
                                     $("#ultimo_turno .icono").html('<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>');
                                     $('button[type=submit]').attr("disabled",false);
+                                    $("#div_observacion input, #precheck_id").val(precheck_id);
                                 }else{
                                     $("#ultimo_turno .icono").html('<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>');
                                     $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno previo ha superado el limite de los 15 días para poder RETOMAR TURNO!.</h4>');
