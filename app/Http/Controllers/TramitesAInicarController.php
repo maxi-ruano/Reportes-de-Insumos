@@ -130,13 +130,13 @@ class TramitesAInicarController extends Controller
           $this->gestionarLibreDeuda($tramiteAIniciar, LIBRE_DEUDA, VALIDACIONES);
         //}
 
-        if(!$this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,BUI)){
+        if($this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,BUI) != true){
           \Log::info('['.date('h:i:s').'] '.'> > > gestionarBui('.BUI.') tramites_habilitado ID = '.$turno->id);
           $this->gestionarBui($tramiteAIniciar, BUI, VALIDACIONES);        
         }
 
         \Log::info('['.date('h:i:s').'] '.' comprobando SAFIT '.EMISION_BOLETA_SAFIT);
-        if(!$this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,EMISION_BOLETA_SAFIT)){
+        if($this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,EMISION_BOLETA_SAFIT) != true){
           \Log::info('['.date('h:i:s').'] '.'> > > buscarBoletaSafit() tramites_habilitado ID = '.$turno->id);
           if($this->buscarBoletaSafit($tramiteAIniciar, SAFIT)){
             //Ejecutar gestionarBoletaSafit() solo si encuenctra datos en buscarBoloetaSafit()
@@ -563,7 +563,7 @@ class TramitesAInicarController extends Controller
   }
 
   public function gestionarBui($tramite, $estadoValidacion, $siguienteEstado){
-    $this->esTurnoEnElDia($tramite);
+    $verificar = $this->esTurnoEnElDia($tramite);
     $error = 'ninguno';
       foreach ($this->conceptoBui as $key => $value) {
         $res = $this->verificarBui($tramite, $value);
@@ -585,10 +585,10 @@ class TramitesAInicarController extends Controller
 
     \Log::info('['.date('h:i:s').'] Se inicia verificarBui() tramiteAIniciar ID: '.$tramite->id); 
 
-    $comprobante = array();
+    $nro_boleta = '';
     $tramite = TramitesAIniciar::find($tramite->id);
     $data = array("TipoDocumento" => $tramite->tipoDocBui(),
-                  "NroDocumento" => $tramite->nro_doc, //"24571740",//cambiar
+                  "NroDocumento" => $tramite->nro_doc,
                   "ListaConceptos" => $concepto,
                   "Ultima" => "false");
     $res = $this->peticionCurl($data, $this->urlVerificacionBui, "POST", $this->userBui, $this->passwordBui);
@@ -610,7 +610,7 @@ class TramitesAInicarController extends Controller
           'medio_pago'=>$boleta->MedioPago,
           'tramite_a_iniciar_id'=>$tramite->id));
 	        //$res = "Se utilizo la Boleta con el Nro: ".$boletaBui->nro_boleta;
-          $comprobante['comprobante'] = $boleta->NroBoleta;
+          $nro_boleta = $boleta->NroBoleta;
           $res = true;
         }else{
           $mensaje = "La boleta habilitada ya a sido utilizado en el sistema de la direccion general de licencias";
@@ -619,10 +619,10 @@ class TramitesAInicarController extends Controller
         $mensaje = "No dispone de ninguna boleta habilitada";
       }
     }
-    if($res !== true)
-      $res = array('error' => $mensaje, 'request' => $data, 'response' => $res);
+    if($res == true)
+      $res = array('comprobante' => $nro_boleta);  
     else
-      $res = $comprobante;  
+      $res = array('error' => $mensaje, 'request' => $data, 'response' => $res);
 
     \Log::info('['.date('h:i:s').'] '.' se ejecuto peticionCurl(), concepto: '.$concepto[0].' mensaje: '.$mensaje); 
 
