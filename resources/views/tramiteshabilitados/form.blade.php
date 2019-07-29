@@ -208,7 +208,9 @@
                         //Nro. de Cita (Obligatorio)
                         $("#div_observacion label").html('Nro. de Cita: ');
                         $("#div_observacion input").attr('placeholder','Ingrese el Nro. de la Cita').attr('required','required').attr('minlength','8').attr('maxlength','8');
-                        validarRetomaTurno();
+                        $("#formTramitesHabilitados input, #formTramitesHabilitados select").change(function(){
+                            validarRetomaTurno();
+                        });
                         break;
                     default:
                         //

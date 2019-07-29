@@ -125,10 +125,10 @@ class TramitesAInicarController extends Controller
       /**Se ejecuta de forma Async el usuario no debe esperar el tiempo de respuesta */
       \Log::info('['.date('h:i:s').'] '.'inicio validaciones precheck con tramiteAIniciar ID: '.$tramiteAIniciar->id);
 
-        if(!$this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,LIBRE_DEUDA)){
+        //if(!$this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,LIBRE_DEUDA)){
           \Log::info('['.date('h:i:s').'] '.'> > > gestionarLibreDeuda() tramites_habilitado ID = '.$turno->id);
           $this->gestionarLibreDeuda($tramiteAIniciar, LIBRE_DEUDA, VALIDACIONES);
-        }
+        //}
 
         if(!$this->estaValidadoEnValidacionesPrecheck($tramiteAIniciar,BUI)){
           \Log::info('['.date('h:i:s').'] '.'> > > gestionarBui('.BUI.') tramites_habilitado ID = '.$turno->id);
