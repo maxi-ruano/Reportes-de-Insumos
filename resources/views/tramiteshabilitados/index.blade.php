@@ -97,7 +97,7 @@
                     </td>
                     @endcan
                     <td>
-                        <button type="button" onclick="viewPrecheck({{ $row->id }}, {{ $row->tramites_a_iniciar_id }})" class="btn btn-info btn-xs" data-toggle="modal" data-target="#modal-precheck">
+                        <button type="button" onclick="viewPrecheck({{ $row->tramites_a_iniciar_id }})" class="btn btn-info btn-xs" data-toggle="modal" data-target="#modal-precheck">
                             <i class="glyphicon glyphicon-check"></i> Precheck
                         </button>
                     </td>
@@ -194,9 +194,9 @@
         }
         
         //Mostrar el Precheck realizado del tramites_a_iniciar_id
-        function viewPrecheck(id, tramites_a_iniciar_id){            
+        function viewPrecheck(tramites_a_iniciar_id){            
             detenerRegargarPagina();
-            getPreCheck(tramites_a_iniciar_id, id);
+            getPreCheck(tramites_a_iniciar_id);
         }
 
     </script>

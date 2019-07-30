@@ -125,7 +125,7 @@ class PreCheckController extends Controller
       $tramiteAIniciar->nacionalidad = $tramiteAIniciar->nacionalidadTexto();
 
       $precheck =  \DB::table('validaciones_precheck as v')
-                      ->select('v.tramite_a_iniciar_id', 'v.validado', 's.description', 'v.validation_id','v.comprobante')
+                      ->select('v.tramite_a_iniciar_id', 'v.validado', 's.description', 'v.validation_id','v.comprobante', 'v.updated_at')
                       ->join('sys_multivalue as s', 's.id', '=', 'v.validation_id')
                       ->where('s.type', 'VALP')
                       ->where('v.tramite_a_iniciar_id', $tramiteAIniciar->id)

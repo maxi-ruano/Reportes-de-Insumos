@@ -59,7 +59,7 @@
   <script>
     
     /* TODO este codigo debera ir en un js compilado, ya q es reutilizado en checkModoAutonomo.blade.php*/
-    function getPreCheck(id, tramite_habilitado_id = null){
+    function getPreCheck(id){
       $("#nombre_texto, #documento_texto, #fecha_nacimiento_texto, #nacionalidad_texto").empty();
 
       $.ajax({
@@ -73,8 +73,7 @@
               mostrarMensajeError(msg.error, tramite_habilitado_id);
             }else if(msg){
 
-              mostrarPreCheck(msg.precheck, msg.datosPersona)
-              mostrarDatosPersona(msg.datosPersona)
+              mostrarPreCheck(msg.precheck, msg.datosPersona);
 
               //Bloquear todas las opciones del PreCheck para el Rol Auditoria
               @if(Auth::check())
@@ -92,12 +91,14 @@
   }
 
   function mostrarPreCheck(precheck, tramite){
+      
+      mostrarDatosPersona(tramite);  
       $('#logPreCheck').empty();
-      //localStorage.setItem("precheck",false);
+      
       for (var i = 0; i < precheck.length; i++) {
-        verificado = crearMensajePrecheck(precheck[i], tramite);
-        //localStorage.setItem("precheck", verificado);
+        crearMensajePrecheck(precheck[i], tramite);
       }
+      
   }
 
   function mostrarDatosPersona(datosPersona){
@@ -110,13 +111,6 @@
       $('#documento_texto').html(datosPersona.nro_doc);
       $('#fecha_nacimiento_texto').html(fecha_nac);
       $('#nacionalidad_texto').html(datosPersona.nacionalidad);
-      
-      //$precheck = localStorage.getItem("precheck");
-
-      if (datosPersona.fecha_paseturno == null)
-          $('#logTurno').html(' <a id="btnFechaPaseTruno" onclick="getPaseTurno('+datosPersona.id+')" class="btn btn-danger btn-block"><span>SIGUIENTE SECTOR</span> <i class="fa fa-sign-in"></i></a> ');
-      else
-          $('#logTurno').html(' <a id="btnFechaPaseTruno" class="btn btn-success btn-block"><i class="fa fa-check-circle"></i> <span>PASO AL SIGUIENTE SECTOR <b>'+datosPersona.fecha_paseturno+'</b> </span> </a> ');
   }
 
   function mostrarMensajeError(error, tramite_habilitado_id){
@@ -124,32 +118,39 @@
   }
 
   function crearMensajePrecheck(precheck, tramite){
-
     $("#tramite_a_iniciar_id").val(precheck.tramite_a_iniciar_id);
     var type = 'danger';
     var info = '';
     var verificado = false;
+    var precheck_libredeuda = false;
 
+    var date = new Date().toISOString().slice(0,10); ;
+    var updated = new Date(precheck.updated_at).toISOString().slice(0,10);
+  
       if(precheck.validado){
           error = 'Verificado';
           type = 'success';
           verificado = true;
 
+          if(precheck.description == 'LIBRE DEUDA'){
+            precheck_libredeuda = true;
+          }
+
           if(precheck.description == 'BUI'){
             info = (precheck.boleta) ? ' Boleta Nro. <span class="red">' + precheck.boleta.nro_boleta + '</span> Importe <span class="red"> $ ' + precheck.boleta.importe_total + '</span> Fecha de pago <span class="green"> ' + precheck.boleta.fecha_pago + '</span>' : '';
           }else{
-            info = (precheck.comprobante) ? 'Comprobante Nro. '+precheck.comprobante : '';
+            info = (precheck.comprobante) ? 'Comprobante Nro. <span class="red">'+precheck.comprobante+' </span> <br>'+precheck.updated_at : '';
           }
 
       }else{
-        var prop = 'description'
+        var prop = 'description';
         if (precheck.error){
           if(precheck.error.description){
             error =  precheck.error.description
             verificado = true;
           }
         }else{
-          error =  'No verificado'
+          error =  'No verificado';
         }
 
         //Si tiene un Plan de Pagos mostrar su fecha de vencimiento
@@ -160,15 +161,18 @@
           info = '<span class="red"> Plan de Pago con Fecha Vencimiento: '+fecha_vencimiento+'</span>';
           type = 'warning';
           verificado = true;
+          precheck_libredeuda = true;
+
         }else{
           info = ((precheck.error) ? precheck.error.created_at : '')
         }
       }
 
-      //Colocar el metodo onclick solo si no se ha verificado (type=danger)
+      //Agregar onclick solo si no ha iniciado en LICTA, no corresponda a Sinalic
       var precheckOnclick = '';
-      if(type!='success' && tramite.tramite_dgevyl_id == null && precheck.description != 'SINALIC')
+      if(tramite.tramite_dgevyl_id == null && precheck.description != 'SINALIC' && type != 'success' ){
           precheckOnclick = 'onclick="runPrecheck('+precheck.tramite_a_iniciar_id+','+precheck.validation_id+')" ';
+      }
 
       //Boton del Log Prec-Check con su descripcion y fecha de ejecucion o Nro. Comrpobante
       html = '<li>'+
@@ -213,6 +217,27 @@
       }
 
       $('#logPreCheck').append(html);
+
+      if (tramite.fecha_paseturno != null){
+        $('#logTurno').html(' <a class="btn btn-success btn-block"><i class="fa fa-check-circle"></i> <span>PASO AL SIGUIENTE SECTOR <b>'+tramite.fecha_paseturno+'</b> </span> </a> ');
+      }else{
+        //RESTRINGIR PASE SIGUIENTE SECTOR
+        if(precheck.description != 'SINALIC'){
+          if(verificado){
+            if(precheck.description == 'LIBRE DEUDA'){
+              if (precheck_libredeuda == true){
+                  $('#logTurno').html(' <a onclick="getPaseTurno('+tramite.id+')" class="btn btn-danger btn-block"><span>SIGUIENTE SECTOR</span> <i class="fa fa-sign-in"></i></a> ');
+              }else{
+                $('#logTurno').append("(*) <span class='red'> Debe verificar "+precheck.description+" </span> <br>");
+              }
+            }
+          }else{
+            $('#logTurno').append("(*) <span class='red'> Debe verificar "+precheck.description+" </span> <br>");
+            $("#btn_precheck_"+precheck.validation_id).click();
+          }  
+        }
+      }
+
       return verificado;
   }
 
@@ -283,6 +308,5 @@
         }
     });
   }
-
   </script>
 @endpush
