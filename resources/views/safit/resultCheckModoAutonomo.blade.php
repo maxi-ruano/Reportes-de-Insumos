@@ -93,7 +93,7 @@
   function mostrarPreCheck(precheck, tramite){
       
       mostrarDatosPersona(tramite);  
-      $('#logPreCheck').empty();
+      $('#logPreCheck, #logTurno').empty();
       
       for (var i = 0; i < precheck.length; i++) {
         crearMensajePrecheck(precheck[i], tramite);
@@ -217,7 +217,7 @@
       }
 
       $('#logPreCheck').append(html);
-
+      
       if (tramite.fecha_paseturno != null){
         $('#logTurno').html(' <a class="btn btn-success btn-block"><i class="fa fa-check-circle"></i> <span>PASO AL SIGUIENTE SECTOR <b>'+tramite.fecha_paseturno+'</b> </span> </a> ');
       }else{
