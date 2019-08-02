@@ -1126,14 +1126,22 @@ class TramitesAInicarController extends Controller
     try{
       //16 dias atras
       $last_date = date('Y-m-d', strtotime('-'.(DIAS_VALIDEZ_TURNO).' days', strtotime(date('Y-m-d'))));
-      //26 dias atras
-      $ini_date = date('Y-m-d', strtotime('-'.(DIAS_VALIDEZ_TURNO+11).' days', strtotime(date('Y-m-d'))));
+      
+      $today = date('Y-m-d');
 
-      $res = TramitesAIniciar::join('sigeci', 'sigeci.idcita', '=', 'tramites_a_iniciar.sigeci_idcita')
+      $sigeci = TramitesAIniciar::join('sigeci', 'sigeci.idcita', '=', 'tramites_a_iniciar.sigeci_idcita')
                                   ->where('sigeci.fecha', '<=', $last_date)
                                   ->where('tramites_a_iniciar.estado', '!=', TURNO_VENCIDO)
                                   ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
                                   ->update(['estado' => TURNO_VENCIDO]);
+
+      $habilitados = TramitesAIniciar::join('tramites_habilitados', 'tramites_habilitados.tramites_a_iniciar_id', '=', 'tramites_a_iniciar.id')
+                                  ->where('tramites_habilitados.fecha', '<=', $today)
+                                  ->where('tramites_a_iniciar.estado', '!=', TURNO_VENCIDO)
+                                  ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
+                                  ->whereNull('tramites_a_iniciar.sigeci_idcita')                                  
+                                  ->update(['estado' => TURNO_VENCIDO]);
+      
       \Log::info('['.date('h:i:s').'] revisarTurnosVencidos - Se da por TURNO_VENCIDO a los turnos menores igual a : '.$last_date);
 
       //PENDIENTE: anular los tramites iniciados en SINALIC que pasaron a VENCIDOS  y actualizar en tramites_a_iniciar
