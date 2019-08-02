@@ -13,6 +13,8 @@
                 Este proceso no se puede deshacer.
         </div>
         <div class="modal-footer">
+            <input type="hidden" id="delete-id" value="" />
+            <input type="hidden" id="servicio" value="" />
             <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
             <button type="button" class="btn btn-danger" id="delete-btn"> Si, borrar!</button>
         </div>

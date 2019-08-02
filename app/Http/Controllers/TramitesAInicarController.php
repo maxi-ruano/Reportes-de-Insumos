@@ -857,14 +857,21 @@ class TramitesAInicarController extends Controller
   }
 
   public function anularTramiteSinalic($nro_tramite,$motivo,$usuario){
-    $res = $this->wsSinalic->AnularTramite(array(
-             "nroTramite" => $nro_tramite,
-             "motivo" => $motivo,
-             "usuario" => $usuario
-           ));
+      $this->wsSinalic->iniciarSesion();
+      if(is_null($this->wsSinalic->cliente)){
+        return "El Ws de Sinalic no responde, por favor revise la conexion, o contactese con Nacion";
+        return false;
+      }else{
 
-    if($res->AnularTramiteResult->CantidadErrores > 0)
-      return false;
+        $res = $this->wsSinalic->AnularTramite(array(
+                "nroTramite" => $nro_tramite,
+                "motivo" => $motivo,
+                "usuario" => $usuario
+              ));
+
+        if($res->AnularTramiteResult->CantidadErrores > 0)
+          return false;
+      }
 
     return true;
   }
@@ -1151,10 +1158,6 @@ class TramitesAInicarController extends Controller
                     ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
                     ->whereNull('ansv_tramite.numero_tramite_ansv')
                     ->get();
-      
-      $this->wsSinalic->iniciarSesion();
-      if(is_null($this->wsSinalic->cliente))
-        return "El Ws de Sinalic no responde, por favor revise la conexion, o contactese con Nacion";
 
       foreach ($tramites as $tramite){
         if($this->anularTramiteSinalic($tramite->tramite_sinalic_id,'6','microservicio')){ //Motivo:****OTROS

@@ -11,6 +11,7 @@ use App\TramitesAIniciarErrores;
 use App\TramitesAIniciarCheckprecheck;
 use App\AnsvCelExpedidor;
 use App\Http\Controllers\TramitesController;
+use App\Http\Controllers\TramitesAInicarController;
 use App\Sigeci;
 use App\BoletaBui;
 
@@ -92,13 +93,38 @@ class PreCheckController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function anular(Request $request)
+    public function anular_cenat(Request $request)
     {
         try{
             $anular = \DB::table('validaciones_precheck')->where('id',$request->id)
                 ->update(array('validado' => false, 'comprobante' => null));
             return $anular;
         }
+        catch(Exception $e){   
+            return "Fatal error - ".$e->getMessage();
+        }
+    }
+
+    public function anular_sinalic(Request $request)
+    {
+        try{
+          $tramitesAIniciar = TramitesAIniciar::find($request->id);
+
+          if($tramitesAIniciar->tramite_sinalic_id){
+
+            $controller = new TramitesAInicarController();
+            $controller->anularTramiteSinalic($tramitesAIniciar->tramite_sinalic_id,'6','microservicio');
+
+            $tramitesAIniciar->tramite_sinalic_id = null;
+            $tramitesAIniciar->tipo_tramite = null;
+            $tramitesAIniciar->save();
+
+            $anular = \DB::table('validaciones_precheck')
+                            ->where('tramite_a_iniciar_id',$request->id)
+                            ->where('validation_id',SINALIC)
+                            ->update(array('validado' => false, 'comprobante' => null));
+          }
+       }
         catch(Exception $e){   
             return "Fatal error - ".$e->getMessage();
         }

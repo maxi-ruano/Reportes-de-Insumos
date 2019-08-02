@@ -88,8 +88,13 @@
                         <input id="precheck{{ $row->id }}" type="checkbox" disabled checked data-toggle="toggle" data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60">
                         
                         @if($row->validation_id == '3' && $row->tramite_dgevyl_id == null)
-                            <a id="btnAnularPrecheck" onclick="anularPreCheck({{ $row->id }})" class="hidden" ></a>
-                            <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete">
+                            <button id="btn-modal-cenat" type="button" class="btn btn-danger btn-xs" data-id="{{ $row->id }}" data-toggle="modal" data-target="#modal-delete">
+                                <i class="glyphicon glyphicon-trash"></i>
+                            </button>
+                        @endif
+
+                        @if($row->validation_id == '7' && $row->tramite_dgevyl_id == null)                         
+                            <button id="btn-modal-sinalic" type="button" class="btn btn-danger btn-xs" data-id="{{ $row->tramite_a_iniciar_id }}" data-toggle="modal" data-target="#modal-delete">
                                 <i class="glyphicon glyphicon-trash"></i>
                             </button>
                         @endif
@@ -114,9 +119,29 @@
                 $("#divBuscarPrecheck #id").val('');
             });
             
-            //Modal delete confirmar antes de borrar
+           //Modal delete confirmar antes de borrar
             $('#modal-delete').on('click', '#delete-btn', function(){
-                $("#btnAnularPrecheck").click();
+                const servicio = $("#servicio").val();
+                const id = $("#delete-id").val();
+                
+                switch(servicio){
+                    case "sinalic":
+                        anularSinalic(id);
+                        break;
+                    case "cenat":
+                        anularCenat(id);
+                        break;
+                }
+            }); 
+
+            $("#btn-modal-sinalic").on("click", function () {
+                $("#delete-id").val($(this).data('id'));
+                $("#servicio").val('sinalic');
+            });
+
+            $("#btn-modal-cenat").on("click", function () {
+                $("#delete-id").val($(this).data('id'));
+                $("#servicio").val('cenat');
             });
         });
 
@@ -127,11 +152,23 @@
         }
 
         //Solo si confirma la anulacion mediante el modal
-        function anularPreCheck(id){
-            console.log('anular el comprobante del Precheck id: '+id);
+        function anularCenat(id){
             $.ajax({
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                url: 'anularPreCheck',
+                url: 'anularPreCheckCenat',
+                data: {id: id },
+                type: "GET", 
+                success: function(ret){
+                    $("#divBuscarPrecheck #buscar").click();
+                }
+            });
+        }
+
+        //Anular el sinalic creado desde el Precheck en caso que lo amerite
+        function anularSinalic(id){  
+            $.ajax({
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                url: 'anularPreCheckSinalic',
                 data: {id: id },
                 type: "GET", 
                 success: function(ret){
