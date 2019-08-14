@@ -26,7 +26,8 @@ class AddDeleteToTramitesHabilitados extends Migration
     public function down()
     {
         Schema::table('tramites_habilitados', function (Blueprint $table) {
-            //
+            $table->dropColumn('delete');
+            $table->dropColumn('delete_by');
         });
     }
 }
