@@ -14,8 +14,8 @@ class AddDeleteToTramitesHabilitados extends Migration
     public function up()
     {
         Schema::table('tramites_habilitados', function (Blueprint $table) {
-            $table->boolean('delete')->default(0);
-            $table->integer('delete_by')->nullable()->unsigned();
+            $table->boolean('deleted')->default(0);
+            $table->integer('deleted_by')->nullable()->unsigned();
         });
     }
     /**
@@ -26,8 +26,8 @@ class AddDeleteToTramitesHabilitados extends Migration
     public function down()
     {
         Schema::table('tramites_habilitados', function (Blueprint $table) {
-            $table->dropColumn('delete');
-            $table->dropColumn('delete_by');
+            $table->dropColumn('deleted');
+            $table->dropColumn('deleted_by');
         });
     }
 }
