@@ -82,17 +82,20 @@
                     </td>
                     @can('habilita_tramites_habilitados')
                     <td>
-                        @php $disable_not_today = ($row->fecha == date('d-m-Y'))?'':'disabled' @endphp
+                        @php $disable_habilitado = ($row->fecha == date('d-m-Y'))?'':'disabled' @endphp
+                        @if($row->deleted)
+                            @php $disable_habilitado = 'disabled' @endphp
+                        @endif
                         @if($row->habilitado)
                             <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="{{ $row->habilitado_user_id }}">    
                                 @if(Auth::user()->hasRole('Admin'))
-                                    <input id="habilitado{{ $row->id }}" type="checkbox" checked {{ $disable_not_today }} onchange="habilitarTurno({{ $row->id }})" data-toggle="toggle" data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60">
+                                    <input id="habilitado{{ $row->id }}" type="checkbox" checked {{ $disable_habilitado }} onchange="habilitarTurno({{ $row->id }})" data-toggle="toggle" data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60">
                                 @else
                                     <input id="habilitado{{ $row->id }}" type="checkbox" checked disabled data-toggle="toggle" data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60">
                                 @endif
                             </span> 
                         @else
-                            <input id="habilitado{{ $row->id }}" type="checkbox" {{ $disable_not_today }} onchange="habilitarTurno({{ $row->id }})" data-toggle="toggle"  data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60" >
+                            <input id="habilitado{{ $row->id }}" type="checkbox" {{ $disable_habilitado }} onchange="habilitarTurno({{ $row->id }})" data-toggle="toggle"  data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60" >
                         @endif
                     </td>
                     @endcan
@@ -104,9 +107,16 @@
                     @can('edit_tramites_habilitados','delete_tramites_habilitados')
                     <td>
                         <div class="btn-toolbar" role="toolbar">
-                            @can('edit_tramites_habilitados')
+                            <!--@can('edit_tramites_habilitados')
                                 <a href="{{ route('tramitesHabilitados.edit', $row->id) }}" class="btn btn-success btn-xs" title="Editar"> <i class="fa fa-edit"></i></a>
-                            @endcan
+                            @endcan-->
+                            @if($row->deleted)
+                            <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="{{ $row->deleted_by }}">
+                                <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-anulado">
+                                    <i class="glyphicon glyphicon-check"></i>Anulado
+                                </button>
+                            </span>
+                            @else
                             @can('delete_tramites_habilitados')
                                 {!! Form::open(array('route' => array('tramitesHabilitados.destroy', $row->id), 'method' => 'delete', 'class' => 'form-delete')) !!}
                                     <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-delete">
@@ -114,6 +124,7 @@
                                     </button>
                                 {!! Form::close() !!}
                             @endcan
+                            @endif
                         </div>
                     </td>
                     @endcan

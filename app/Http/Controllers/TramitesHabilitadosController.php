@@ -76,6 +76,7 @@ class TramitesHabilitadosController extends Controller
                 $value->motivo_id = $buscar->motivoTexto();
                 $value->sucursal = $buscar->sucursalTexto();
                 $value->fecha = date('d-m-Y', strtotime($value->fecha));
+                $value->deleted_by = $buscar->userTexto($value->deleted_by);
             }
         }
 
@@ -140,12 +141,12 @@ class TramitesHabilitadosController extends Controller
                                                 ->where('nro_doc',$nro_doc)
                                                 ->where('pais',$pais)
                                                 ->where('fecha',$fecha)
+                                                ->where('deleted',false)
                                                 ->count();
                 if($existe){
                     Flash::error('El Documento Nro. '.$nro_doc.' tiene un turno asignado para el día '.$fecha.' por tramites habilitados');
                     return back();
                 }
-
                 //Validar si tiene turno en sigeci si el motivo es diferente de ERROR EN TURNO
                 if($motivo_id != '13'){
                     $existeturno = $this->existeTurnoSigeci($tipo_doc, $nro_doc, $fecha);
@@ -431,14 +432,16 @@ class TramitesHabilitadosController extends Controller
             $inicio_tramite = ($t->tramites_a_iniciar_id)?TramitesAIniciar::find($t->tramites_a_iniciar_id)->tramite_dgevyl_id:'';
             //No realizar ninguna modificacion si el tramiteAIniciar inicio en Fotografia
             if($inicio_tramite){
-                Flash::error('El Tramite ya se inicio en LICTA no se puede eliminar!');
+                Flash::error('El Tramite ya se inicio en LICTA no se puede anular!');
                 return redirect()->route('tramitesHabilitados.index');
             }else{
             
                 $tramiteshabilitados = TramitesHabilitados::find($id);
-                $tramiteshabilitados->delete();
+                $tramiteshabilitados->deleted = true;
+                $tramiteshabilitados->deleted_by = Auth::user()->id;
+                $tramiteshabilitados->save();
             
-                Flash::success('El Tramite se ha eliminado correctamente');
+                Flash::success('El Tramite se ha anulado correctamente');
                 return redirect()->route('tramitesHabilitados.index');
             }
         }
