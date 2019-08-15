@@ -38,13 +38,14 @@ class TramitesHabilitadosController extends Controller
     {
         $fecha = isset($_GET['fecha'])?$_GET['fecha']:'';
 
-        $data = TramitesHabilitados::selectRaw('tramites_habilitados.*, tramites_habilitados_observaciones.observacion')
+        $data = TramitesHabilitados::selectRaw('tramites_habilitados.*, tramites_habilitados_observaciones.observacion, tramites_a_iniciar.tramite_dgevyl_id')
+                    ->leftjoin('tramites_a_iniciar','tramites_a_iniciar.id','tramites_habilitados.tramites_a_iniciar_id')
                     ->leftjoin('tramites_habilitados_observaciones','tramites_habilitados_observaciones.tramite_habilitado_id','tramites_habilitados.id')
                     ->whereIn('tramites_habilitados.motivo_id', $this->getRoleMotivos('role_motivos_lis'))
                     ->where(function($query) use ($request) {
-                        $query->where('nombre', 'iLIKE', '%'. $request->search .'%')
-                            ->orWhere('apellido', 'iLIKE', '%'. $request->search .'%')
-                            ->orWhereRaw("CAST(nro_doc AS text) iLIKE '%$request->search%' ");
+                        $query->where('tramites_habilitados.nombre', 'iLIKE', '%'. $request->search .'%')
+                            ->orWhere('tramites_habilitados.apellido', 'iLIKE', '%'. $request->search .'%')
+                            ->orWhereRaw("CAST(tramites_habilitados.nro_doc AS text) iLIKE '%$request->search%' ");
                     })
                     ->orderBy('tramites_habilitados.updated_at','desc');
         if($fecha)

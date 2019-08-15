@@ -82,8 +82,8 @@
                     </td>
                     @can('habilita_tramites_habilitados')
                     <td>
-                        @php $disable_habilitado = ($row->fecha == date('d-m-Y'))?'':'disabled' @endphp
-                        @if($row->deleted)
+                        @php $disable_habilitado = '' @endphp
+                        @if($row->deleted == true || $row->tramite_dgevyl_id > 0 || $row->fecha != date('d-m-Y'))
                             @php $disable_habilitado = 'disabled' @endphp
                         @endif
                         @if($row->habilitado)
