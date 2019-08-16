@@ -86,6 +86,11 @@
                         @if($row->deleted == true || $row->tramite_dgevyl_id > 0 || $row->fecha != date('d-m-Y'))
                             @php $disable_habilitado = 'disabled' @endphp
                         @endif
+
+                        @if($row->deleted == false && $row->tramite_dgevyl_id > 0 && $row->habilitado == false && $row->fecha == date('d-m-Y'))
+                            @php $disable_habilitado = '' @endphp
+                        @endif
+
                         @if($row->habilitado)
                             <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="{{ $row->habilitado_user_id }}">    
                                 @if(Auth::user()->hasRole('Admin'))
