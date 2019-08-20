@@ -12,12 +12,7 @@
     @endcan
     
     <h4>Crear Turno </h4>   
-    
-    @if(isset($edit)) 
-        {!! Form::open(['route' => ['tramitesHabilitados.update', $edit], 'id'=>'formTramitesHabilitados', 'method' => 'PUT', 'class' => 'form-horizontal', 'role' => 'form', 'files' => true ]) !!}
-    @else
         {!! Form::open(['route' => 'tramitesHabilitados.store', 'id'=>'formTramitesHabilitados', 'method' => 'POST', 'class' => 'form-horizontal', 'role' => 'form', 'files' => true ]) !!}
-    @endif
         <input type="hidden" name="_token" value="{{ csrf_token() }}">
         <input type="hidden" name="user_id" value="{{ Auth::user()->id }}">
 
@@ -100,7 +95,7 @@
         <div id="ultimo_turno"> </div>
         <hr>
         
-        @can('add_tramites_habilitados', 'edit_tramites_habilitados')
+        @can('add_tramites_habilitados')
         <div class="col-md-2 col-xs-12">
             <button type="submit" class="btn btn-primary btn-group-justified"> <i class="fa fa-check-square-o"></i> Enviar </button>                
         </div>
@@ -254,7 +249,7 @@
                                     $('button[type=submit]').attr("disabled",true);
                                     $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El número de cita ingresado ya cuenta con un tramite en LICTA: '+ret.tramite_dgevyl_id+'</h4>');
                                 }else{
-                                    if(sucursal == ret.sucroca){
+                                   // if(sucursal == ret.sucroca){
                                         if(dias >= 0 && dias <= 15){
                                             $("#ultimo_turno .icono").html('<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>');
                                             $('button[type=submit]').attr("disabled",false);
@@ -263,10 +258,10 @@
                                             $("#ultimo_turno .icono").html('<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>');
                                             $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno no cumple con los 15 días correspondientes para poder TOMAR TURNO!.</h4>');
                                         }
-                                    }else{
+                                   /* }else{
                                         $("#ultimo_turno .icono").html('<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>');
                                         $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno ingresado no corresponde con la Sucursal que intenta registrar!.</h4>');
-                                    }
+                                    }*/
                                 }
                             }
                         },
