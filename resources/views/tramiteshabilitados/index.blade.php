@@ -45,9 +45,7 @@
                         <th class="column-title" style="width:auto!important;">Habilitado</th>
                     @endcan
                     <th class="column-title" style="width:auto!important;">Precheck</th>
-                    @can('edit_tramites_habilitados','delete_tramites_habilitados')
-                        <th class="column-title" style="width:80px!important;"></th>
-                    @endcan
+                    <th class="column-title" style="width:80px!important;"></th>
                 </tr>
             </thead>
             <tbody>
