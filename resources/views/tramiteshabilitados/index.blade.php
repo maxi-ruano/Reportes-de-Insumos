@@ -109,12 +109,8 @@
                             <i class="glyphicon glyphicon-check"></i> Precheck
                         </button>
                     </td>
-                    @can('edit_tramites_habilitados','delete_tramites_habilitados')
                     <td>
                         <div class="btn-toolbar" role="toolbar">
-                            <!--@can('edit_tramites_habilitados')
-                                <a href="{{ route('tramitesHabilitados.edit', $row->id) }}" class="btn btn-success btn-xs" title="Editar"> <i class="fa fa-edit"></i></a>
-                            @endcan-->
                             @if($row->deleted)
                             <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="{{ $row->deleted_by }}">
                                 <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#modal-anulado">
@@ -132,7 +128,7 @@
                             @endif
                         </div>
                     </td>
-                    @endcan
+                    
                 </tr>
             @endforeach
             </tbody>
