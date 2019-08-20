@@ -87,17 +87,19 @@
                     @if($row->validado)
                         <input id="precheck{{ $row->id }}" type="checkbox" disabled checked data-toggle="toggle" data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60">
                         
-                        @if($row->validation_id == '3' && $row->tramite_dgevyl_id == null)
-                            <button id="btn-modal-cenat" type="button" class="btn btn-danger btn-xs" data-id="{{ $row->id }}" data-toggle="modal" data-target="#modal-delete">
-                                <i class="glyphicon glyphicon-trash"></i>
-                            </button>
-                        @endif
+                        @can('anular_comprobantes_precheck')
+                            @if($row->validation_id == '3' && $row->tramite_dgevyl_id == null)
+                                <button id="btn-modal-cenat" type="button" class="btn btn-danger btn-xs" data-id="{{ $row->id }}" data-toggle="modal" data-target="#modal-delete">
+                                    <i class="glyphicon glyphicon-trash"></i>
+                                </button>
+                            @endif
 
-                        @if($row->validation_id == '7' && $row->tramite_dgevyl_id == null)                         
-                            <button id="btn-modal-sinalic" type="button" class="btn btn-danger btn-xs" data-id="{{ $row->tramite_a_iniciar_id }}" data-toggle="modal" data-target="#modal-delete">
-                                <i class="glyphicon glyphicon-trash"></i>
-                            </button>
-                        @endif
+                            @if($row->validation_id == '7' && $row->tramite_dgevyl_id == null)
+                                <button id="btn-modal-sinalic" type="button" class="btn btn-danger btn-xs" data-id="{{ $row->tramite_a_iniciar_id }}" data-toggle="modal" data-target="#modal-delete">
+                                    <i class="glyphicon glyphicon-trash"></i>
+                                </button>
+                            @endif
+                        @endcan
 
                     @else
                         <input id="precheck{{ $row->id }}" type="checkbox" disabled data-toggle="toggle"  data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60" >

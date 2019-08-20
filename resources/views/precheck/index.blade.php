@@ -2,28 +2,40 @@
 
 @section('content')
 
-@role('Admin')
-
 <div class="tab-v1">
     <ul class="nav nav-tabs" role="tablist">
-        <li role="presentation" class="active"><a href="#tabPrecheck" aria-controls="tabPrecheck" role="tab" data-toggle="tab">Precheck Comprobantes</a></li>
-        <li role="presentation"><a href="#tabExamen" aria-controls="tabExamen" role="tab" data-toggle="tab"> Examen Teorico</a></li>
-        <li role="presentation"><a href="#tabTeoricoPc" aria-controls="tabTeoricoPc" role="tab" data-toggle="tab"> Teorico PCs</a></li>
+        @can('anular_comprobantes_precheck')
+            <li role="presentation" class="active"><a href="#tabPrecheck" aria-controls="tabPrecheck" role="tab" data-toggle="tab">Precheck Comprobantes</a></li>
+        @endcan
+
+        @can('anular_examen_teorico')
+            <li role="presentation"><a href="#tabExamen" aria-controls="tabExamen" role="tab" data-toggle="tab"> Examen Teorico</a></li>
+        @endcan
+
+        @can('cambiar_pcs_examen_teorico')
+            <li role="presentation"><a href="#tabTeoricoPc" aria-controls="tabTeoricoPc" role="tab" data-toggle="tab"> Teorico PCs</a></li>
+        @endcan
     </ul>
     <div class="tab-content">
-        <div role="tabpanel" class="tab-pane active" id="tabPrecheck"> 
-            @include('precheck.anularComprobante') 
-        </div>
-        <div role="tabpanel" class="tab-pane" id="tabExamen"> 
-            @include('examen.anularExamen')
-        </div>
-        <div role="tabpanel" class="tab-pane" id="tabTeoricoPc"> 
-            @include('teoricopc.index')
-        </div>
+        @can('anular_comprobantes_precheck')
+            <div role="tabpanel" class="tab-pane active" id="tabPrecheck">
+                @include('precheck.anularComprobante')
+            </div>
+        @endcan
+
+        @can('anular_examen_teorico')
+            <div role="tabpanel" class="tab-pane" id="tabExamen">
+                @include('examen.anularExamen')
+            </div>
+        @endcan
+
+        @can('cambiar_pcs_examen_teorico')
+            <div role="tabpanel" class="tab-pane" id="tabTeoricoPc">
+                @include('teoricopc.index')
+            </div>
+        @endcan
     </div>
 </div>
-
-@endrole
 
 @endsection
 

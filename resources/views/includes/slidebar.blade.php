@@ -25,12 +25,12 @@
         </li>
         @endcan
        
-        @role('Admin')
+        @if(Auth::user()->can('anular_comprobantes_precheck') || Auth::user()->can('anular_examen_teorico') || Auth::user()->can('cambiar_pcs_examen_teorico'))
         <li><a href="{{ route('precheck.index') }}">
           <i class="fa fa-edit"></i> Modificaciones del Sistema
           <span class="fa fa-chevron-right"></span></a>
         </li>
-        @endrole
+        @endif
 
         @can('view_users')
         <li><a href="{{ route('users.index') }}">
