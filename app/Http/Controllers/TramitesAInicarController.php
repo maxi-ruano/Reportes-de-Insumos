@@ -672,8 +672,10 @@ class TramitesAInicarController extends Controller
       $res = true;
     }else{
       //verificar si existe la boleta ya asignado a un tramite_a_iniciar
-      $boleta = BoletaBui::where('nro_boleta', $boleta->NroBoleta)
-                    ->whereNotNull('tramite_a_iniciar_id')
+      $boleta = BoletaBui::join('tramites_a_iniciar','tramites_a_iniciar.id','boletas_bui.tramite_a_iniciar_id')
+                    ->where('boletas_bui.nro_boleta', $boleta->NroBoleta)
+                    ->whereNotNull('boletas_bui.tramite_a_iniciar_id')
+                    ->where('tramites_a_iniciar.estado','!=',TURNO_VENCIDO)
                     ->count();
       if($boleta)
         $res = true;
