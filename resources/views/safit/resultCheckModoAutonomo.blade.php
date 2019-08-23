@@ -156,18 +156,29 @@
         }
         console.log(response_ws);
         //Si tiene un Plan de Pagos mostrar su fecha de vencimiento
-        if(response_ws.indexOf("PLAN DE PAGO") > -1 || response_ws.toUpperCase().indexOf("PLANPAGO") > -1){
-          var metadata = JSON.parse(response_ws);
-          var data = metadata.filter(metadataObj => metadataObj.tag.indexOf("PLANPAGO") > -1);
-          var fecha_vencimiento = JSON.stringify(data[0]['attributes']['FECHAVTO']);
-          var numero = JSON.stringify(data[0]['attributes']['NUMERO']);
-          info = '<span class="red"> Plan de Pago Nro. '+numero+' con Fecha Vencimiento: '+fecha_vencimiento+'</span>';
+        if(error.toUpperCase().indexOf("PLAN DE PAGO") > -1){
+          var metadata = JSON.parse(precheck.error.response_ws);
+          var data = metadata.filter(metadataObj => metadataObj.tag.indexOf("AUTORIZACION") > -1);
+          var fecha_vencimiento = JSON.stringify(data[0]['attributes']['FECHAVTOLICENCIA']);
+          info = '<span class="red"> Plan de Pago con Fecha Vencimiento: '+fecha_vencimiento+'</span>';
           type = 'warning';
           verificado = true;
           precheck_libredeuda = true;
 
         }else{
-          info = ((precheck.error) ? precheck.error.created_at : '')
+          if(response_ws.toUpperCase().indexOf("PLANPAGO") > -1){
+            var metadata = JSON.parse(response_ws);
+            var data = metadata.filter(metadataObj => metadataObj.tag.indexOf("PLANPAGO") > -1);
+            var fecha_vencimiento = JSON.stringify(data[0]['attributes']['FECHAVTO']);
+            var numero = JSON.stringify(data[0]['attributes']['NUMERO']);
+            info = '<span class="red"> Plan de Pago Nro. '+numero+' con Fecha Vencimiento: '+fecha_vencimiento+'</span>';
+            type = 'warning';
+            verificado = true;
+            precheck_libredeuda = true;
+
+          }else{
+            info = ((precheck.error) ? precheck.error.created_at : '')
+          }
         }
       }
 
