@@ -44,6 +44,20 @@ class TramitesAIniciar extends Model
       return "";  
   }
 
+  public function motivo(){
+    $motivo = \DB::table('tramites_habilitados')
+                    ->join('tramites_habilitados_motivos','tramites_habilitados_motivos.id','tramites_habilitados.motivo_id')
+                    ->where('tramites_habilitados.tramites_a_iniciar_id', $this->id)
+                    ->orderby('tramites_habilitados','desc')
+                    ->first();
+
+    if($motivo)
+        return $motivo->description;
+    else
+        return "";  
+}
+
+
   public function sigeci(){
      return $this->hasOne('App\Sigeci','tramite_a_iniciar_id','id');
   }

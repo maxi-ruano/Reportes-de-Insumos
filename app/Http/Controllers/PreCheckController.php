@@ -149,6 +149,7 @@ class PreCheckController extends Controller
                            
     if($tramiteAIniciar){
       $tramiteAIniciar->nacionalidad = $tramiteAIniciar->nacionalidadTexto();
+      $tramiteAIniciar->motivo = $tramiteAIniciar->motivo();
 
       $precheck =  \DB::table('validaciones_precheck as v')
                       ->select('v.tramite_a_iniciar_id', 'v.validado', 's.description', 'v.validation_id','v.comprobante', 'v.updated_at')

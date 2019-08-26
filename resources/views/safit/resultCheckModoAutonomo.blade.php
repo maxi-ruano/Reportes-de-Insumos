@@ -181,6 +181,12 @@
             precheck_libredeuda = true;
 
           }else{
+            
+            //SOLO PARA DUPLICADOS SE HABILITA PASE SIGUIENTE SECTOR
+            if(tramite.motivo == "DUPLICADO"){
+              precheck_libredeuda = true;
+            }
+
             info = ((precheck.error) ? precheck.error.created_at : '')
           }
         }
