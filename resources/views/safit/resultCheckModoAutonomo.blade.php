@@ -69,6 +69,7 @@
           data: { id: id },
           async:false,
           success: function( msg ) {
+            console.log(msg);
             if(msg.error){
               mostrarMensajeError(msg.error, tramite_habilitado_id);
             }else if(msg){
@@ -104,8 +105,11 @@
   function mostrarDatosPersona(datosPersona){
 
       //Convertir fecha a dd-mm-yyyy
-      var f = datosPersona.fecha_nacimiento.split('-');
-      var fecha_nac = f[2] +"-"+ f[1]+"-"+f[0];
+      var fecha_nac = '';
+      if(datosPersona.fecha_nacimiento != null){
+        var f = datosPersona.fecha_nacimiento.split('-');
+        fecha_nac = f[2] +"-"+ f[1]+"-"+f[0];
+      }
 
       $('#nombre_texto').html(datosPersona.nombre+' '+datosPersona.apellido);
       $('#documento_texto').html(datosPersona.nro_doc);
