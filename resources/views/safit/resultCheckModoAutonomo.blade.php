@@ -181,13 +181,15 @@
             precheck_libredeuda = true;
 
           }else{
-            
-            //SOLO PARA DUPLICADOS SE HABILITA PASE SIGUIENTE SECTOR
-            if(tramite.motivo == "DUPLICADO"){
-              precheck_libredeuda = true;
-            }
 
-            info = ((precheck.error) ? precheck.error.created_at : '')
+            //SOLO PARA DUPLICADO SE HABILITA PASE SIGUIENTE SECTOR
+            if(precheck.description == 'LIBRE DEUDA' && tramite.motivo == "DUPLICADO"){
+              precheck_libredeuda = true;
+              type = 'warning';
+              info = '<span class="red"> TURNO SOLICITADO POR DUPLICADO </span>';
+            }else{
+              info = ((precheck.error) ? precheck.error.created_at : '');
+            }
           }
         }
       }
