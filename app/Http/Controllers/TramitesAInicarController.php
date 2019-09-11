@@ -774,16 +774,25 @@ class TramitesAInicarController extends Controller
           break;
       }
 
-      $resultado = $this->interpretarResultado($datos, $response_ws, $res);
-      if(!empty($resultado->error)){
-        $this->guardarError($resultado, $siguienteEstado, $tramite->id);
-      }else {
-        $tramite->estado = $siguienteEstado;
-        $tramite->tramite_sinalic_id = $resultado->tramite_sinalic_id;
-        $tramite->response_ws = json_encode($response_ws);
-        $tramite->save();
-        //ACTUALIZAMOS en validaciones_precheck
-        $this->guardarValidacion($tramite, true, SINALIC, $tramite->tramite_sinalic_id);
+      if($response_ws){
+        /*//Corregimos casos que se requiere un renovacion pero iniciaron como nueva licencia
+        $tramiteNuevaLicencia = strpos($response_ws, 'IniciarTramiteNuevaLicencia');
+        if($tramiteNuevaLicencia == true && $tramite->tipo_tramite != 1){
+          $tramite->tipo_tramite = 1;
+          $tramite->save();
+        }*/
+
+        $resultado = $this->interpretarResultado($datos, $response_ws, $res);
+        if(!empty($resultado->error)){
+          $this->guardarError($resultado, $siguienteEstado, $tramite->id);
+        }else {
+          $tramite->estado = $siguienteEstado;
+          $tramite->tramite_sinalic_id = $resultado->tramite_sinalic_id;
+          $tramite->response_ws = json_encode($response_ws);
+          $tramite->save();
+          //ACTUALIZAMOS en validaciones_precheck
+          $this->guardarValidacion($tramite, true, SINALIC, $tramite->tramite_sinalic_id);
+        }
       }
     }
   }
@@ -879,6 +888,16 @@ class TramitesAInicarController extends Controller
   }
 
   public function getTipoTramite($ultimaLicencia){
+    /*****
+     * tipo_tramite_id_ansv
+        1 "OTORGAMIENTO"
+        2 "RENOVACION"
+        3 "DUPLICADO"
+        4 "AMPLIACION"
+        5 "REVALIDA"
+        6 "RENOVACION_AMPLIACION"
+    */
+
     if(!$ultimaLicencia || $this->licenciaVencidaMasDeUnAnio($ultimaLicencia))
       $res = 1;// OTORGAMIENTO
     else{
@@ -1133,27 +1152,23 @@ class TramitesAInicarController extends Controller
   //FUNCIONES PARA TURNOS VENCIDOS
   public function revisarTurnosVencidos(){
     try{
-      //16 dias atras
-      $last_date = date('Y-m-d', strtotime('-'.(DIAS_VALIDEZ_TURNO).' days', strtotime(date('Y-m-d'))));
+      //16 dias atras - no aplica para el precheck, pasara a vencido en la tarde si no asiste a su turno
+      //$last_date = date('Y-m-d', strtotime('-'.(DIAS_VALIDEZ_TURNO).' days', strtotime(date('Y-m-d'))));
       
       $hoy = date('Y-m-d');
 
-      $sigeci = TramitesAIniciar::select('tramites_a_iniciar.id','tramites_a_iniciar.estado','sigeci.fecha as sigeci_fecha','tramites_habilitados.fecha as sath_fecha')
-                                  ->join('sigeci', 'sigeci.idcita', '=', 'tramites_a_iniciar.sigeci_idcita')
-                                  ->leftjoin('tramites_habilitados', 'tramites_habilitados.tramites_a_iniciar_id', '=', 'tramites_a_iniciar.id')
-                                  ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
-                                  ->where('tramites_a_iniciar.estado', '!=', TURNO_VENCIDO)
-                                  ->whereRaw(" sigeci.fecha <= '".$hoy."' AND (tramites_habilitados.fecha <= '".$hoy."' OR tramites_habilitados.fecha is null) ")
+      $precheck = TramitesAIniciar::whereNull('tramite_dgevyl_id')
+                                  ->where('estado', '!=', TURNO_VENCIDO)
+                                  ->whereNotIn('id',  function($query) use($hoy) {
+                                    $query->select('tramites_a_iniciar.id')
+                                      ->from('tramites_a_iniciar')
+                                      ->leftjoin('sigeci', 'sigeci.idcita', '=', 'tramites_a_iniciar.sigeci_idcita')
+                                      ->leftjoin('tramites_habilitados', 'tramites_habilitados.tramites_a_iniciar_id', '=', 'tramites_a_iniciar.id')
+                                      ->whereRaw("sigeci.fecha > '".$hoy."' OR tramites_habilitados.fecha > '".$hoy."' ");
+                                  })
                                   ->update(['estado' => TURNO_VENCIDO]);
 
-      $habilitados = TramitesAIniciar::join('tramites_habilitados', 'tramites_habilitados.tramites_a_iniciar_id', '=', 'tramites_a_iniciar.id')
-                                  ->where('tramites_habilitados.fecha', '<=', $hoy)
-                                  ->where('tramites_a_iniciar.estado', '!=', TURNO_VENCIDO)
-                                  ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
-                                  ->whereNull('tramites_a_iniciar.sigeci_idcita')                                  
-                                  ->update(['estado' => TURNO_VENCIDO]);
-      
-      \Log::info('['.date('h:i:s').'] revisarTurnosVencidos - Se da por TURNO_VENCIDO a los turnos menores igual a : '.$hoy);
+      \Log::info('['.date('h:i:s').'] revisarTurnosVencidos - Se da por TURNO_VENCIDO a los precheck menores igual a : '.$hoy);
 
       //PENDIENTE: anular los tramites iniciados en SINALIC que pasaron a VENCIDOS  y actualizar en tramites_a_iniciar
       $tramites = TramitesAIniciar::leftjoin("ansv_tramite","ansv_tramite.numero_tramite_ansv","tramites_a_iniciar.tramite_sinalic_id")
@@ -1164,18 +1179,54 @@ class TramitesAInicarController extends Controller
                     ->get();
 
       foreach ($tramites as $tramite){
-        if($this->anularTramiteSinalic($tramite->tramite_sinalic_id,'5','microservicio_turno_vencido')){ //Motivo:****OTROS
-          $actualizar = TramitesAIniciar::find($tramite->id)
-                        ->update([
-                                'tramite_sinalic_id' => null,
-                                'tipo_tramite' => null
-                          ]);
+        if($this->anularTramiteSinalic($tramite->tramite_sinalic_id,'5','microservicio_turno_vencido')){
+          $actualizar = TramitesAIniciar::find($tramite->id)->update([ 'tramite_sinalic_id' => null ]);
         }
       }
 
     }catch(\Exception $e){
         \Log::warning('['.date('h:i:s').'] revisarTurnosVencidos Error: '.$e->getMessage()); 
     }                    
+  }
+
+  public function corregirAnsvTramite(){
+
+      $tramites = \DB::table('ansv_tramite')->whereBetween("fecha_reporte",['2019-09-01','2019-09-01'])->whereNull('numero_tramite_ansv')->get();
+      echo count($tramites); die();
+      echo '<br> ';
+      foreach ($tramites as $key => $tramite) {
+        $numero_tramite_ansv = null;
+        $ansv = \DB::table('ansv_success_msgs')->where('tramite_id',$tramite->tramite_id)->whereRaw(" numero_tramite_ansv > 0 ")->first();
+        if($ansv){
+          $numero_tramite_ansv = $ansv->numero_tramite_ansv;
+        }else{
+            $ansv = \DB::table('ansv_success_msgs')->where('tramite_id',$tramite->tramite_id)->whereRaw("metodo_llamado like 'Iniciar%' ")->first();
+            if($ansv){
+              $response = $ansv->response;
+              $posicion = strpos($response,'NumeroTramite');
+
+                if($posicion >0){
+
+                  if( strpos($response,'NumeroTramite";i:') ){
+                    $posicion+=17;
+                  }else{
+                    $posicion+=20;
+                  }
+
+                  $numero = substr($response,$posicion,8);
+
+                  if($numero>0){
+                    $numero_tramite_ansv = $numero;
+                  }
+                }
+          }
+        }
+
+        if($numero_tramite_ansv > 0 ){
+          $actualizar = \DB::table('ansv_tramite')->where('tramite_id',$tramite->tramite_id)->update([ 'numero_tramite_ansv' => $numero_tramite_ansv ]);
+          echo $tramite->tramite_id.' '.$numero_tramite_ansv.' | ';
+        }
+      }
   }
 
   public function buscarBoletaSafitEnTurnosVencidos($tramiteAIniciar){
