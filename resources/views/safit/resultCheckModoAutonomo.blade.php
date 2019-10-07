@@ -289,7 +289,7 @@
             $('#logPreCheck .msjcenat').html('***'+msg[1]);
         },
         error: function(xhr, status, error) {
-          $('#logPreCheck').html('ocurrio un error!! Intenta de nuevo...');
+          $('#logPreCheck .msjcenat').html('ocurrio un error!! Intenta de nuevo...');
         }
       });
     }
