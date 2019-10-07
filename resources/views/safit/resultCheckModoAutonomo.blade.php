@@ -313,7 +313,8 @@
         getPreCheck(id);
       },
       error: function(xhr, status, error) {
-        $('#logPreCheck').html('ocurrio un error!! Intenta de nuevo...');
+        getPreCheck(id);
+        //$('#logPreCheck').html('ocurrio un error!! Intenta de nuevo...');
       }
     });
 
