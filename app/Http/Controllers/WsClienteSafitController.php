@@ -29,20 +29,46 @@ class WsClienteSafitController extends Controller
   }
 
   public function iniciarSesion(){
-    //\Log::info('['.date('h:i:s').'] '.'se procede a iniciarSesion() URL: '.$this->url);
-    $res = null;
+    $response = null;
     try {
-      if(is_null($this->cliente))
-        $this->createClienteSoap();
-      $res = $this->cliente->abrir_sesion( $this->uswID,
-                                           $this->uswPassword,
-                                           $this->uswHash );
-      $this->sesID = $res->sesID;
-      $this->ingID = $res->ingID;
+
+      $conexion = $this->verificarSwSafit();
+      if($conexion->success){
+
+        $res = $this->cliente->abrir_sesion( $this->uswID, $this->uswPassword, $this->uswHash);
+        if( isset($res->sesID) && isset($res->ingID) ){
+          $this->sesID = $res->sesID;
+          $this->ingID = $res->ingID;
+
+          $response = array(
+            'success' => true,
+            'request' => $this->cliente,
+            'response' => $res
+          );
+
+        }else{
+          $response = array(
+            'success' => false,
+            'error' => $res->rspDescrip,
+            'request' => 'abrir_sesion',
+            'response' => $res
+          );
+        }
+      }else{
+        $response = $conexion;
+      }
+
     }catch(\Exception $e) {
       ModoAutonomoLog::create(array('ws' => 'safit-abrir_sesion', 'description' => $e->getMessage()));
+      $response = array(
+          'success' => false,
+          'error' => "Error iniciar sesion en el web service de Safit",
+          'request' => $this->url,
+          'response' => $e->getMessage()
+      );
     }
-    return $res;
+
+    return (object) $response;
   }
 
   public function cerrarSesion(){
@@ -50,25 +76,24 @@ class WsClienteSafitController extends Controller
   }
 
   public function getBoletas($persona){
-    $res = null;
     try {
-      $res = $this->cliente->consultar_boleta_pago_persona($this->uswID,
+      $response = $this->cliente->consultar_boleta_pago_persona($this->uswID,
                                                    $this->ingID,
                                                    $this->munID,
                                                    $persona->nro_doc,
                                                    $persona->tipoDocSafit());
-      /*
-      echo "REQUEST:\n" . htmlentities($this->cliente->__getLastRequest()) . "\n";
-
-      echo "REQUEST:\n" . htmlentities($this->cliente->__getLastResponse()) . "\n";
-      dd("final");
-       */
     }
-
     catch(\Exception $e) {
       ModoAutonomoLog::create(array('ws' => 'safit-consultar_boleta_pago_persona', 'description' => $e->getMessage()));
+      $response = $e->getMessage();
     }
-    return $res;
+    $res = array('request' => array(
+                              'url' => parse_url($this->url),
+                              'method' => 'consultar_boleta_pago_persona',
+                              'nro_doc' => $persona->nro_doc,
+                              'tipo_doc' => $persona->tipoDocSafit()),
+                 'response' => $response);
+    return (object) $res;
   }
 
   public function existeClienteSoap(){
@@ -76,6 +101,7 @@ class WsClienteSafitController extends Controller
   }
 
   public function createClienteSoap(){
+    $res = null;
     try {
         $context = stream_context_create(array(
             'ssl' => array(
@@ -91,10 +117,12 @@ class WsClienteSafitController extends Controller
                 'trace' => 1,
                 'exceptions' => true
         );
-        $this->cliente = new SoapClient($this->url, $soapClientOptions);
+        $res = $this->cliente = new SoapClient($this->url, $soapClientOptions);
+            
       }catch(\Exception $e) {
-          ModoAutonomoLog::create(array('ws' => 'safit-SoapClient', 'description' => $e->getMessage()));
+        ModoAutonomoLog::create(array('ws' => 'safit-SoapClient', 'description' => $e->getMessage()));
       }
+    return $res;
   }
 
   public function emitirBoletaVirtualPago($tramiteAIniciar){
@@ -144,64 +172,30 @@ class WsClienteSafitController extends Controller
   }
 
   public function verificarSwSafit(){
-    $res = false;
-    $this->createClienteSoap();
-    $res = $this->cliente->eco();
-    if(isset($res->safDisponible))
-      if($res->safDisponible == 1)
-        $res = true;
-    return false;
-  }
+    $conexion = false;
+    $message = "";
+    $clienteSoap = $this->cliente;
+    if(!$this->existeClienteSoap())
+      $clienteSoap = $this->createClienteSoap();
 
-  //No usado
-  /*
-  public function createClienteSoapPersistente(){
-    //Referencia https://gist.github.com/mawo/32f7ccbe60f7db42fc265899867a64aa
-    session_start();
-    $context = stream_context_create(array(
-        'ssl' => array(
-        'verify_peer' => false,
-        'verify_peer_name' => false,
-        'allow_self_signed' => true
-        )
-    ));
-    $soapClientOptions = array(
-            'stream_context' => $context,
-            'soap_version' => SOAP_1_1,
-            'cache_wsdl' => WSDL_CACHE_NONE,
-            'trace' => 1,
-            'exceptions' => true
+    if(!is_null($clienteSoap)){
+      $cliente = $clienteSoap->eco();
+      if(isset($cliente->safDisponible))
+        if($cliente->safDisponible == 1)
+          $conexion = true;
+    }
+
+    if(!$conexion)
+      $message = "El web service de Safit no se encuentra disponible";
+
+    $response = array(
+      'success' => $conexion,
+      'error' => $message,
+      'request' => parse_url($this->url), 
+      'response' => $clienteSoap 
     );
-    $this->cliente = new SoapClient($this->url, $soapClientOptions);
-    if (isset($_SESSION['soap_cookies'])) {
-      foreach ($_SESSION['soap_cookies'] as $cookieName =>$cookieValues) {
-        $client->__setCookie($cookieName, $cookieValues[0]);
-      }
-    } else {
-      $client->hello();
-      $_SESSION['soap_cookies'] = $client->_cookies;
-    }
+    
+    return (object) $response;
+  }
 
-    public function actualizarUltimoUsoSession(){
-    $config = SysConfig::where('name', 'SafitWS')
-                       ->where('param', 'ingID')
-                       ->update(['modification_date' => date("Y-m-d H:i:s")]);
-    
-  }
-  }
-  
-  public function existeSession(){
-    $res = false;
-    $config = SysConfig::where('name', 'SafitWS')
-                       ->where('param', 'ingID')
-                       ->where('modification_date', '>', date("Y-m-d H:i:s", strtotime('-1 hour')))
-                       ->first();
-    if($config){
-      $res = $config->value != null;
-      $this->ingID = $config->value;
-    }
-    
-    return $res;  
-  }
-  */
 }

@@ -35,7 +35,7 @@
         {{ Form::close() }}
         <div class="clearfix"></div>
         
-        @if (isset($boletas))
+        @if ($boletas != null)
             @if (!empty($boletas->datosBoletaPago->datosBoletaPagoParaPersona))
               <div class="x_panel">
                 <h2> {{ $boletas->rspDescrip }}</h2>
@@ -87,12 +87,14 @@
                 @endforeach
                 </tbody>
               </table>
-            @else
-              <div class="alert alert-danger alert-dismissible fade in" role="alert">
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
-                <strong> {{ $boletas->rspDescrip }} </strong>
-              </div>
             @endif
+        @endif
+
+        @if ($error != '')
+          <div class="alert alert-danger alert-dismissible fade in" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+            <strong> {{ $error }} </strong>
+          </div>
         @endif
       </div>
     </div>

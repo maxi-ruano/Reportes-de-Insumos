@@ -402,7 +402,7 @@ class TramitesAInicarController extends Controller
     }
   }
 
-  public function  buscarBoletaSafit($persona, $siguienteEstado){
+  public function buscarBoletaSafit($persona, $siguienteEstado){
       $persona = TramitesAIniciar::find($persona->id);
       $res = $this->getBoleta($persona);
       if(empty($res->error)){
@@ -415,51 +415,61 @@ class TramitesAInicarController extends Controller
   }
 
   public function getBoleta($persona){
-    $res = array('error' => '');
-    $this->wsSafit->iniciarSesion();
-    $boletas = $this->wsSafit->getBoletas($persona);
-    $this->wsSafit->cerrarSesion();
+    $res = array('error' => "", 'request' => "",'response' => "");
     $boleta = null;
-    if(!empty($boletas->datosBoletaPago->datosBoletaPagoParaPersona)){
-      foreach ($boletas->datosBoletaPago->datosBoletaPagoParaPersona as $key => $boletaI) {
-        if($this->esBoletaValida($boletaI)){
-          if(!is_null($boleta)){
-            if( date($boletaI->bopFecPag) >= date($boleta->bopFecPag)) // para obtener la boleta mas reciente
-              $boleta = $boletaI;
-          }else
-            $boleta = $boletaI;
-        }else{
-          $res['error'] = "No existe ninguna boleta valida para esta persona";
-        }
-      }
-    }else {
-      if($boletas!=null)
-        $res['error'] = $boletas->rspDescrip;
-      else
-        $res['error'] = "existe un problema con Ws de sinalic";
-    }
 
-    if(!is_null($boleta)){
-      $persona = TramitesAIniciar::find($persona->id);
-      $persona->sexo = $boletas->datosBoletaPago->datosPersonaBoletaPago->oprSexo;
-      $persona->save();
-      $res = $boleta;
-    }else{
-      if($boleta = $this->buscarBoletaSafitEnTurnosVencidos($persona)){
-        $res['error'] = '';
+    $conexion = $this->wsSafit->iniciarSesion();
+    if($conexion->success){
+      $consulta = $this->wsSafit->getBoletas($persona);
+      $this->wsSafit->cerrarSesion();
+
+      $res['request'] = $consulta->request;
+      $res['response'] = $consulta->response;
+      $boletas = $consulta->response;
+
+      if(isset($boletas->rspID)){
+        if($boletas->rspID == 1){
+          foreach ($boletas->datosBoletaPago->datosBoletaPagoParaPersona as $key => $boletaI) {
+            if($this->esBoletaValida($boletaI)){
+              if(!is_null($boleta)){
+                if( date($boletaI->bopFecPag) >= date($boleta->bopFecPag)) // para obtener la boleta mas reciente
+                  $boleta = $boletaI;
+              }else{
+                $boleta = $boletaI;
+              }
+            }else{
+              $res['error'] = "No existe ninguna boleta vigente acreditada sin utilizar";
+            }
+          }
+        }else{
+          $res['error'] = $boletas->rspDescrip;
+        }
+      }else{
+        $res['error'] = "Ha ocurrido un error inesperado";
+      }
+
+      if(!is_null($boleta)){
+        $persona = TramitesAIniciar::find($persona->id);
+        $persona->sexo = $boletas->datosBoletaPago->datosPersonaBoletaPago->oprSexo;
+        $persona->save();
         $res = $boleta;
       }else{
-        $res['request'] = $persona;
-        $res['response'] = $boletas;
-        $res = (object)$res;
+        if($boleta = $this->buscarBoletaSafitEnTurnosVencidos($persona)){
+          $res['error'] = '';
+          $res = $boleta;
+        }
       }
+
+    }else{
+      $res = $conexion;
     }
 
-    return $res;
+    return (object) $res;
   }
 
   public function esBoletaValida($boleta){
     $res = false;
+    //verificamos que la boleta no esta utilizada, este acreditada y su fecha de pago cumpla con los meses de vigencia   
     if($boleta->bopEstado == $this->estadoBoletaNoUtilizada)
       if($boleta->munID == $this->munID)
         if($boleta->estID == $this->estID)
@@ -483,7 +493,6 @@ class TramitesAInicarController extends Controller
   */
   public function emitirBoletasVirtualPago($estadoActual, $estadoValidacion, $siguienteEstado){
     $tramitesAIniciar = $this->getTramitesAIniciar($estadoActual, $this->fecha_inicio, $this->fecha_fin);
-    $this->wsSafit->iniciarSesion();
     foreach ($tramitesAIniciar as $key => $tramiteAIniciar) {
       try{
         $this->gestionarBoletaSafit($tramiteAIniciar, $estadoValidacion, $siguienteEstado);
@@ -499,33 +508,41 @@ class TramitesAInicarController extends Controller
     $demorado = false;
     $tramiteAIniciar = TramitesAIniciar::find($tramiteAIniciar->id);
     $tramiteAIniciar->tipo_doc = $tramiteAIniciar->tipoDocSafit();
-    $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);
-    if(isset($res->rspID)){
-      if($res->rspID == 1){
-        if(isset($res->reincidencias->rspReincidente)){
-          if($res->reincidencias->rspReincidente == "P"){
-            $array = array('error' => "El Cenat esta demorado",
-                          'request' => $tramiteAIniciar,
-                          'response' => $res);
-            $this->guardarError((object)$array, $estadoValidacion, $tramiteAIniciar->id);
-            $demorado = true;
+    
+    $conexion = $this->wsSafit->iniciarSesion();
+    if($conexion->success){
+      $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);
+      $this->wsSafit->cerrarSesion();
+      if(isset($res->rspID)){
+        if($res->rspID == 1){
+          if(isset($res->reincidencias->rspReincidente)){
+            if($res->reincidencias->rspReincidente == "P"){
+              $array = array('error' => "El Cenat esta demorado",
+                            'request' => $tramiteAIniciar,
+                            'response' => $res);
+              $this->guardarError((object)$array, $estadoValidacion, $tramiteAIniciar->id);
+              $demorado = true;
+            }
           }
-        }
-        if(!$demorado){
-          $this->guardarValidacion($tramiteAIniciar, true, $estadoValidacion, $tramiteAIniciar->bop_id);
-          $this->actualizarEstado($tramiteAIniciar, $siguienteEstado);
-          $this->guardarEmisionBoleta($tramiteAIniciar, $this->localhost);
+          if(!$demorado){
+            $this->guardarValidacion($tramiteAIniciar, true, $estadoValidacion, $tramiteAIniciar->bop_id);
+            $this->actualizarEstado($tramiteAIniciar, $siguienteEstado);
+            $this->guardarEmisionBoleta($tramiteAIniciar, $this->localhost);
+          }
+        }else{
+          $array = array('error' => $res->rspDescrip,
+                        'request' => $tramiteAIniciar,
+                        'response' => $res);
+          $this->guardarError((object)$array, $estadoValidacion, $tramiteAIniciar->id);
         }
       }else{
-        $array = array('error' => $res->rspDescrip,
+        $array = array('error' => $res,
                       'request' => $tramiteAIniciar,
                       'response' => $res);
         $this->guardarError((object)$array, $estadoValidacion, $tramiteAIniciar->id);
       }
     }else{
-      $array = array('error' => $res,
-                    'request' => $tramiteAIniciar,
-                    'response' => $res);
+      $array = $conexion;
       $this->guardarError((object)$array, $estadoValidacion, $tramiteAIniciar->id);
     }
   }
@@ -1018,27 +1035,31 @@ class TramitesAInicarController extends Controller
       $emision = EmisionBoletaSafit::where('numero_boleta', $bop_cb)->first();
     
     if ($emision === null) {
-      $this->wsSafit->iniciarSesion();
-      $res = $this->wsSafit->consultarBoletaPago($bop_cb, $cem_id);
-      $this->wsSafit->cerrarSesion();
-      if(isset($res->rspID)){
-        if($res->rspID == 1){
-          $boleta = (object) array('nro_doc' => $res->datosBoletaPago->datosPersonaBoletaPago->oprDocumento,
-                                'tipo_doc' => $res->datosBoletaPago->datosPersonaBoletaPago->tdcID,
-                                'sexo' => $res->datosBoletaPago->datosPersonaBoletaPago->oprSexo,
-                                'nombre' => $res->datosBoletaPago->datosPersonaBoletaPago->oprNombre,
-                                'apellido' => $res->datosBoletaPago->datosPersonaBoletaPago->oprApellido,
-                                'bop_id' => $res->datosBoletaPago->bopID,
-                                'bop_cb' => $res->datosBoletaPago->bopCB,
-                                'bop_monto' => $res->datosBoletaPago->bopMonto,
-                                'bop_fec_pag' => $res->datosBoletaPago->bopFecPag,
-                                'cem_id' => $cem_id);
-          $resultado = ['boleta', $boleta];
+      $conexion = $this->wsSafit->iniciarSesion();
+      if($conexion->success){
+        $res = $this->wsSafit->consultarBoletaPago($bop_cb, $cem_id);
+        $this->wsSafit->cerrarSesion();
+        if(isset($res->rspID)){
+          if($res->rspID == 1){
+            $boleta = (object) array('nro_doc' => $res->datosBoletaPago->datosPersonaBoletaPago->oprDocumento,
+                                  'tipo_doc' => $res->datosBoletaPago->datosPersonaBoletaPago->tdcID,
+                                  'sexo' => $res->datosBoletaPago->datosPersonaBoletaPago->oprSexo,
+                                  'nombre' => $res->datosBoletaPago->datosPersonaBoletaPago->oprNombre,
+                                  'apellido' => $res->datosBoletaPago->datosPersonaBoletaPago->oprApellido,
+                                  'bop_id' => $res->datosBoletaPago->bopID,
+                                  'bop_cb' => $res->datosBoletaPago->bopCB,
+                                  'bop_monto' => $res->datosBoletaPago->bopMonto,
+                                  'bop_fec_pag' => $res->datosBoletaPago->bopFecPag,
+                                  'cem_id' => $cem_id);
+            $resultado = ['boleta', $boleta];
+          }else{
+            $resultado = ['error', $res->rspDescrip];
+          }
         }else{
-          $resultado = ['error', $res->rspDescrip];
+          $resultado = ['error',  'Ha ocurrido un error inesperado: '.$res];
         }
       }else{
-        $resultado = ['error',  'Ha ocurrido un error inesperado: '.$res];
+        $resultado = ['error',  $conexion->error];
       }
     }else{
       $resultado = ['success', 'El Cenat ya fue emitido'];
@@ -1079,31 +1100,35 @@ class TramitesAInicarController extends Controller
                                       'cem_id' => $request->cem_id);
     $emision = EmisionBoletaSafit::where('numero_boleta', $request->bop_id)->first();
     if ($emision === null) {
-      $this->wsSafit->iniciarSesion();
-      $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAInicar);
-      $this->wsSafit->cerrarSesion();
-      $demorado = false;
-      if(isset($res->rspID)){
-        if($res->rspID == 1){
-          if(isset($res->reincidencias->rspReincidente))
-            if($res->reincidencias->rspReincidente == "P"){
-              $resultado = ['error', 'El Cenat se encuentra Demorado'];
-              $demorado = true;
-            }
-            if(!$demorado){
-              //revertimos el tipo_doc a como se usa en licta
-              $sigeci = new Sigeci();
-              $sigeci->idtipodoc = $request->tipo_doc;
-              $request->tipo_doc = $sigeci->tipoDocLicta();
-              $this->guardarEmisionBoleta($request, $clientIP);
-              $resultado = ['success', $res->rspDescrip];
-            }
-        }else{
-          $resultado = ['error', $res->rspDescrip];
-        }
+      $conexion = $this->wsSafit->iniciarSesion();
+      if($conexion->success){
+        $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAInicar);
+        $this->wsSafit->cerrarSesion();
+        $demorado = false;
+        if(isset($res->rspID)){
+          if($res->rspID == 1){
+            if(isset($res->reincidencias->rspReincidente))
+              if($res->reincidencias->rspReincidente == "P"){
+                $resultado = ['error', 'El Cenat se encuentra Demorado'];
+                $demorado = true;
+              }
+              if(!$demorado){
+                //revertimos el tipo_doc a como se usa en licta
+                $sigeci = new Sigeci();
+                $sigeci->idtipodoc = $request->tipo_doc;
+                $request->tipo_doc = $sigeci->tipoDocLicta();
+                $this->guardarEmisionBoleta($request, $clientIP);
+                $resultado = ['success', $res->rspDescrip];
+              }
+          }else{
+            $resultado = ['error', $res->rspDescrip];
+          }
 
+        }else{
+          $resultado = ['error', 'Ha ocurrido un error inesperado: '.$res];
+        }
       }else{
-        $resultado = ['error', 'Ha ocurrido un error inesperado: '.$res];
+        $resultado = ['error', $conexion->error];
       }
     }else{
       $resultado = ['success', 'El Cenat ya fue emitido'];
@@ -1114,18 +1139,24 @@ class TramitesAInicarController extends Controller
   public function buscarBoletaPagoPersona(Request $request){
     $SysMultivalue = new SysMultivalue();
     $tipodocs = $SysMultivalue->tipodocs();
+    $error = '';
+    $boletas = null;
 
     if($request->nro_doc){
       $persona = TramitesAIniciar::selectRaw($request->tipo_doc.' as tipo_doc, '.$request->nro_doc.' as nro_doc')->first();
-      $this->wsSafit->iniciarSesion();
-      $boletas = $this->wsSafit->getBoletas($persona);
-      $this->wsSafit->cerrarSesion();
-
-      return View('safit.buscarBoletaPagoPersona')->with('tipodocs', $tipodocs)
-                                                  ->with('boletas', $boletas);
-    }else{
-      return View('safit.buscarBoletaPagoPersona')->with('tipodocs', $tipodocs);
+      $conexion = $this->wsSafit->iniciarSesion();
+      if($conexion->success){
+        $consulta = $this->wsSafit->getBoletas($persona);
+        $this->wsSafit->cerrarSesion();
+        $boletas = $consulta->response;
+        $error = (isset($boletas->rspDescrip))?$boletas->rspDescrip:'';
+      }else{        
+        $error = $conexion->error;
+      }
     }
+    return View('safit.buscarBoletaPagoPersona')->with('tipodocs', $tipodocs)
+                                                ->with('boletas', $boletas)
+                                                ->with('error', $error);
   }
 
   public function calcularFechas(){
