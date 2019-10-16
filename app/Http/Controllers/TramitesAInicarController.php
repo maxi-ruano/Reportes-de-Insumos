@@ -668,7 +668,8 @@ class TramitesAInicarController extends Controller
     foreach ($boletas as $key => $boleta) {
       $boleta = (object)$boleta;
       $vto = substr($boleta->FechaPago,1,10);
-      $nuevaFecha = strtotime ( '+1 year' , strtotime ( $vto ) ) ;
+      //$nuevaFecha = strtotime ( '+1 year' , strtotime ( $vto ) ) ;
+      $nuevaFecha = strtotime ( '+6 months' , strtotime ( $vto ) ) ;
       if (date('Y-m-d') < date('Y-m-d',$nuevaFecha)){
           $res = $boleta;
           break;
