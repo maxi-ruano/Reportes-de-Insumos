@@ -93,11 +93,11 @@ class PreCheckController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function anular_cenat(Request $request)
+    public function anularPreCheckComprobante(Request $request)
     {
         try{
             $anular = \DB::table('validaciones_precheck')->where('id',$request->id)
-                ->update(array('validado' => false, 'comprobante' => null));
+                            ->update(array('validado' => false, 'comprobante' => null));
             return $anular;
         }
         catch(Exception $e){   

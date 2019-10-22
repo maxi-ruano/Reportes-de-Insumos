@@ -94,6 +94,12 @@
                                 </button>
                             @endif
 
+                            @if($row->validation_id == '5' && $row->tramite_dgevyl_id == null)
+                                <button id="btn-modal-bui" type="button" class="btn btn-danger btn-xs" data-id="{{ $row->id }}" data-toggle="modal" data-target="#modal-delete">
+                                    <i class="glyphicon glyphicon-trash"></i>
+                                </button>
+                            @endif
+
                             @if($row->validation_id == '7' && $row->tramite_dgevyl_id == null)
                                 <button id="btn-modal-sinalic" type="button" class="btn btn-danger btn-xs" data-id="{{ $row->tramite_a_iniciar_id }}" data-toggle="modal" data-target="#modal-delete">
                                     <i class="glyphicon glyphicon-trash"></i>
@@ -130,8 +136,11 @@
                     case "sinalic":
                         anularSinalic(id);
                         break;
+                    case "bui":
+                        anularComprobante(id);
+                        break;
                     case "cenat":
-                        anularCenat(id);
+                        anularComprobante(id);
                         break;
                 }
             }); 
@@ -139,6 +148,11 @@
             $("#btn-modal-sinalic").on("click", function () {
                 $("#delete-id").val($(this).data('id'));
                 $("#servicio").val('sinalic');
+            });
+
+            $("#btn-modal-bui").on("click", function () {
+                $("#delete-id").val($(this).data('id'));
+                $("#servicio").val('bui');
             });
 
             $("#btn-modal-cenat").on("click", function () {
@@ -154,10 +168,10 @@
         }
 
         //Solo si confirma la anulacion mediante el modal
-        function anularCenat(id){
+        function anularComprobante(id){
             $.ajax({
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                url: 'anularPreCheckCenat',
+                url: 'anularPreCheckComprobante',
                 data: {id: id },
                 type: "GET", 
                 success: function(ret){

@@ -38,6 +38,7 @@ Route::group( ['middleware' => ['auth']], function() {
 
   //MODIFICACIONES DEL SISTEMA
   Route::resource('precheck', 'PreCheckController');
+  Route::get('anularPreCheckComprobante','PreCheckController@anularPrecheckComprobante')->name('anularPrecheckComprobante');
   Route::get('anularPreCheckCenat','PreCheckController@anular_cenat')->name('anular_cenat');
   Route::get('anularPreCheckSinalic','PreCheckController@anular_sinalic')->name('anular_sinalic');
   Route::get('listado_teoicopc','TeoricoPcController@getTeoricoPc')->name('getTeoricoPc');
