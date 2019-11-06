@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -9,6 +8,7 @@ use App\TramitesAIniciar;
 use App\Http\Controllers\SoapController;
 use App\Http\Controllers\WsClienteSafitController;
 use App\Http\Controllers\WsClienteSinalicController;
+use App\Http\Controllers\WsCharlaVirtualController;
 use App\AnsvPaises;
 use App\SysMultivalue;
 use App\SigeciPaises;
@@ -20,6 +20,7 @@ use App\AnsvCelExpedidor;
 use App\EmisionBoletaSafit;
 use App\ValidacionesPrecheck;
 use App\TramitesHabilitados;
+use App\CharlaVirtual;
 
 class TramitesAInicarController extends Controller
 {
@@ -721,7 +722,7 @@ class TramitesAInicarController extends Controller
   }
 
   public function validacionesTerminadas($id){
-      $res = ValidacionesPrecheck::where("tramite_a_iniciar_id", $id)->whereNotIn('validation_id',[SINALIC])->get();
+      $res = ValidacionesPrecheck::where("tramite_a_iniciar_id", $id)->whereNotIn('validation_id',[SINALIC,CHARLA_VIRTUAL])->get();
       foreach($res as $key => $validacion)
         if (!$validacion->validado)
           return false;
@@ -1279,4 +1280,18 @@ class TramitesAInicarController extends Controller
                                     'cemID' => $res->cem_id);
     return  $encontrado;
   }
+
+  public function getCharlaVirtual($tramite, $estadoValidacion){
+
+    $WsCharlaVirtual = new WsCharlaVirtualController();
+    $consulta = $WsCharlaVirtual->consultar($tramite);
+
+    if($consulta->success){
+
+    }else {
+      $this->guardarError($consulta->response, $estadoValidacion, $tramite->id);
+    }
+    return $consulta;
+  }
+
 }

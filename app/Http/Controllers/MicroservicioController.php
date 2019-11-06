@@ -67,13 +67,13 @@ class MicroservicioController extends Controller
       $tramitesAIniciar = new TramitesAInicarController();
       dd('entro a Microservicio');
       $tramitesAIniciar->revisarTurnosVencidos();
-      //  pasa a estado 1
-      $tramitesAIniciar->completarTurnosEnTramitesAIniciar( INICIO );
-      // Verificar Libre deuda, pasa a estado 4 en validaciones precheck
-      $tramitesAIniciar->verificarLibreDeudaDeTramites(INICIO, LIBRE_DEUDA, VALIDACIONES); //ID validacion 4
-      // pasa de estado 1 a 2 los tramites
-      $tramitesAIniciar->completarBoletasEnTramitesAIniciar( INICIO, SAFIT);
-      // Emitir cenat solo si estado 2
+      //  pasa a estarunPrecheckdo 1
+      $tramitesAInicirunPrecheckar->completarTurnosEnTramitesAIniciar( INICIO );
+      // Verificar LirunPrecheckbre deuda, pasa a estado 4 en validaciones precheck
+      $tramitesAInicirunPrecheckar->verificarLibreDeudaDeTramites(INICIO, LIBRE_DEUDA, VALIDACIONES); //ID validacion 4
+      // pasa de estarunPrecheckdo 1 a 2 los tramites
+      $tramitesAInicirunPrecheckar->completarBoletasEnTramitesAIniciar( INICIO, SAFIT);
+      // Emitir cenatrunPrecheck solo si estado 2
       $tramitesAIniciar->emitirBoletasVirtualPago( SAFIT, EMISION_BOLETA_SAFIT,   VALIDACIONES); //ID validacion 3
       // Emitir cenat solo si estado 1 ya actualiza validaciones_precheck
       $tramitesAIniciar->verificarBuiTramites( INICIO, BUI, VALIDACIONES); //ID validacion 5
@@ -93,17 +93,20 @@ class MicroservicioController extends Controller
       $precheck='';
       
       switch ($request->validation) {
+        case 3: //SAFIT
+          if($tramitesAIniciar->buscarBoletaSafit($tramite, SAFIT))
+            $precheck = $tramitesAIniciar->gestionarBoletaSafit($tramite, EMISION_BOLETA_SAFIT, VALIDACIONES);
+          else
+            $precheck = 'No se encontro la Boleta Safit';
+        break;
         case 4: //LIBRE DEUDA
           $precheck = $tramitesAIniciar->gestionarLibreDeuda($tramite, LIBRE_DEUDA, VALIDACIONES);
         break;
         case 5: //BUI
           $precheck = $tramitesAIniciar->gestionarBui($tramite, BUI, VALIDACIONES);
         break;
-        case 3: //SAFIT
-          if($tramitesAIniciar->buscarBoletaSafit($tramite, SAFIT))
-            $precheck = $tramitesAIniciar->gestionarBoletaSafit($tramite, EMISION_BOLETA_SAFIT, VALIDACIONES);
-          else
-            $precheck = 'No se encontro la Boleta Safit';
+        case 6: //CHARLA_VIRTUAL
+          $precheck = $tramitesAIniciar->getCharlaVirtual($tramite, CHARLA_VIRTUAL);
         break;
         default:
           $precheck = 'No se realizo ninguna operacion, validation incorrecta';
