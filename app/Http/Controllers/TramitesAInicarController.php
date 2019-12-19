@@ -298,7 +298,8 @@ class TramitesAInicarController extends Controller
              "&numeroDoc=".$tramite->nro_doc.
              "&userName=".$this->userLibreDeuda.
              "&userPass=".$this->passwordLibreDeuda;
-    $wsresult = file_get_contents($this->urlLibreDeuda.$datos, false);
+    $dargs=array("ssl"=>array("verify_peer"=>false,"verify_peer_name"=>false));
+    $wsresult = file_get_contents($this->urlLibreDeuda.$datos, false, stream_context_create($dargs));
     if ($wsresult == FALSE){
       $res['res'] = false;
       $res['error'] = 'Error en el Ws de Libre Deuda';
