@@ -100,7 +100,7 @@ class TramitesHabilitadosController extends Controller
         $fecha = $this->calcularFecha();
 
         //Se cargan motivos segun el permiso asignado en roles_motivos_sel
-        $motivos = \DB::table('tramites_habilitados_motivos')->whereIn('id',$this->getRoleMotivos('role_motivos_sel'))->orderBy('description', 'asc')->pluck('description','id');
+        $motivos = \DB::table('tramites_habilitados_motivos')->where('activo',true)->whereIn('id',$this->getRoleMotivos('role_motivos_sel'))->orderBy('description', 'asc')->pluck('description','id');
         
         $SysMultivalue = new SysMultivalue();
         $sucursales = $SysMultivalue->sucursales();

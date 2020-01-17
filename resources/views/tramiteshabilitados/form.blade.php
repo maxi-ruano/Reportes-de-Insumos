@@ -140,7 +140,7 @@
             @endif
 
            
-            $("input[name=fecha], select[name=sucursal], input[name=nro_doc], input[name=tipo_doc], select[name=motivo_id], input[name=fecha_nacimiento]").change(function(){
+            $("input[name=fecha], select[name=sucursal], input[name=nro_doc], input[name=tipo_doc], select[name=sexo], select[name=motivo_id], input[name=fecha_nacimiento]").change(function(){
                 var fecha = $('input[name=fecha_nacimiento]').val();
                 edad = calcularEdad(fecha);
                 $("#precheck_id").val('');
@@ -149,6 +149,7 @@
 
             //Segun el motivo solicitar mas informacion 
             function validarMotivos(){
+                var sexo = $("select[name=sexo]").val();
                 var motivo = $("select[name=motivo_id] option:selected").text();
 
                 $("#div_observacion input").removeAttr('required minlength maxlength');
@@ -206,6 +207,14 @@
                         $("#formTramitesHabilitados input, #formTramitesHabilitados select").change(function(){
                             validarRetomaTurno();
                         });
+                        break;
+                    case 'EMBARAZADAS':
+                        if(sexo == 'F'){
+                            $('button[type=submit]').attr("disabled",false);
+                        }else{
+                            $('button[type=submit]').attr("disabled",true);
+                            $("#ultimo_turno").html('<h4 class="red"> <i class="fa fa-user-times" style="font-size:20px;"></i> Solo se permite para este motivo el genero Femenino. </h4>');
+                        }
                         break;
                     default:
                         //
