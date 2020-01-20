@@ -55,9 +55,9 @@ class UserController extends Controller
     {
         //Mostrar el rol Admin solo a los usuarios Admin
         if(Auth::user()->hasRole('Admin'))
-            $roles = Role::pluck('name', 'id');
+            $roles = Role::whereNull('deleted_at')->pluck('name', 'id');
         else
-            $roles = Role::where('name','<>','Admin')->pluck('name', 'id');
+            $roles = Role::where('name','<>','Admin')->whereNull('deleted_at')->pluck('name', 'id');
         
         $SysMultivalue = new SysMultivalue();        
         $sucursales = $SysMultivalue->sucursales();

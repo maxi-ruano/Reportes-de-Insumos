@@ -77,7 +77,7 @@ class RoleMotivosController extends Controller
 
     public function show($request){
        
-        $roles = Role::orderBy('name','ASC')->select('id','name')->pluck('name','id');
+        $roles = Role::orderBy('name','ASC')->select('id','name')->whereNull('deleted_at')->pluck('name','id');
         $motivos = TramitesHabilitadosMotivos::orderBy('description','ASC')->select('id','description')->where('activo',true)->pluck('description','id');
         $motivos_select = '';
         $motivos_list = '';
