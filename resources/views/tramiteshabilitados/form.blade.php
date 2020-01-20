@@ -150,6 +150,7 @@
             //Segun el motivo solicitar mas informacion 
             function validarMotivos(){
                 var sexo = $("select[name=sexo]").val();
+                var sucursal = $("select[name=sucursal] option:selected").val();
                 var motivo = $("select[name=motivo_id] option:selected").text();
 
                 $("#div_observacion input").removeAttr('required minlength maxlength');
@@ -161,6 +162,10 @@
                 $('button[type=submit]').attr("disabled",false);
 
                 switch(motivo) {
+                    case 'DIRECCIÓN':
+                        //Campo Obligatorio dejar constancia de quien viene (Obligatorio)
+                        $("#div_observacion input").attr('placeholder','Ingrese el responsable de la solictud').attr('required','required');
+                        break;
                     case 'LEGALES':
                         //Nro. de Expediente (Obligatorio)
                         $("#div_observacion label").html('Nro. de Expediente / Carpeta: ');
@@ -184,13 +189,13 @@
                             validarReiniciaTramite();
                         });
                         break;
-                    case 'DIRECCIÓN':
-                        //Campo Obligatorio dejar constancia de quien viene (Obligatorio)
-                        $("#div_observacion input").attr('placeholder','Ingrese el responsable de la solictud').attr('required','required');
-                        break;
-                    case 'GOEGS':
-                        //Dejar constancia de quien viene NO Obligatorio
-                        $("#div_observacion input").attr('placeholder','Ingrese el responsable de la solictud');
+                    case 'RETOMA TURNO':
+                        //Nro. de Cita (Obligatorio)
+                        $("#div_observacion label").html('Nro. de Cita: ');
+                        $("#div_observacion input").attr('placeholder','Ingrese el Nro. de la Cita').attr('required','required').attr('minlength','8').attr('maxlength','8');
+                        $("#formTramitesHabilitados input, #formTramitesHabilitados select").change(function(){
+                            validarRetomaTurno();
+                        });
                         break;
                     case 'MAYOR DE 65':
                         if(edad >= 65 && edad < 100){
@@ -199,14 +204,6 @@
                             $('button[type=submit]').attr("disabled",true);
                             $("#ultimo_turno").html('<h4 class="red"> <i class="fa fa-user-times" style="font-size:20px;"></i> Esta persona no cuenta con la edad permitida! tiene: '+edad+' años </h4>');
                         }
-                        break;
-                    case 'RETOMA TURNO':
-                        //Nro. de Cita (Obligatorio)
-                        $("#div_observacion label").html('Nro. de Cita: ');
-                        $("#div_observacion input").attr('placeholder','Ingrese el Nro. de la Cita').attr('required','required').attr('minlength','8').attr('maxlength','8');
-                        $("#formTramitesHabilitados input, #formTramitesHabilitados select").change(function(){
-                            validarRetomaTurno();
-                        });
                         break;
                     case 'EMBARAZADAS':
                         if(sexo == 'F'){

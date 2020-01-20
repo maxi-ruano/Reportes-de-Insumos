@@ -25,8 +25,6 @@ class TramitesHabilitadosController extends Controller
 
     public function __construct(){
         $this->centrosEmisores = new AnsvCelExpedidor();
-        //Iniciar precheck de los tramites que no iniciaron el dia de hoy --PAUSADO Colapsa el demonio Queque
-        //$this->verificarPrecheckHabilitados();
     }
     
     /**
@@ -81,7 +79,7 @@ class TramitesHabilitadosController extends Controller
             }
         }
 
-        //Se envia listado d elas Sucursales para el select del buscar
+        //Se envia listado de las Sucursales para el select del buscar
         $SysMultivalue = new SysMultivalue();        
         $sucursales = $SysMultivalue->sucursales();
 
@@ -99,8 +97,23 @@ class TramitesHabilitadosController extends Controller
     {
         $fecha = $this->calcularFecha();
 
-        //Se cargan motivos segun el permiso asignado en roles_motivos_sel
-        $motivos = \DB::table('tramites_habilitados_motivos')->where('activo',true)->whereIn('id',$this->getRoleMotivos('role_motivos_sel'))->orderBy('description', 'asc')->pluck('description','id');
+        //MOSTRAR CONVENIOS SOLO A ABOGADOS, ACA LIBERTADOR Y ECONOMICAS  -temporal mientras se normaliza en la DB
+        $sucursal = Auth::user()->sucursal;
+        $no_include = 27;
+        if(in_array($sucursal, array(10,100,103))){
+            $no_include = 0;
+        }
+
+        //Se cargan motivos segun los permisos asignados en roles_motivos_sel
+        $motivos = TramitesHabilitadosMotivos::whereNull('deleted_at')
+                        ->where('activo',true)
+                        ->whereIn('id',$this->getRoleMotivos('role_motivos_sel'))
+                        ->where(function($query) use($sucursal){
+                            $query->where('sucursal_id',0)->orwhere('sucursal_id',$sucursal);
+                        })
+                        ->where('id','<>',$no_include)
+                        ->orderBy('description', 'asc')
+                        ->pluck('description','id');
         
         $SysMultivalue = new SysMultivalue();
         $sucursales = $SysMultivalue->sucursales();
@@ -191,7 +204,8 @@ class TramitesHabilitadosController extends Controller
                 return redirect()->route('tramitesHabilitados.create');
 
             }else{
-                Flash::error('LIMITE DIARIO PERMITIDO para la sucursal seleccionada.!!');
+                //CUANDO SE VALIDA EL LIMITE POR ROL, SUCURSAL Y MOTIVO
+                //Flash::error('LIMITE DIARIO PERMITIDO para la sucursal según el motivo seleccionado.!!');
                 return back();  
             }
         }
@@ -548,41 +562,57 @@ class TramitesHabilitadosController extends Controller
         $acceso= false;
         $user = Auth::user();
         $role_id = $user->roles->pluck('id')->first();
-        
-        //Encontrar todas las posibilidades establecidas en roles_limites
-        $roles_limites = \DB::table('roles_limites')->where('role_id',$role_id)->where('sucursal',$sucursal)->where('motivo_id',$motivo)->where('activo', true)->first();
-        
-        if($roles_limites == null)
-            $roles_limites = \DB::table('roles_limites')->where('role_id',$role_id)->where('sucursal',$sucursal)->whereNull('motivo_id')->where('activo', true)->first();
-        
-        if($roles_limites == null)
-            $roles_limites = \DB::table('roles_limites')->where('role_id',$role_id)->where('motivo_id',$motivo)->whereNull('sucursal')->where('activo', true)->first();
-        
-        if($roles_limites == null)
-            $roles_limites = \DB::table('roles_limites')->where('role_id',$role_id)->whereNull('sucursal')->whereNull('motivo_id')->where('activo', true)->first();
+        $mensaje = 'LIMITE DIARIO PERMITIDO para la sucursal según el motivo seleccionado.!!';
 
-        if($roles_limites){
-
-            $consulta = TramitesHabilitados::where('fecha',$fecha)
-                            ->whereIn('user_id',function($query) use($role_id){
-                                $query->select('model_id')->from('model_has_roles')->where('role_id',$role_id);
-                             });
-            
-            if($roles_limites->sucursal)
-                $consulta = $consulta->where('sucursal',$roles_limites->sucursal);
-            
-            if($roles_limites->motivo_id)
-                $consulta = $consulta->where('motivo_id',$roles_limites->motivo_id);
-                        
-            $consulta = $consulta->count();
-
-            if($consulta >= $roles_limites->limite)
-                $acceso = false;
-            else
-                $acceso = true;
+        //VERIFICAR LIMITE ESTABLECIDO EN LA TABLA tramites_habilitados_motivos
+        $th_motivos = TramitesHabilitadosMotivos::where('id',$motivo)->first();
+        if($th_motivos->limite){
+            if($th_motivos->sucursal_id == $sucursal){
+                $total = TramitesHabilitados::where('motivo_id',$motivo)->where('sucursal',$sucursal)->where('fecha',$fecha)->where('deleted',false)->count();
+                if($total < $th_motivos->limite)
+                    $acceso = true;
+            }else{
+                $mensaje = 'SUCURSAL NO HABILITADA para el motivo seleccionado.';
+            }
         }else{
-            $acceso = true;
+            
+            //VERIFICAR LIMITE ESTABLECIDO EN LA TABLA roles_motivos
+            $roles_limites = \DB::table('roles_limites')->where('role_id',$role_id)->where('sucursal',$sucursal)->where('motivo_id',$motivo)->where('activo', true)->first();
+            //Encontrar todas las posibilidades establecidas en roles_limites
+            if($roles_limites == null)
+                $roles_limites = \DB::table('roles_limites')->where('role_id',$role_id)->where('sucursal',$sucursal)->whereNull('motivo_id')->where('activo', true)->first();
+            
+            if($roles_limites == null)
+                $roles_limites = \DB::table('roles_limites')->where('role_id',$role_id)->where('motivo_id',$motivo)->whereNull('sucursal')->where('activo', true)->first();
+            
+            if($roles_limites == null)
+                $roles_limites = \DB::table('roles_limites')->where('role_id',$role_id)->whereNull('sucursal')->whereNull('motivo_id')->where('activo', true)->first();
+
+            if($roles_limites){
+                $consulta = TramitesHabilitados::where('fecha',$fecha)
+                                ->whereIn('user_id',function($query) use($role_id){
+                                    $query->select('model_id')->from('model_has_roles')->where('role_id',$role_id);
+                                });
+                
+                if($roles_limites->sucursal)
+                    $consulta = $consulta->where('sucursal',$roles_limites->sucursal);
+                
+                if($roles_limites->motivo_id)
+                    $consulta = $consulta->where('motivo_id',$roles_limites->motivo_id);
+                            
+                $consulta = $consulta->count();
+
+                if($consulta >= $roles_limites->limite)
+                    $acceso = false;
+                else
+                    $acceso = true;
+            }else{
+                $acceso = true;
+            }
         }
+
+        if(!$acceso)
+            Flash::error($mensaje);
 
         return $acceso;  
     }
@@ -594,7 +624,7 @@ class TramitesHabilitadosController extends Controller
         return $motivos;
     }
 
-    //Se envia masivamente los turnos que no ha inciado a procesar Precheck con el queque (Demonio)
+    //Se envia masivamente los turnos que no ha inciado a procesar Precheck con el queque (Demonio)- PAUSADO
     public function verificarPrecheckHabilitados(){
         $turnos =  TramitesHabilitados::whereNull('tramites_a_iniciar_id')->where('fecha',date('Y-m-d'))->get();
         foreach ($turnos as $key => $turno) {
