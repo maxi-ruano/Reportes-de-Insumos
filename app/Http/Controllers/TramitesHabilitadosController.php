@@ -551,7 +551,8 @@ class TramitesHabilitadosController extends Controller
     public function calcularFecha(){
         $dia_semana = date('w');
         //Si es Jueves o viernes sumar 5, por incluir fin de semana, de lo contrario sumar 3
-        $sumar_dias = ($dia_semana == 4 || $dia_semana == 5)?'5':'3'; 
+        //$sumar_dias = ($dia_semana == 4 || $dia_semana == 5)?'5':'3'; 
+        $sumar_dias = 3;
         $fecha = date('Y-m-d', strtotime('+'.$sumar_dias.' days', strtotime(date('Y-m-d'))));  
         return $fecha;
     }
