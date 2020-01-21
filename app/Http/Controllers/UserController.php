@@ -121,7 +121,7 @@ class UserController extends Controller
     public function edit($id)
     {
         $user = User::find($id);
-        $roles = Role::pluck('name', 'id');
+        $roles = Role::whereNull('deleted_at')->pluck('name', 'id');
         $permissions = Permission::all('name', 'id');
         
         $SysMultivalue = new SysMultivalue();        

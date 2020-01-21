@@ -19,7 +19,7 @@ class RoleController extends Controller
      */
     public function index()
     {
-        $roles = Role::all();
+        $roles = Role::whereNull('deleted_at')->orderby('name')->get();
         $permissions = Permission::all();
 
         return view('role.index', compact('roles', 'permissions'));
