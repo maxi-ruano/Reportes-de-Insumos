@@ -41,9 +41,7 @@
                     <th class="column-title">Motivo</th>
                     <th class="column-title">Usuario</th>
                     <!-- Establecer condicion para mostrar u ocultar el boton Habilitar -->
-                    @can('habilita_tramites_habilitados')
-                        <th class="column-title" style="width:auto!important;">Habilitado</th>
-                    @endcan
+                    <th class="column-title" style="width:auto!important;">Habilitado</th>
                     <th class="column-title" style="width:auto!important;">Precheck</th>
                     <th class="column-title" style="width:80px!important;"></th>
                 </tr>
@@ -78,15 +76,22 @@
                             {{ $row->user_id }}
                         </span>
                     </td>
-                    @can('habilita_tramites_habilitados')
                     <td>
-                        @php $disable_habilitado = '' @endphp
+                        
+                        @php $disable_habilitado = 'disabled' @endphp
+
+                        @can('habilita_tramites_habilitados')
+                            @php $disable_habilitado = '' @endphp
+                        @endcan
+                        
                         @if($row->deleted == true || $row->tramite_dgevyl_id > 0 || $row->fecha != date('d-m-Y'))
                             @php $disable_habilitado = 'disabled' @endphp
                         @endif
 
                         @if($row->deleted == false && $row->tramite_dgevyl_id > 0 && $row->habilitado == false && $row->fecha == date('d-m-Y'))
-                            @php $disable_habilitado = '' @endphp
+                            @can('habilita_tramites_habilitados')
+                                @php $disable_habilitado = '' @endphp
+                            @endcan
                         @endif
 
                         @if($row->habilitado)
@@ -101,7 +106,6 @@
                             <input id="habilitado{{ $row->id }}" type="checkbox" {{ $disable_habilitado }} onchange="habilitarTurno({{ $row->id }})" data-toggle="toggle"  data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60" >
                         @endif
                     </td>
-                    @endcan
                     <td>
                         <button type="button" onclick="viewPrecheck({{ $row->tramites_a_iniciar_id }})" class="btn btn-info btn-xs" data-toggle="modal" data-target="#modal-precheck">
                             <i class="glyphicon glyphicon-check"></i> Precheck
