@@ -36,10 +36,14 @@ class TramitesHabilitadosController extends Controller
     {
         $fecha = isset($_GET['fecha'])?$_GET['fecha']:'';
 
+        $user = Auth::user();
+        $admin = $user->roles->where('name','Admin')->count();
+        $administrador = $user->roles->where('name','Administrador Tramites Habilitados')->count();
+        $auditor = $user->roles->where('name','Auditoria')->count();
+        
         $data = TramitesHabilitados::selectRaw('tramites_habilitados.*, tramites_habilitados_observaciones.observacion, tramites_a_iniciar.tramite_dgevyl_id')
                     ->leftjoin('tramites_a_iniciar','tramites_a_iniciar.id','tramites_habilitados.tramites_a_iniciar_id')
                     ->leftjoin('tramites_habilitados_observaciones','tramites_habilitados_observaciones.tramite_habilitado_id','tramites_habilitados.id')
-                    ->whereIn('tramites_habilitados.motivo_id', $this->getRoleMotivos('role_motivos_lis'))
                     ->where(function($query) use ($request) {
                         $query->where('tramites_habilitados.nombre', 'iLIKE', '%'. $request->search .'%')
                             ->orWhere('tramites_habilitados.apellido', 'iLIKE', '%'. $request->search .'%')
@@ -51,6 +55,9 @@ class TramitesHabilitadosController extends Controller
         
         if(isset($request->sucursal))
             $data = $data->where('sucursal',$request->sucursal);
+        
+        if(!$auditor && !$admin && !$administrador)
+            $data = $data->whereIn('tramites_habilitados.motivo_id', $this->getRoleMotivos('role_motivos_lis'));
                     
         //Verificar si tiene permisos para filtrar solo los que registro
         $user = Auth::user();
