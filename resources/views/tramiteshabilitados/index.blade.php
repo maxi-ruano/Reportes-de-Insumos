@@ -36,6 +36,7 @@
                     <th class="column-title">Tipo Doc.</th>
                     <th class="column-title">Nro. Doc.</th>
                     <th class="column-title">Pais</th>
+                    <th class="column-title">Sexo</th>
                     <th class="column-title">Fecha</th>
                     <th class="column-title">Sucursal</th>
                     <th class="column-title">Motivo</th>
@@ -54,6 +55,7 @@
                     <td>{{ $row->tipo_doc }}</td>
                     <td>{{ $row->nro_doc }}</td>
                     <td>{{ $row->pais }}</td>
+                    <td>{{ $row->sexo }}</td>
                     <td>{{ $row->fecha }}</span>
                     <td>{{ $row->sucursal }}</span>
                     <td>
