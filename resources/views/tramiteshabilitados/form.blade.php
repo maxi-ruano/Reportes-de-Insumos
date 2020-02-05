@@ -115,25 +115,28 @@
 
             @if(!isset($edit)) 
                 //Autocompletar datos solo si nuevo registro, si esta editando no realizara la buscqueda
-                $("input[name=nro_doc]").change(function(){
-                    var nro_doc = $(this).val();
+                $("select[name=tipo_doc], input[name=nro_doc], select[name=sexo]").change(function(){
+                    var nro_doc = $("input[name=nro_doc]").val();
                     var tipo_doc = $("select[name=tipo_doc]").val();
-                    
+                    var sexo = $("select[name=sexo]").val();
+                    alert(sexo);
                     $("input[name=nombre], input[name=apellido], input[name=fecha_nacimiento]").val('');
                     $("select[name=pais]").val(1);
             
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                         url: '/buscarDatosPersonales',
-                        data: {tipo_doc: tipo_doc, nro_doc: nro_doc },
+                        data: {tipo_doc: tipo_doc, nro_doc: nro_doc, sexo:sexo },
                         type: "GET", dataType: "json",
                         success: function(ret){
                             console.log(ret);
-                            $("input[name=nombre]").val(ret.nombre);
-                            $("input[name=apellido]").val(ret.apellido);
-                            $("input[name=fecha_nacimiento]").val(ret.fecha_nacimiento);
-                            $("select[name=sexo]").val(ret.sexo);
-                            $("select[name=pais]").val(ret.pais);                            
+                            if(ret){
+                                $("input[name=nombre]").val(ret.nombre);
+                                $("input[name=apellido]").val(ret.apellido);
+                                $("input[name=fecha_nacimiento]").val(ret.fecha_nacimiento);
+                                $("select[name=sexo]").val(ret.sexo);
+                                $("select[name=pais]").val(ret.pais);
+                            }                         
                         }
                     });
                 });

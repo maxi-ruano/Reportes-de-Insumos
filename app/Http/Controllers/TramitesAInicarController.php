@@ -161,11 +161,12 @@ class TramitesAInicarController extends Controller
     return false;
   }
 
-  public function existeTramiteAIniciarConPrecheck($nro_doc, $tipo_doc, $nacionalidad){
+  public function existeTramiteAIniciarConPrecheck($nro_doc, $tipo_doc, $sexo, $nacionalidad){
     $existe = TramitesAIniciar::orderBy('id','desc')
                     ->where('nacionalidad',$nacionalidad)
                     ->where('nro_doc',$nro_doc)
                     ->where('tipo_doc',$tipo_doc)
+                    ->where('sexo',strtoupper($sexo))
                     ->where('estado', '!=', TURNO_VENCIDO)
                     ->whereNull('tramite_dgevyl_id')
                     ->first();      
@@ -206,9 +207,10 @@ class TramitesAInicarController extends Controller
   }
 
   public function asignarTurnoEnTramitesAIniciar($turno){
-    $tipo_doc = $turno->tipoDocLicta();
     $nacionalidad = $this->getIdPais($turno->nacionalidad());
-    $tramiteAIniciar = $this->existeTramiteAIniciarConPrecheck($turno->numdoc, $tipo_doc, $nacionalidad);
+    $tipo_doc = $turno->tipoDocLicta();
+    $sexo = $turno->sexo();
+    $tramiteAIniciar = $this->existeTramiteAIniciarConPrecheck($turno->numdoc, $tipo_doc, $sexo, $nacionalidad);
     
     if($tramiteAIniciar){
       $tramiteAIniciar->sigeci_idcita = $turno->idcita;

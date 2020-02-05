@@ -231,7 +231,7 @@ class TramitesHabilitadosController extends Controller
         $precheck = null;
 
         $tramiteAIniciarController = new TramitesAInicarController();
-        $precheck_disponible = $tramiteAIniciarController->existeTramiteAIniciarConPrecheck($tramiteshabilitados->nro_doc, $tramiteshabilitados->tipo_doc, $nacionalidad);
+        $precheck_disponible = $tramiteAIniciarController->existeTramiteAIniciarConPrecheck($tramiteshabilitados->nro_doc, $tramiteshabilitados->tipo_doc, $tramiteshabilitados->sexo, $nacionalidad);
 
         switch ($motivo) {
             case "REINICIA TRAMITE":
@@ -252,7 +252,7 @@ class TramitesHabilitadosController extends Controller
 
                 if($precheck){
                     $precheck = TramitesAIniciar::find($precheck->id);
-                    if($precheck->nro_doc == $tramiteshabilitados->nro_doc && $precheck->tipo_doc == $tramiteshabilitados->tipo_doc){
+                    if($precheck->nro_doc == $tramiteshabilitados->nro_doc && $precheck->tipo_doc == $tramiteshabilitados->tipo_doc && $precheck->sexo == $tramiteshabilitados->sexo){
 
                         $tramiteshabilitados->tramites_a_iniciar_id = $precheck->id;
                         $tramiteshabilitados->save();
@@ -337,7 +337,7 @@ class TramitesHabilitadosController extends Controller
      */
     public function edit($id)
     {
-        $fecha_actual = date('Y-m-d');
+        /*$fecha_actual = date('Y-m-d');
         $fecha_max = $this->calcularFecha();
 
         $edit = TramitesHabilitados::where('tramites_habilitados.id',$id)
@@ -367,7 +367,7 @@ class TramitesHabilitadosController extends Controller
                                             ->with('tdocs',$tdocs)
                                             ->with('paises',$paises)
                                             ->with('motivos',$motivos);
-        }
+        }*/
     }
 
     /**
@@ -379,7 +379,7 @@ class TramitesHabilitadosController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //validar nro_doc solo si es pasaporte acepte letras y numeros de lo contrario solo numeros
+        /*//validar nro_doc solo si es pasaporte acepte letras y numeros de lo contrario solo numeros
         if($request->tipo_doc== '4')
             $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/^[0-9a-zA-Z]+$/']);
         else
@@ -441,6 +441,7 @@ class TramitesHabilitadosController extends Controller
 
         Flash::success('El Tramite se ha editado correctamente');
         return redirect()->route('tramitesHabilitados.index');
+        */
     }
 
     /**
@@ -494,26 +495,26 @@ class TramitesHabilitadosController extends Controller
 
     public function buscarDatosPersonales(Request $request)
     {
-        $buscar='';
-        $sql = DatosPersonales::selectRaw('nombre, apellido, UPPER(sexo) as sexo, fec_nacimiento as fecha_nacimiento, pais')->where("tipo_doc",$request->tipo_doc)->where("nro_doc",$request->nro_doc)->orderBy('modification_date','DESC');
-        $duplicado = $sql->count();
-        //Verificar si existe una persona con el mismo numero de documento
-        if(!($duplicado>2)){
-            if($duplicado==1){
-                $buscar = $sql->first();
-            }else{
-                $buscar = TramitesHabilitados::where("tipo_doc",$request->tipo_doc)->where("nro_doc",$request->nro_doc)->orderBy('id','DESC')->first();
-                if(!$buscar){
-                    $buscar = TramitesAIniciar::selectRaw("tramites_a_iniciar.*, ansv_paises.id_dgevyl as pais")
-                                ->join('ansv_paises','ansv_paises.id_ansv','tramites_a_iniciar.nacionalidad')
-                                ->where("tipo_doc",$request->tipo_doc)
-                                ->where("nro_doc",$request->nro_doc)
-                                ->orderBy('id','DESC')
-                                ->first();      
-                }
+        $encontrado = null;
+        $encontrado = DatosPersonales::selectRaw('nombre, apellido, UPPER(sexo) as sexo, fec_nacimiento as fecha_nacimiento, pais')
+                                        ->where("tipo_doc",$request->tipo_doc)
+                                        ->where("nro_doc",$request->nro_doc)
+                                        ->where("sexo",strtolower($request->sexo))
+                                        ->orderBy('modification_date','DESC')
+                                        ->first();
+        if(!$encontrado){
+            $encontrado = TramitesHabilitados::where("tipo_doc",$request->tipo_doc)->where("nro_doc",$request->nro_doc)->where("sexo",$request->sexo)->orderBy('id','DESC')->first();
+            if(!$encontrado){
+                $encontrado = TramitesAIniciar::selectRaw("tramites_a_iniciar.*, ansv_paises.id_dgevyl as pais")
+                            ->join('ansv_paises','ansv_paises.id_ansv','tramites_a_iniciar.nacionalidad')
+                            ->where("tipo_doc",$request->tipo_doc)
+                            ->where("nro_doc",$request->nro_doc)
+                            ->where("sexo",$request->sexo)
+                            ->orderBy('id','DESC')
+                            ->first();      
             }
         }
-        return $buscar;
+        return json_encode($encontrado);
     }
 
     public function consultarTurnoSigeci(Request $request){
