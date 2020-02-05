@@ -535,6 +535,12 @@ class TramitesHabilitadosController extends Controller
                         ->whereNotIn('sigeci.idprestacion', $this->prestacionesCursos)
                         ->orderBy('sigeci.idcita','DESC')
                         ->first();
+        if($consulta){
+            $turno = Sigeci::where('idcita',$consulta->idcita)->first();
+            $sexo = $turno->getSexo();
+            if(strtoupper($sexo) != strtoupper($request->sexo))
+                $consulta = null;
+        }
         return $consulta;
     }
     public function existeTurnoSigeci($tipo_doc, $nro_doc, $fecha){

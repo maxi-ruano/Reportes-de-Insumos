@@ -110,7 +110,7 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
-            var edad;
+            $("select[name=pais]").val(1);
             validarMotivos();
 
             @if(!isset($edit)) 
@@ -119,15 +119,12 @@
                     var nro_doc = $("input[name=nro_doc]").val();
                     var tipo_doc = $("select[name=tipo_doc]").val();
                     var sexo = $("select[name=sexo]").val();
-                    
-                    $("input[name=nombre], input[name=apellido], input[name=fecha_nacimiento]").val('');
-                    $("select[name=pais]").val(1);
-            
+                
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                         url: '/buscarDatosPersonales',
                         data: {tipo_doc: tipo_doc, nro_doc: nro_doc, sexo:sexo },
-                        type: "GET", dataType: "json",
+                        type: "GET", dataType: "json", Async: false,
                         success: function(ret){
                             console.log(ret);
                             if(ret){
@@ -136,32 +133,28 @@
                                 $("input[name=fecha_nacimiento]").val(ret.fecha_nacimiento);
                                 $("select[name=sexo]").val(ret.sexo);
                                 $("select[name=pais]").val(ret.pais);
-                            }                         
+                                validarMotivos();
+                            }else{
+                                $("input[name=nombre], input[name=apellido], input[name=fecha_nacimiento]").val('');
+                            }                        
                         }
                     });
                 });
             @endif
 
-           
-            $("input[name=fecha], select[name=sucursal], input[name=nro_doc], input[name=tipo_doc], select[name=sexo], select[name=motivo_id], input[name=fecha_nacimiento]").change(function(){
-                var fecha = $('input[name=fecha_nacimiento]').val();
-                edad = calcularEdad(fecha);
-                $("#precheck_id").val('');
+            $("#formTramitesHabilitados input, #formTramitesHabilitados select").change(function(){
                 validarMotivos();
             });
 
             //Segun el motivo solicitar mas informacion 
             function validarMotivos(){
-                var sexo = $("select[name=sexo]").val();
-                var sucursal = $("select[name=sucursal] option:selected").val();
                 var motivo = $("select[name=motivo_id] option:selected").text();
 
                 $("#div_observacion input").removeAttr('required minlength maxlength');
                 $("#div_observacion label").html('Observación: ');
-                $("#div_observacion input").attr('placeholder','');
-                $("#div_observacion input").off('change');
-
+                $("#div_observacion input").attr('placeholder','');                
                 $("#ultimo_turno").empty();
+                $("#precheck_id").val('');
                 $('button[type=submit]').attr("disabled",false);
 
                 switch(motivo) {
@@ -179,28 +172,24 @@
                         $("#div_observacion label").html('Nro. de Cita: ');
                         $("#div_observacion input").attr('placeholder','Ingrese el Nro. de la Cita').attr('required','required').attr('minlength','8').attr('maxlength','8');
                         $('button[type=submit]').attr("disabled",true);
-                        $("#formTramitesHabilitados input, #formTramitesHabilitados select").change(function(){
-                            validarErrorEnTurno();
-                        });
+                        validarErrorEnTurno();
                         break;
                     case 'REINICIA TRAMITE':
                         //ID del Tramite (Obligatorio)
                         $("#div_observacion label").html('ID del Tramite: ');
                         $("#div_observacion input").attr('placeholder','Ingrese el ID del Tramite').attr('required','required').attr('minlength','7').attr('maxlength','7');;
                         $('button[type=submit]').attr("disabled",true);
-                        $("#formTramitesHabilitados input, #formTramitesHabilitados select").change(function(){
-                            validarReiniciaTramite();
-                        });
+                        validarReiniciaTramite();
                         break;
                     case 'RETOMA TURNO':
                         //Nro. de Cita (Obligatorio)
                         $("#div_observacion label").html('Nro. de Cita: ');
                         $("#div_observacion input").attr('placeholder','Ingrese el Nro. de la Cita').attr('required','required').attr('minlength','8').attr('maxlength','8');
-                        $("#formTramitesHabilitados input, #formTramitesHabilitados select").change(function(){
-                            validarRetomaTurno();
-                        });
+                        validarRetomaTurno();
                         break;
                     case 'MAYOR DE 65':
+                        var fecha = $('input[name=fecha_nacimiento]').val();
+                        var edad = calcularEdad(fecha);
                         if(edad >= 65 && edad < 100){
                             $('button[type=submit]').attr("disabled",false);
                         }else{
@@ -209,6 +198,7 @@
                         }
                         break;
                     case 'EMBARAZADAS':
+                        var sexo = $("select[name=sexo]").val();
                         if(sexo == 'F'){
                             $('button[type=submit]').attr("disabled",false);
                         }else{
@@ -223,9 +213,9 @@
             }
 
              function validarErrorEnTurno(){
-                var idcita = $("#div_observacion input").val();
+                var idcita  = $("#div_observacion input").val();
                 var nro_doc = $("input[name=nro_doc]").val();
-                var nombre = $("input[name=nombre]").val();
+                var nombre  = $("input[name=nombre]").val();
                 var apellido = $("input[name=apellido]").val();
                 var sucursal = $("select[name=sucursal]").val();
 
@@ -249,11 +239,9 @@
                             var fecha = f[2]+'/'+f[1]+'/'+f[0];
 
                             $("#ultimo_turno").html('Información de su turno: <table class="table table-striped jambo_table"><tr><td>'+fecha+'</td><td>'+ret.hora+'</td><td>'+ret.tipodoc+'</td><td>'+ret.numdoc+'</td><td>'+ret.nombre+' '+ret.apellido+'</td><td>'+ret.descsede+'</td><td>'+ret.descprestacion+'</td><td class="red"> '+dias+' días</td><td class="icono"></td></tr></table>');
+                            console.log(nro_doc+" | "+ret.numdoc+" | "+nombre+" | "+ret.nombre+" | "+apellido+" | "+ret.apellido);
+                            if (nro_doc == ret.numdoc && (nombre == ret.nombre || apellido == ret.apellido)){                             
 
-                            if (nro_doc != ret.numdoc && nombre != ret.nombre && apellido != ret.apellido){
-                                $('button[type=submit]').attr("disabled",true);
-                                $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El número de cita ingresado no corresponde a la persona que intenta TOMAR TURNO!.</h4>');
-                            }else{
                                 if(ret.tramite_dgevyl_id){
                                     $('button[type=submit]').attr("disabled",true);
                                     $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El número de cita ingresado ya cuenta con un tramite en LICTA: '+ret.tramite_dgevyl_id+'</h4>');
@@ -263,6 +251,7 @@
                                             $("#ultimo_turno .icono").html('<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>');
                                             $('button[type=submit]').attr("disabled",false);
                                             $("#precheck_id").val(precheck_id);
+                                            $("#ultimo_turno").append('<h4 class="green"> <i class="fa fa-user-circle" style="font-size:30px;"></i> Usted certifica que los datos del TURNO son incorrectos!.</h4>');
                                         }else{
                                             $("#ultimo_turno .icono").html('<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>');
                                             $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno no cumple con los 15 días correspondientes para poder TOMAR TURNO!.</h4>');
@@ -272,6 +261,9 @@
                                         $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno ingresado no corresponde con la Sucursal que intenta registrar!.</h4>');
                                     }*/
                                 }
+                            }else{
+                                $('button[type=submit]').attr("disabled",true);
+                                $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El número de cita ingresado no corresponde a la persona que intenta TOMAR TURNO!.</h4>');
                             }
                         },
                         error: function(err) {
@@ -336,6 +328,7 @@
                 var motivo = $("select[name=motivo_id] option:selected").text();
                 var tipo_doc = $("select[name=tipo_doc]").val();
                 var nro_doc = $("input[name=nro_doc]").val();
+                var sexo =  $("select[name=sexo]").val();
                 var sucursal = $("select[name=sucursal]").val();
 
                 $('button[type=submit]').attr("disabled",true);
@@ -344,7 +337,7 @@
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                         url: '/consultarUltimoTurno',
-                        data: {tipo_doc: tipo_doc, nro_doc: nro_doc },
+                        data: {tipo_doc: tipo_doc, nro_doc: nro_doc, sexo:sexo },
                         type: "GET", dataType: "json",
                         success: function(ret){
                             
