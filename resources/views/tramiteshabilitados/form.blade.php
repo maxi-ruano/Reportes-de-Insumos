@@ -240,7 +240,7 @@
 
                             $("#ultimo_turno").html('Información de su turno: <table class="table table-striped jambo_table"><tr><td>'+fecha+'</td><td>'+ret.hora+'</td><td>'+ret.tipodoc+'</td><td>'+ret.numdoc+'</td><td>'+ret.nombre+' '+ret.apellido+'</td><td>'+ret.descsede+'</td><td>'+ret.descprestacion+'</td><td class="red"> '+dias+' días</td><td class="icono"></td></tr></table>');
                             console.log(nro_doc+" | "+ret.numdoc+" | "+nombre+" | "+ret.nombre+" | "+apellido+" | "+ret.apellido);
-                            if (nro_doc == ret.numdoc && (nombre == ret.nombre || apellido == ret.apellido)){                             
+                            if (nro_doc == ret.numdoc || nombre == ret.nombre || apellido == ret.apellido){                             
 
                                 if(ret.tramite_dgevyl_id){
                                     $('button[type=submit]').attr("disabled",true);
