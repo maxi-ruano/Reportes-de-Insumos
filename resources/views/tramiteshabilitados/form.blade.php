@@ -119,7 +119,7 @@
                     var nro_doc = $("input[name=nro_doc]").val();
                     var tipo_doc = $("select[name=tipo_doc]").val();
                     var sexo = $("select[name=sexo]").val();
-                    alert(sexo);
+                    
                     $("input[name=nombre], input[name=apellido], input[name=fecha_nacimiento]").val('');
                     $("select[name=pais]").val(1);
             
