@@ -105,7 +105,6 @@ class TramitesAInicarController extends Controller
   }
 
   public function guardarDatosBoleta($persona, $boleta, $siguienteEstado){
-    //$persona = TramitesAIniciar::find($persona->id);
     $persona->bop_cb = (isset($boleta->bopCB)?$boleta->bopCB:$boleta->bop_cb);
     $persona->bop_monto = (isset($boleta->bopMonto)?$boleta->bopMonto:$boleta->bop_monto);
     $persona->bop_fec_pag = (isset($boleta->bopFecPag)?$boleta->bopFecPag:$boleta->bop_fec_pag);
@@ -209,9 +208,9 @@ class TramitesAInicarController extends Controller
   public function asignarTurnoEnTramitesAIniciar($turno){
     $nacionalidad = $this->getIdPais($turno->nacionalidad());
     $tipo_doc = $turno->tipoDocLicta();
-    $sexo = $turno->sexo();
+    $sexo = $turno->getSexo();
     $tramiteAIniciar = $this->existeTramiteAIniciarConPrecheck($turno->numdoc, $tipo_doc, $sexo, $nacionalidad);
-    
+
     if($tramiteAIniciar){
       $tramiteAIniciar->sigeci_idcita = $turno->idcita;
       $tramiteAIniciar->save();
@@ -231,7 +230,6 @@ class TramitesAInicarController extends Controller
   }
 
   public function guardarTurnoEnTramitesAInicar($turno, $siguienteEstado){
-    
       $tramiteAIniciar = new TramitesAIniciar();
       $tramiteAIniciar->apellido = $turno->apellido;
       $tramiteAIniciar->nombre = $turno->nombre;
@@ -283,7 +281,7 @@ class TramitesAInicarController extends Controller
   }
 
   public function gestionarLibreDeuda($tramite, $estadoValidacion, $siguienteEstado){
-    $res = $this->verificarLibreDeuda($tramite);   
+    $res = $this->verificarLibreDeuda($tramite);
     if(!$res['res']){
       $this->guardarError((object)$res, $estadoValidacion, $tramite->id);
     }else {

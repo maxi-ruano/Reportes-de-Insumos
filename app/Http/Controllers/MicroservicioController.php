@@ -68,11 +68,11 @@ class MicroservicioController extends Controller
       dd('entro a Microservicio');
       $tramitesAIniciar->revisarTurnosVencidos();
       //  pasa a estarunPrecheckdo 1
-      $tramitesAInicirunPrecheckar->completarTurnosEnTramitesAIniciar( INICIO );
+      $tramitesAIniciar->completarTurnosEnTramitesAIniciar( INICIO );
       // Verificar LirunPrecheckbre deuda, pasa a estado 4 en validaciones precheck
-      $tramitesAInicirunPrecheckar->verificarLibreDeudaDeTramites(INICIO, LIBRE_DEUDA, VALIDACIONES); //ID validacion 4
+      $tramitesAIniciar->verificarLibreDeudaDeTramites(INICIO, LIBRE_DEUDA, VALIDACIONES); //ID validacion 4
       // pasa de estarunPrecheckdo 1 a 2 los tramites
-      $tramitesAInicirunPrecheckar->completarBoletasEnTramitesAIniciar( INICIO, SAFIT);
+      $tramitesAIniciar->completarBoletasEnTramitesAIniciar( INICIO, SAFIT);
       // Emitir cenatrunPrecheck solo si estado 2
       $tramitesAIniciar->emitirBoletasVirtualPago( SAFIT, EMISION_BOLETA_SAFIT,   VALIDACIONES); //ID validacion 3
       // Emitir cenat solo si estado 1 ya actualiza validaciones_precheck

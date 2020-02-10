@@ -12,22 +12,40 @@ class Sigeci extends Model
                          'tipodoc', 'numdoc', 'nombre', 'apellido', 'telefono', 'email', 'metadata', 'sucroca', 'tramite_a_iniciar_id'];
   public $timestamps = false;                         
 
+  public function getMetadata(){
+    $cadena = str_replace('\\\"', '', $this->metadata);
+    $cadena = str_replace("\u00e1", "á", $cadena);
+    $cadena = str_replace("\u00e9", "é", $cadena);
+    $cadena = str_replace("\u00ed", "í", $cadena);
+    $cadena = str_replace("\u00f3", "ó", $cadena);
+    $cadena = str_replace("\u00fa", "ú", $cadena);
+    $cadena = str_replace("\\u00f1", "ñ", $cadena);
+    $array = json_decode($cadena);
+    return $array;
+  }
+
   public function nacionalidad(){
-    return json_decode($this->metadata)->nacionalidad;
+    $metadata = $this->getMetadata();
+    if(isset($metadata->nacionalidad))
+      return $metadata->nacionalidad;
+    else
+      return null;
   }
 
   public function fechaNacimiento(){
-    if(isset(json_decode($this->metadata)->FechaNacimiento))
-      return date(json_decode($this->metadata)->FechaNacimiento);
-    else 
-      return null;  
+    $metadata = $this->getMetadata();
+    if(isset($metadata->FechaNacimiento))
+      return date($metadata->FechaNacimiento);
+    else
+      return null;
   }
 
   public function getSexo(){
-    if(isset(json_decode($this->metadata)->sexo))
-      return json_decode($this->metadata)->sexo;
-    else 
-      return null;  
+    $metadata = $this->getMetadata();
+    if(isset($metadata->sexo))
+      return $metadata->sexo;
+    else
+      return null;
   }
 
   public function tipoDocLicta(){
