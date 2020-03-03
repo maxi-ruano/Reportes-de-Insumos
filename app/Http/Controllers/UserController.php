@@ -21,7 +21,7 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $users = User::latest();
+        $users = User::orderBy('id','desc');
         
         if(isset($request->search))
             $users = $users->where(function($query) use ($request) {
