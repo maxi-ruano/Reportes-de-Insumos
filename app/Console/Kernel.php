@@ -25,13 +25,15 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         //Turnos vencidos
-        $schedule->call('App\Http\Controllers\MicroservicioController@revisarTurnosVencidos')->weekdays()->at('17:00');
+        $schedule->call('App\Http\Controllers\MicroservicioController@revisarTurnosVencidos')->weekdays()->at('16:50');
+        //Validaciones Completas
+        $schedule->call('App\Http\Controllers\MicroservicioController@revisarValidaciones')->weekdays()->at('16:55');
 
         //PRECHECK
-        $schedule->call('App\Http\Controllers\MicroservicioController@completarTurnosEnTramitesAIniciar')->weekdays()->at('17:10');//Turnos
-        $schedule->call('App\Http\Controllers\MicroservicioController@verificarLibreDeudaDeTramites')->weekdays()->at('17:15');//Libre Deuda
-        $schedule->call('App\Http\Controllers\MicroservicioController@verificarBuiTramites')->weekdays()->at('17:20');//Bui
-        $schedule->call('App\Http\Controllers\MicroservicioController@completarBoletasEnTramitesAIniciar')->weekdays()->at('17:25');//Buscar Boleta Cenat
+        $schedule->call('App\Http\Controllers\MicroservicioController@completarTurnosEnTramitesAIniciar')->weekdays()->at('17:00');//Turnos
+        $schedule->call('App\Http\Controllers\MicroservicioController@verificarLibreDeudaDeTramites')->weekdays()->at('17:10');//Libre Deuda
+        $schedule->call('App\Http\Controllers\MicroservicioController@verificarBuiTramites')->weekdays()->at('17:12');//Bui
+        $schedule->call('App\Http\Controllers\MicroservicioController@completarBoletasEnTramitesAIniciar')->weekdays()->at('17:05');//Buscar Boleta Cenat
         $schedule->call('App\Http\Controllers\MicroservicioController@emitirBoletasVirtualPago')->weekdays()->at('17:30');//Obtener Certificado Virtual Cenat
         
         //Revisar validaciones completas e iniciar en Sinalic
