@@ -26,7 +26,7 @@ class TramitesAInicarController extends Controller
 {
   private $localhost = '192.168.76.33';
   private $diasEnAdelante = 1;
-  private $cantidadDias = 5;
+  private $cantidadDias = 2;
   private $fecha_inicio = '';
   private $fecha_fin = '';
   private $munID = 1;
@@ -723,7 +723,8 @@ class TramitesAInicarController extends Controller
   }
 
   public function validacionesTerminadas($id){
-      $res = ValidacionesPrecheck::where("tramite_a_iniciar_id", $id)->whereNotIn('validation_id',[SINALIC,CHARLA_VIRTUAL])->get();
+      $res = ValidacionesPrecheck::where("tramite_a_iniciar_id", $id)->whereNotIn('validation_id',[SINALIC])->get();
+      //$res = ValidacionesPrecheck::where("tramite_a_iniciar_id", $id)->whereNotIn('validation_id',[SINALIC,CHARLA_VIRTUAL])->get();
       foreach($res as $key => $validacion)
         if (!$validacion->validado)
           return false;
@@ -1258,7 +1259,6 @@ class TramitesAInicarController extends Controller
 
         if($numero_tramite_ansv > 0 ){
           $actualizar = \DB::table('ansv_tramite')->where('tramite_id',$tramite->tramite_id)->update([ 'numero_tramite_ansv' => $numero_tramite_ansv ]);
-          echo $tramite->tramite_id.' '.$numero_tramite_ansv.' | ';
         }
       }
   }
