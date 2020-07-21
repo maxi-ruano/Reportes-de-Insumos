@@ -16,8 +16,18 @@
         <input type="hidden" name="_token" value="{{ csrf_token() }}">
         <input type="hidden" name="user_id" value="{{ Auth::user()->id }}">
 
-        <div class="form-group">
-            <div class="col-md-3 col-xs-12">
+	<div class="form-group">
+	    <div class="col-md-8 col-xs-12">
+                {!! Form::label('sucursal', ' Sucursal') !!}
+                @can('enable_sede_tramites_habilitados')
+                    {!! Form::select('sucursal', $sucursales, isset($edit) ? $edit->sucursal : Auth::user()->sucursal , ['class' => 'form-control' ]) !!}
+                @else
+                    {!! Form::select('sucursal', $sucursales, isset($edit) ? $edit->sucursal : Auth::user()->sucursal , ['class' => 'form-control', 'readonly' => 'readonly', 'disabled' ]) !!}
+                    <input type="hidden" name="sucursal" value="{{ isset($edit) ? $edit->sucursal : Auth::user()->sucursal }}">
+                @endcan
+            </div>
+
+            <div class="col-md-4 col-xs-12">
                 {!! Form::label('fecha', ' Fecha') !!}
                 <div class="input-group">
                     <div class="input-group-addon">
@@ -30,43 +40,37 @@
                     @endcan
                 </div>
             </div>
+        </div>
 
-            <div class="col-md-9 col-xs-12">
-                {!! Form::label('sucursal', ' Sucursal') !!}
-                @can('enable_sede_tramites_habilitados')
-                    {!! Form::select('sucursal', $sucursales, isset($edit) ? $edit->sucursal : Auth::user()->sucursal , ['class' => 'form-control' ]) !!}
-                @else
-                    {!! Form::select('sucursal', $sucursales, isset($edit) ? $edit->sucursal : Auth::user()->sucursal , ['class' => 'form-control', 'readonly' => 'readonly', 'disabled' ]) !!}
-                    <input type="hidden" name="sucursal" value="{{ isset($edit) ? $edit->sucursal : Auth::user()->sucursal }}">        
-                @endcan
+        <div class="form-group">
+	    <div class="col-md-6 col-xs-12">
+		{!! Form::label('tipo_doc', ' Documento') !!}
+            	{!! Form::select('tipo_doc', $tdocs, isset($edit) ? $edit->tipo_doc : null, ['class' => 'form-control']) !!}
+            	{!! Form::text('nro_doc', isset($edit) ? $edit->nro_doc : null, ['class' => 'form-control', 'placeholder' => 'Nro. Documento', 'maxlength' => 10, 'required' => 'required' ]) !!}
+	    </div> 
+	    <div class="col-md-6 col-xs-12">
+                {!! Form::label('sexo', ' Sexo') !!}
+		{!! Form::select('sexo', ['F' => 'Femenino', 'M' => 'Masculino'], isset($edit) ? $edit->sexo : 'M' , ['class' => 'form-control', 'required' => 'required']) !!} 
+		<i>(*) Debes seleccionar el sexo para autocompletar los datos.</i>
             </div>
+
+	</div>
+
+	<div class="form-group">
+	     <div class="col-md-6 col-xs-12">
+                {!! Form::label('nombre', ' Nombres') !!}
+                {!! Form::text('nombre', isset($edit) ? $edit->nombre : null, ['class' => 'form-control', 'placeholder' => 'Nombres', 'required' => 'required']) !!}
+            </div>
+	    <div class="col-md-6 col-xs-12">
+            	{!! Form::label('apellido', ' Apellidos') !!}
+            	{!! Form::text('apellido', isset($edit) ? $edit->apellido : null, ['class' => 'form-control', 'placeholder' => 'Apellidos', 'required' => 'required']) !!}
+	    </div>
         </div>
 
         <div class="form-group">
-            {!! Form::label('tipo_doc', ' Documento') !!}
-            {!! Form::select('tipo_doc', $tdocs, isset($edit) ? $edit->tipo_doc : null, ['class' => 'form-control']) !!}
-            {!! Form::text('nro_doc', isset($edit) ? $edit->nro_doc : null, ['class' => 'form-control', 'placeholder' => 'Nro. Documento', 'maxlength' => 10, 'required' => 'required' ]) !!}
-        </div>
-
-        <div class="form-group">
-            {!! Form::label('apellido', ' Apellidos') !!}
-            {!! Form::text('apellido', isset($edit) ? $edit->apellido : null, ['class' => 'form-control', 'placeholder' => 'Apellidos', 'required' => 'required']) !!}
-        </div>
-
-        <div class="form-group">
-            {!! Form::label('nombre', ' Nombres') !!}
-            {!! Form::text('nombre', isset($edit) ? $edit->nombre : null, ['class' => 'form-control', 'placeholder' => 'Nombres', 'required' => 'required']) !!}
-        </div>
-
-        <div class="form-group">
-            <div class="col-md-2 col-xs-12">
+            <div class="col-md-4 col-xs-12">
                 {!! Form::label('fecha_nacimiento', ' Fecha de Nacimiento') !!}
                 <input type="date" name="fecha_nacimiento" value="{{ isset($edit) ? $edit->fecha_nacimiento : NULL }}" class="form-control" required="required" >
-            </div>
-
-            <div class="col-md-2 col-xs-12">
-                {!! Form::label('sexo', ' Sexo') !!}
-                {!! Form::select('sexo', ['F' => 'Femenino', 'M' => 'Masculino'], isset($edit) ? $edit->sexo : 'M' , ['class' => 'form-control', 'required' => 'required']) !!}
             </div>
 
             <div class="col-md-8 col-xs-12">
@@ -75,22 +79,23 @@
             </div>
         </div>
 
-        <div class="form-group">                
-            {!! Form::label('motivo_id', ' Motivo') !!}
-            @if(count($motivos)==1)
-                {!! Form::select('motivo_id', $motivos, isset($edit) ? $edit->motivo_id : null , ['class' => 'form-control', 'required' => 'required']) !!}
-            @else
-                {!! Form::select('motivo_id', $motivos, isset($edit) ? $edit->motivo_id : null , ['class' => 'form-control', 'placeholder' => 'Seleccione', 'required' => 'required']) !!}
-            @endif
-        </div>
-
-       
-        <div id="div_observacion" class="form-group">    
-            {!! Form::label('observacion', ' Observación: ') !!}
-            {!! Form::text('observacion', isset($edit) ? $edit->observacion : null, ['class' => 'form-control', 'required' => 'required']) !!}
-            <input type="hidden" name="precheck_id" id="precheck_id" value="">
-        </div>
- 
+	<div class="form-group"> 
+	    <div class="col-md-4 col-xs-12" >	       
+            	{!! Form::label('motivo_id', ' Motivo') !!}
+            	@if (count($motivos)==1)
+                   {!! Form::select('motivo_id', $motivos, isset($edit) ? $edit->motivo_id : null , ['class' => 'form-control', 'required' => 'required']) !!}
+            	@else
+                    {!! Form::select('motivo_id', $motivos, isset($edit) ? $edit->motivo_id : null , ['class' => 'form-control', 'placeholder' => 'Seleccione', 'required' => 'required']) !!}
+            	@endif
+	    </div>
+	    <div class="col-md-8 col-xs-12">
+		<div id="div_observacion">    
+            	     {!! Form::label('observacion', ' Observación: ') !!}
+             	     {!! Form::text('observacion', isset($edit) ? $edit->observacion : null, ['class' => 'form-control', 'required' => 'required']) !!}
+            	     <input type="hidden" name="precheck_id" id="precheck_id" value="">
+		</div>
+            </div>
+	</div> 
         
         <div id="ultimo_turno"> </div>
         <hr>

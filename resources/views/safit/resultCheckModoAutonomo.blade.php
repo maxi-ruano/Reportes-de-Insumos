@@ -292,7 +292,7 @@
             }
           }else{
             $('#logTurno').append("(*) <span class='red'> Debe verificar "+precheck.description+" </span> <br>");
-            //$("#btn_precheck_"+precheck.validation_id).click();
+            $("#btn_precheck_"+precheck.validation_id).click();
           }  
         }
       }
