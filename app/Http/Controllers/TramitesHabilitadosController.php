@@ -466,7 +466,11 @@ class TramitesHabilitadosController extends Controller
                 $tramiteshabilitados = TramitesHabilitados::find($id);
                 $tramiteshabilitados->deleted = true;
                 $tramiteshabilitados->deleted_by = Auth::user()->id;
-                $tramiteshabilitados->save();
+		$tramiteshabilitados->save();
+		
+		// No me quiso aceptar la constante TURNO_VENCIDO
+		$vencido = 8;
+		$anular_precheck = TramitesAIniciar::where("id",$t->tramites_a_iniciar_id)->update(['estado' => $vencido]);
             
                 Flash::success('El Tramite se ha anulado correctamente');
                 return redirect()->route('tramitesHabilitados.index');
