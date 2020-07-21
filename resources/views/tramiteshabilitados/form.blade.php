@@ -122,7 +122,7 @@
                 
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                        url: '/buscarDatosPersonales',
+                        url: './../buscarDatosPersonales',
                         data: {tipo_doc: tipo_doc, nro_doc: nro_doc, sexo:sexo },
                         type: "GET", dataType: "json", Async: false,
                         success: function(ret){
