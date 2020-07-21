@@ -420,6 +420,8 @@ class TramitesAInicarController extends Controller
     $res = array('error' => "", 'request' => "",'response' => "");
     $boleta = null;
 
+    $prorroga_cuarentena = $this->obtener_prorroga_cuarentena($persona);
+
     $conexion = $this->wsSafit->iniciarSesion();
     if($conexion->success){
       $consulta = $this->wsSafit->getBoletas($persona);
@@ -432,7 +434,7 @@ class TramitesAInicarController extends Controller
       if(isset($boletas->rspID)){
         if($boletas->rspID == 1){
           foreach ($boletas->datosBoletaPago->datosBoletaPagoParaPersona as $key => $boletaI) {
-            if($this->esBoletaValida($boletaI)){
+            if($this->esBoletaValida($boletaI, $prorroga_cuarentena)){
               if(!is_null($boleta)){
                 if( date($boletaI->bopFecPag) >= date($boleta->bopFecPag)) // para obtener la boleta mas reciente
                   $boleta = $boletaI;
@@ -469,19 +471,20 @@ class TramitesAInicarController extends Controller
     return (object) $res;
   }
 
-  public function esBoletaValida($boleta){
+  public function esBoletaValida($boleta, $prorroga = 0){
     $res = false;
+    $dias = DIAS_VALIDEZ_BOLETA_CENAT + $prorroga;
     //verificamos que la boleta no esta utilizada, este acreditada y su fecha de pago cumpla con los meses de vigencia   
     if($boleta->bopEstado == $this->estadoBoletaNoUtilizada)
       if($boleta->munID == $this->munID)
         if($boleta->estID == $this->estID)
-          if($this->fechaDeVencimientoValida($boleta->bopFecPag, 3))
+          if($this->fechaDeVencimientoValida($boleta->bopFecPag, $dias))
             $res = true;
     return $res;
   }
 
-  public function fechaDeVencimientoValida($fecha, $mesesValido){
-    $nuevaFecha = strtotime ( '+'.$mesesValido.' month' , strtotime ( $fecha ) ) ;
+  public function fechaDeVencimientoValida($fecha, $dias){
+    $nuevaFecha = strtotime ( '+'.$dias.' days' , strtotime ( $fecha ) ) ;
     if (date('Y-m-d') < date('Y-m-d', $nuevaFecha))
       $res = true;
     else
@@ -604,6 +607,8 @@ class TramitesAInicarController extends Controller
 
     \Log::info('['.date('h:i:s').'] Se inicia verificarBui() tramiteAIniciar ID: '.$tramite->id); 
 
+    $prorroga_cuarentena = $this->obtener_prorroga_cuarentena($tramite);
+    
     $nro_boleta = null;
     $tramite = TramitesAIniciar::find($tramite->id);
     $data = array("TipoDocumento" => $tramite->tipoDocBui(),
@@ -617,7 +622,7 @@ class TramitesAInicarController extends Controller
       if(isset($res->mensaje))
         $mensaje = $res->mensaje;
     } else {
-      if($boleta = $this->existeBoletaHabilitada($res->boletas)){
+      if($boleta = $this->existeBoletaHabilitada($res->boletas, $prorroga_cuarentena)){
         if(!$this->boletaUtilizada($boleta)){
           $boletaBui = BoletaBui::create(array(
           'id_boleta'=>$boleta->IDBoleta,
@@ -665,13 +670,13 @@ class TramitesAInicarController extends Controller
     return $result;
   }
 
-  public function existeBoletaHabilitada($boletas){
+  public function existeBoletaHabilitada($boletas, $prorroga = 0){
     $res = false;
+    $dias = DIAS_VALIDEZ_BOLETA_BUI + $prorroga;
     foreach ($boletas as $key => $boleta) {
       $boleta = (object)$boleta;
       $vto = substr($boleta->FechaPago,1,10);
-      //$nuevaFecha = strtotime ( '+1 year' , strtotime ( $vto ) ) ;
-      $nuevaFecha = strtotime ( '+6 months' , strtotime ( $vto ) ) ;
+      $nuevaFecha = strtotime ( '+'.$dias.' days' , strtotime ( $vto ) ) ;
       if (date('Y-m-d') < date('Y-m-d',$nuevaFecha)){
           $res = $boleta;
           break;
@@ -1264,7 +1269,7 @@ class TramitesAInicarController extends Controller
   }
 
   public function buscarBoletaSafitEnTurnosVencidos($tramiteAIniciar){
-    $fecha_minima_pago = date('Y-m-d', strtotime('-'.(DIAS_VENCIMIENTO_BOLETA_SAFIT).' days', strtotime(date('Y-m-d'))));
+    $fecha_minima_pago = date('Y-m-d', strtotime('-'.(DIAS_VALIDEZ_BOLETA_CENAT).' days', strtotime(date('Y-m-d'))));
     $encontrado = null;
     $res = TramitesAIniciar::where('estado', TURNO_VENCIDO)
                     ->where('bop_fec_pag', '>', $fecha_minima_pago)
@@ -1293,6 +1298,20 @@ class TramitesAInicarController extends Controller
       $this->guardarError($consulta->response, $estadoValidacion, $tramite->id);
     }
     return $consulta;
+  }
+
+  public function obtener_prorroga_cuarentena($persona){
+	  $prorroga = 0;
+	  $cuarentena = \DB::table('t_cuarentena')
+		 		->where('nro_doc',$persona->nro_doc)
+				->where('tipo_doc',$persona->tipo_doc)
+				->where('sexo',strtoupper($persona->sexo))
+				->where('nacionalidad',$persona->nacionalidad)
+				->count();
+	  if($cuarentena){
+	  	$prorroga = DIAS_PRORROGA_CUARENTENA;
+	  }
+	  return $prorroga;
   }
 
 }
