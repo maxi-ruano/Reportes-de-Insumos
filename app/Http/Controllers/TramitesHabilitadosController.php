@@ -149,6 +149,7 @@ class TramitesHabilitadosController extends Controller
 
                 $tipo_doc   = $request->tipo_doc;
                 $nro_doc    = strtoupper($request->nro_doc);
+		$sexo 	    = $request->sexo;
                 $pais       = $request->pais;
                 $fecha      = $request->fecha;
                 $motivo_id  = $request->motivo_id;
@@ -167,14 +168,14 @@ class TramitesHabilitadosController extends Controller
                                                 ->where('deleted',false)
                                                 ->count();
                 if($existe){
-                    Flash::error('El Documento Nro. '.$nro_doc.' tiene un turno asignado para el día '.$fecha.' por tramites habilitados');
+                    flash('El Documento Nro. '.$nro_doc.' tiene un turno asignado para el día '.$fecha.' por tramites habilitados')->error()->important();
                     return back();
                 }
                 //Validar si tiene turno en sigeci si el motivo es diferente de ERROR EN TURNO
                 if($motivo_id != '13'){
                     $existeturno = $this->existeTurnoSigeci($tipo_doc, $nro_doc, $fecha);
                     if($existeturno){
-                        Flash::error('El Documento Nro. '.$nro_doc.' tiene un turno por SIGECI para el día '.$fecha);
+                        flash('El Documento Nro. '.$nro_doc.' tiene un turno por SIGECI para el día '.$fecha)->warning()->important();
                         return back();
                     }
                 }
@@ -183,10 +184,20 @@ class TramitesHabilitadosController extends Controller
                 if($motivo_id != '14'){
                     $tramite = $this->existeTramiteEnCurso($tipo_doc, $nro_doc, $pais, $fecha);
                     if($tramite){
-                        Flash::error('El Documento Nro. '.$nro_doc.' tiene un turno iniciado en LICTA '.$tramite->tramite_id.' Por favor agregar por REINICIA TRAMITE');
+                        flash('El Documento Nro. '.$nro_doc.' tiene un turno iniciado en LICTA '.$tramite->tramite_id.' Por favor agregar por REINICIA TRAMITE')->warning()->important();
                         return back();
                     }
                 }
+		
+		//Validar motivo CUARENTENA exista en la tabla t_cuarentena
+                if($motivo_id == '28'){
+                    $existe = $this->existePersonaEnCuarentena($tipo_doc, $nro_doc, $sexo, $pais);
+                    if(!$existe){
+			flash('El Documento Nro. '.$nro_doc.' no se encuentra habilitado para ingresar como CUARENTENA.')->warning()->important();
+			return back();
+                    }
+                }
+
 
                 //Si no existe ninguna restriccion entonces creamos el registro
                 $tramiteshabilitados = new TramitesHabilitados();
@@ -195,7 +206,7 @@ class TramitesHabilitadosController extends Controller
                 $tramiteshabilitados->nombre        = strtoupper($request->nombre);
                 $tramiteshabilitados->tipo_doc      = $tipo_doc;
                 $tramiteshabilitados->nro_doc       = $nro_doc;
-                $tramiteshabilitados->sexo          = $request->sexo;
+                $tramiteshabilitados->sexo          = $sexo;
                 $tramiteshabilitados->fecha_nacimiento     = $request->fecha_nacimiento;
                 $tramiteshabilitados->pais          = $pais;
                 $tramiteshabilitados->user_id       = $request->user_id;
@@ -566,6 +577,15 @@ class TramitesHabilitadosController extends Controller
                         ->first();
         return $tramite;
     }
+    public function existePersonaEnCuarentena($tipo_doc, $nro_doc, $sexo, $pais){
+	$cuarentena = \DB::table('t_cuarentena')
+                        ->where("tipo_doc",$tipo_doc)
+                        ->where("nro_doc",$nro_doc)
+                        ->where("sexo",strtoupper($sexo))
+			->where("pais",$pais)
+			->count();
+	return $cuarentena;
+    } 
     public function calcularFecha(){
         $dia_semana = date('w');
         //Si es Jueves o viernes sumar 5, por incluir fin de semana, de lo contrario sumar 3
