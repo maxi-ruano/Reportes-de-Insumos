@@ -107,9 +107,8 @@
 
     <script>  
       $(document).ready(function(){
-        setTimeout(function() {
-          $('div.alert').fadeOut('fast');
-        }, 5000); // <-- time in milliseconds
+	//timeout Flash Message
+	$('div.alert').not('.alert-important').delay(3000).fadeOut(350);
       });
     </script>
   
