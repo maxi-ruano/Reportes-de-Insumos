@@ -1,13 +1,21 @@
 @extends('layouts.templeate')
 @section('content')
-<!-- page content -->
 
-@include('safit.botoneraPrecheck')
-<div class="row">
+ <div class="wrapper-inner-tab-backgrounds-b">
+    <div class="wrapper-inner-tab-backgrounds-first">
+        <a target="_blank" href="{{ url('checkPreCheck') }}"><div class="sim-button-b button30"><span>PRECHECK</span></div></a>
+    </div>
+
+    <div class="wrapper-inner-tab-backgrounds-second">
+        <a target="_blank" href="{{ url('buscarBoletaPagoPersona') }}"><div class="sim-button-b button30"><span>Consultar CENAT</span></div></a>
+    </div>
+ </div>
+
+ <div class="row">
   <div class="col-md-12 col-sm-12 col-xs-12">
     <div class="x_panel">
       <div class="x_title">
-          <h2>Revisar Pre-Check</h2>
+          <h2>Pre-Check</h2>
           <div class="clearfix"></div>
       </div>
       <div class="x_content">
@@ -16,7 +24,7 @@
               <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">Numero Documento<span class="required">*</span>
               </label>
               <div class="col-md-6 col-sm-6 col-xs-12">
-                <input id="nro_doc" type="text" class="form-control" name="nro_doc" maxlength="10" aria-describedby="NumeroDeDocumento" placeholder="Ejem ... 54468798">
+                <input id="nro_doc" type="text" class="form-control" name="nro_doc" maxlength="10"  placeholder="Ingrese número de documento">
               </div>
             </div>
 
@@ -50,20 +58,13 @@
       </div>
     </div>
   </div>
-</div>
-@include('safit.resultCheckModoAutonomo')
-<!-- /page content -->
+ </div>
+ @include('safit.resultCheckModoAutonomo')
+
 @endsection
 
 @push('scripts')
-  <script src="{{ asset('vendors/jquery/dist/jquery.min.js')}}"></script>
-  <!-- Bootstrap -->
-  <script src="{{ asset('vendors/bootstrap/dist/js/bootstrap.min.js')}}"></script>
-  <script>
-    function validaciones(){
-      return true
-    }
-
+  <script type="text/javascript">
     function limpiarCampos(){
       $('#nombre_texto').html("");
       $('#documento_texto').html("");
@@ -124,12 +125,11 @@
         $('#buscarTramite').click();
       }
     });
-    
   </script>
 
   <script src="{{ asset('vendors/validator/validator.js')}}"></script>
 @endpush
 
 @section('css')
-<link href="{{ asset('css/precheck.css') }}" rel="stylesheet">
+  <link href="{{ asset('css/precheck.css') }}" rel="stylesheet">
 @endsection

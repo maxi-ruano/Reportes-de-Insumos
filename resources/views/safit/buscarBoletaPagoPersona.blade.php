@@ -1,13 +1,23 @@
-@extends('layouts.templeate')
+@extends('layouts.app')
 @section('content')
 <!-- page content -->
+<div class="container">
+ 
+ <div class="wrapper-inner-tab-backgrounds-b">
+    <div class="wrapper-inner-tab-backgrounds-first">
+        <a target="_blank" href="{{ url('buscarBoletaPagoPersona') }}"><div class="sim-button-b button30"><span> Consultar CENAT </span></div></a>
+    </div>
 
-@include('safit.botoneraPrecheck')
-<div class="row">
+    <div class="wrapper-inner-tab-backgrounds-second">
+        <a target="_blank" href="{{ url('checkPreCheck') }}"><div class="sim-button-b button30"><span> PRECHECK </span></div></a>
+    </div>
+ </div>
+
+ <div class="row">
   <div class="col-md-12 col-sm-12 col-xs-12">
     <div class="x_panel">
         <div class="x_title">
-          <h2>Verificar BOLETAS CENAT</h2>
+          <h3>Consultar CENAT</h3>
           <div class="clearfix"></div>
         </div>
       <div class="x_content">
@@ -99,8 +109,8 @@
       </div>
     </div>
   </div>
+ </div>
 </div>
-
 <!-- /page content -->
 @endsection
 

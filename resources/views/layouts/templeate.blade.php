@@ -28,25 +28,11 @@
   <body class="nav-sm">
     <div class="container body">
       <div class="main_container">
-        <div class="col-md-3 left_col">
-          <div class="left_col scroll-view">
-            <div class="navbar nav_title" style="border: 0;">
-              <a href="{{ route('home') }}" class="site_title"><i class="fa fa-folder"></i> <span class="appclr">Licta</span></a>
-            </div>
-            <div class="clearfix"></div>
-            <!-- menu profile quick info -->
-              @include('includes.menuProfile')
-            <!-- /menu profile quick info -->
-            <br />
-            <!-- sidebar menu -->
-               @include('includes.slidebar')
-            <!-- /sidebar menu -->
-          </div>
-        </div>
         <!-- top navigation -->
-          @include('includes.header')
+        @include('includes.header')
         <!-- /top navigation -->
-        <!-- page content -->
+	
+	<!-- page content -->
         <div class="right_col" role="main">
           <div class="page-title">
             <div class="title_left">
@@ -65,7 +51,7 @@
             </div>
           </div>
           <div class="clearfix"></div>
-            @if(isset($errors))
+          @if(isset($errors))
               @if(count($errors)>0)
                 <div class="alert alert-danger">Errores
                   <ul>
@@ -75,12 +61,12 @@
                   </ul>
                 </div>
               @endif
-            @endif
+          @endif
             
-            @include('flash::message')
-            @yield('content')
-            @include('includes.modal')
-          </div>
+          @include('flash::message')
+          @yield('content')
+          @include('includes.modal')
+        </div>
         <!-- /page content -->
 
         <!-- footer content -->
@@ -105,7 +91,7 @@
     <!-- Custom Theme Scripts -->
     <script src="{{ asset('build/js/custom.min.js')}}"></script>
 
-    <script>  
+    <script type="text/javascript">  
       $(document).ready(function(){
 	//timeout Flash Message
 	$('div.alert').not('.alert-important').delay(3000).fadeOut(350);

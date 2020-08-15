@@ -66,7 +66,7 @@ Route::get('generarCenatPrecheck','TramitesAInicarController@generarCenatPrechec
 //end PRECHECK
 
 //SAFIT
-Route::get('buscarBoletaPago', 'TramitesAInicarController@buscarBoletaPago');
+//Route::get('buscarBoletaPago', 'TramitesAInicarController@buscarBoletaPago');
 Route::post('consultarCenat',['uses' => 'TramitesAInicarController@consultarCenat','as' => 'consultarCenat']);
 Route::post('generarCenat', ['uses' => 'TramitesAInicarController@generarCenat','as' => 'generarCenat']);
 Route::get('checkPreCheck', ['uses' => 'PreCheckController@checkPreCheck','as' => 'checkPreCheck']);
