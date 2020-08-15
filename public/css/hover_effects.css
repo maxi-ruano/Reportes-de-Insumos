@@ -127,13 +127,13 @@ body {
 .wrapper-inner-tab-backgrounds-first{
 	float: left;
 	height: 80px;
-	width: 33.33%;
+	width: 50%;
 	background-color: #feb41d;
 }
 .wrapper-inner-tab-backgrounds-second{
 	float: left;
 	height: 80px;
-	width: 33.33%;
+	width: 50%;
 	background-color: #5e7c87;
 }
 .wrapper-inner-tab-backgrounds-third{
