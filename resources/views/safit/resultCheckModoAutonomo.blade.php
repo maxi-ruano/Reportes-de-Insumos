@@ -292,7 +292,7 @@
             }
           }else{
             $('#logTurno').append("(*) <span class='red'> Debe verificar "+precheck.description+" </span> <br>");
-            $("#btn_precheck_"+precheck.validation_id).click();
+	    //$("#btn_precheck_"+precheck.validation_id).click();
           }  
         }
       }
@@ -343,7 +343,7 @@
         $('#logPreCheck').html('<img src="'+img+'" width="200" > Verificando... ');
       },
       success: function( msg ) {
-        //console.log(msg);
+        console.log(msg);
         getPreCheck(id);
       },
       error: function(xhr, status, error) {

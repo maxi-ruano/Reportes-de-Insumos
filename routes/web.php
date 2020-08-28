@@ -30,6 +30,7 @@ Route::group( ['middleware' => ['auth']], function() {
   Route::get('consultarUltimoTurno', 'TramitesHabilitadosController@consultarUltimoTurno');
   Route::get('consultarTurnoSigeci', 'TramitesHabilitadosController@consultarTurnoSigeci');
   Route::get('consultarTramite', 'TramitesController@consultarTramite');
+  Route::get('consultarUniversoReimpresion', 'TramitesHabilitadosController@consultarUniversoReimpresion');
   
   //TRAMITES HABILITADOS MOTIVOS
   Route::resource('tramitesHabilitadosMotivos','TramitesHabilitadosMotivosController');

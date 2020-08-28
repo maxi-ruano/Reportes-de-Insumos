@@ -41,7 +41,7 @@ class TramitesAInicarController extends Controller
 
   //BUI
   private $motivoTurnoEnElDia = '25';
-  private $conceptoBui = [["07.02.28"], ["07.02.31"], ["07.02.32"], ["07.02.33"], ["07.02.34"], ["07.02.35"]];
+  private $motivoReimpresion  = '29'; 
   private $userBui;
   private $passwordBui;
   private $urlVerificacionBui;
@@ -150,14 +150,19 @@ class TramitesAInicarController extends Controller
     return true;
   }
 
-  //Cambiar el concepto de BUI solo si motivo es TURNO EN EL DIA
-  public function esTurnoEnElDia($tramite) {
-    $existe = TramitesHabilitados::where('tramites_a_iniciar_id',$tramite->id)->where('motivo_id', $this->motivoTurnoEnElDia)->count();
-    if($existe){
-      $this->conceptoBui = [["07.02.30"]];
-      return true;
+  //Cambiar el concepto de BUI solo si motivo es TURNO EN EL DIA o REIMPRESION
+  public function obtenerConceptosBui($tramite) {
+    $turno = TramitesHabilitados::where('tramites_a_iniciar_id',$tramite->id)->where('deleted', false)->orderby('id','DESC')->first();
+    $motivo = isset($turno->motivo_id)?$turno->motivo_id:'';
+    switch ($motivo) {
+	case $this->motivoTurnoEnElDia:
+      		$conceptos = [["07.02.30"]];
+	case $this->motivoReimpresion:
+		$conceptos = [["07.02.48"]];
+	default:
+		$conceptos = [["07.02.28"], ["07.02.31"], ["07.02.32"], ["07.02.33"], ["07.02.34"], ["07.02.35"]];
     }
-    return false;
+    return $conceptos;
   }
 
   public function existeTramiteAIniciarConPrecheck($nro_doc, $tipo_doc, $sexo, $nacionalidad){
@@ -585,9 +590,9 @@ class TramitesAInicarController extends Controller
   }
 
   public function gestionarBui($tramite, $estadoValidacion, $siguienteEstado){
-    $verificar = $this->esTurnoEnElDia($tramite);
+    $conceptos = $this->obtenerConceptosBui($tramite);
     $error = 'ninguno';
-      foreach ($this->conceptoBui as $key => $value) {
+      foreach ($conceptos as $key => $value) {
         $res = $this->verificarBui($tramite, $value);
         if( !empty($res['error']) ){
           if($res['error'] != $error){
