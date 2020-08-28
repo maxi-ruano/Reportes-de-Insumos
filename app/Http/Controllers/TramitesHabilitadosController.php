@@ -459,7 +459,7 @@ class TramitesHabilitadosController extends Controller
         $consulta =  \DB::table("universo_reimpresiones_v")
 			->where('tipo_doc',$request->tipo_doc)
 			->where('nro_doc',$request->nro_doc)
-			->where('sexo',$request->sexo)
+			->where('sexo','ilike',$request->sexo)
 			->where('pais',$request->pais)
 			->get();
 	foreach ($consulta as $row){
