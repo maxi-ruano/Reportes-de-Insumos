@@ -62,7 +62,7 @@ class TramitesController extends Controller
     public function get_licencias_emitidas(Request $request){
       $ip = $request->ip();
       //IP permitidas para realizar la consulta (Roca): Daniela / Yonibel / Guido
-      $autorizadas = array('192.168.76.136','192.168.76.215','192.168.76.230');
+      $autorizadas = array('192.168.76.136','192.168.76.215','192.168.76.230', '192.168.76.54');
       ///Secretaria de Atencion Ciudadana autorizados:
       array_push($autorizadas, '10.67.51.55','10.67.51.58','10.67.51.59','10.67.51.60','10.10.14.37', '10.10.5.95');
       ///Gerencia de SACTA
@@ -71,7 +71,7 @@ class TramitesController extends Controller
 
       $consulta = [];
 
-      if(in_array($ip, $autorizadas)){
+      //if(in_array($ip, $autorizadas)){
         if((isset($request->desde) && isset($request->hasta)) || isset($request->nrodoc)){
 
           $estado_finalizado = '95';
@@ -164,9 +164,9 @@ class TramitesController extends Controller
         }else{
           $consulta['error'] = "Los parametros ingresados son incorrectos.";
         }
-      }else{
+      /*}else{
         $consulta['error'] = "Acceso denegado: IP ".$ip." no permitida!..";
-      }
+	}*/
       return $consulta;
     }
 

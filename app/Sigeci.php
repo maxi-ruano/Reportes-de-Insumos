@@ -13,14 +13,15 @@ class Sigeci extends Model
   public $timestamps = false;                         
 
   public function getMetadata(){
-    $cadena = str_replace('\\\"', '', $this->metadata);
-    $cadena = str_replace("\u00e1", "á", $cadena);
-    $cadena = str_replace("\u00e9", "é", $cadena);
-    $cadena = str_replace("\u00ed", "í", $cadena);
-    $cadena = str_replace("\u00f3", "ó", $cadena);
-    $cadena = str_replace("\u00fa", "ú", $cadena);
-    $cadena = str_replace("\\u00f1", "ñ", $cadena);
+    $cadena = $this->metadata;
+    $cadena = str_replace("\\\u00e1", "á", $cadena);
+    $cadena = str_replace("\\\u00e9", "é", $cadena);
+    $cadena = str_replace("\\\u00ed", "í", $cadena);
+    $cadena = str_replace("\\\u00f3", "ó", $cadena);
+    $cadena = str_replace("\\\u00fa", "ú", $cadena);
+    $cadena = str_replace("\\\u00f1", "ñ", $cadena);
     $array = json_decode($cadena);
+    //var_dump($this->metadata.'   IDCITA: '.$this->idcita.' cadena: '.$cadena); die();
     return $array;
   }
 
