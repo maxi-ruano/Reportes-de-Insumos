@@ -21,6 +21,7 @@ use App\EmisionBoletaSafit;
 use App\ValidacionesPrecheck;
 use App\TramitesHabilitados;
 use App\CharlaVirtual;
+use App\Http\Controllers\UserController;
 
 class TramitesAInicarController extends Controller
 {
@@ -393,6 +394,35 @@ class TramitesAInicarController extends Controller
     $LibreDeudaLns->save();
   }
 
+  //API expuesta para se use desde LICTA - por problemas de permiso al servidor 
+  public function api_getLibreDeuda(Request $request){
+  	
+	if( isset($request->nrodoc) && isset($request->tipodoc) && isset($request->nu) && isset($request->pu) )
+	{
+	    $username = $request->nu;
+	    $password = $request->pu;
+
+	    $userdb = new UserController();
+	    if($userdb->validateCredentialsLICTA($username, $password))
+	    {	
+	    	$params = "method=getLibreDeuda".
+             	  	"&tipoDoc=".$request->tipodoc.
+             	  	"&numeroDoc=".$request->nrodoc.
+             	  	"&userName=".$this->userLibreDeuda.
+             	  	"&userPass=".$this->passwordLibreDeuda;
+    	    	$dargs	  = array("ssl"=>array("verify_peer"=>false,"verify_peer_name"=>false));
+      	    	$response = file_get_contents($this->urlLibreDeuda.$params, false, stream_context_create($dargs));
+	    	$wsresult = array( 'error'=> false, 'message' => 'Acceso verificado', 'response' => array($response));
+
+	    }else{
+		$wsresult = array( 'error'=> true, 'message' => 'Acceso denegado por credenciales incorrectas.');
+	    }
+	}else{
+		$wsresult = array( 'error'=> true, 'message' => 'Los parametros ingresados son incorrectos.');
+	}
+	
+	return $wsresult;
+  }
 
   /**
   * MicroservicioController: 3) Metodos asociados para completarBoletasEnTramitesAIniciar
