@@ -417,7 +417,7 @@ class TramitesAInicarController extends Controller
 			 $wsresult = array( 'error'=> true, 'message' => 'Error de conexion con el WS');
 		}else{
 			$p = xml_parser_create();
-      			xml_parse_into_struct($p, $wsresult, $vals, $index);
+      			xml_parse_into_struct($p, $response, $vals, $index);
       			xml_parser_free($p);
       			$json = json_encode($vals);
       			$info = json_decode($json,TRUE);
