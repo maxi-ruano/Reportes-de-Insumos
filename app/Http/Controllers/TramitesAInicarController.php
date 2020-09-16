@@ -412,8 +412,18 @@ class TramitesAInicarController extends Controller
              	  	"&userPass=".$this->passwordLibreDeuda;
     	    	$dargs	  = array("ssl"=>array("verify_peer"=>false,"verify_peer_name"=>false));
       	    	$response = file_get_contents($this->urlLibreDeuda.$params, false, stream_context_create($dargs));
-	    	$wsresult = array( 'error'=> false, 'message' => 'Acceso verificado', 'response' => array($response));
 
+		if($response == false){
+			 $wsresult = array( 'error'=> true, 'message' => 'Error de conexion con el WS');
+		}else{
+			$p = xml_parser_create();
+      			xml_parse_into_struct($p, $wsresult, $vals, $index);
+      			xml_parser_free($p);
+      			$json = json_encode($vals);
+      			$info = json_decode($json,TRUE);
+
+	    		$wsresult = array( 'error'=> false, 'message' => 'Acceso verificado', 'response' => $info);
+		}
 	    }else{
 		$wsresult = array( 'error'=> true, 'message' => 'Acceso denegado por credenciales incorrectas.');
 	    }
