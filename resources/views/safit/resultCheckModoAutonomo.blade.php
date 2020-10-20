@@ -160,22 +160,48 @@
     var updated = new Date(precheck.updated_at).toISOString().slice(0,10);
   
       if(precheck.validado){
-          error = 'Verificado';
+          error = '';
           type = 'success';
-          verificado = true;
+	  verificado = true;
 
-          if(precheck.description == 'LIBRE DEUDA'){
-            precheck_libredeuda = true;
-          }
+	  switch (precheck.description){
+                case 'LIBRE DEUDA':
+		     	precheck_libredeuda = true;
+		     	info = (precheck.comprobante)?'Comprobante Nro. <span class="red">'+precheck.comprobante+' </span> <br>'+precheck.updated_at : '';
+                        break;
+                case 'BUI':
+                        info = (precheck.boleta)? 'Boleta Nro. <span class="red">'+precheck.boleta.nro_boleta+'</span> Importe <span class="red"> $ '+precheck.boleta.importe_total+'</span> Fecha de pago <span class="green"> '+precheck.boleta.fecha_pago+'</span>' : '';
+                        break;
+                case 'EMISION BOLETA SAFIT':
+                         info = (precheck.comprobante)?'Boleta Nro. <span class="red">'+precheck.comprobante+'</span> Importe <span class="red">$'+tramite.bop_monto+'</span> Código <span class="red" style="font-size:10px;">'+tramite.bop_cb+'</span> Fecha de pago <span class="green">'+tramite.bop_fec_pag+'</span>':'';
+                        break;
+		case 'CHARLA VIRTUAL':
+			var aprobado = '';
+			var texto = '';
+			var vencimiento = '';
 
-          if(precheck.description == 'BUI'){
-            info = (precheck.boleta) ? ' Boleta Nro. <span class="red">' + precheck.boleta.nro_boleta + '</span> Importe <span class="red"> $ ' + precheck.boleta.importe_total + '</span> Fecha de pago <span class="green"> ' + precheck.boleta.fecha_pago + '</span>' : '';
-          }else{
-            if(precheck.description == 'EMISION BOLETA SAFIT'){
-              info = (precheck.comprobante) ? ' Boleta Nro. <span class="red">' + precheck.comprobante + '</span> Importe <span class="red"> $ ' + tramite.bop_monto + '</span> Código <span class="red" style="font-size:10px;"> ' + tramite.bop_cb + '</span>'  + ' Fecha de pago <span class="green"> ' + tramite.bop_fec_pag + '</span>' : '';
-            }else {
-              info = (precheck.comprobante) ? 'Comprobante Nro. <span class="red">' + precheck.comprobante + ' </span> <br>' + precheck.updated_at : '';
-            }
+			if(precheck.charla){
+			   if(precheck.charla.aprobado){
+				type = 'success';
+				aprobado = 'Si';
+				if(precheck.charla.fecha_vencimiento < tramite.fecha_turno){
+					type = 'warning';
+					texto = '<span class="red"> <b>SE ENCUENTRA VENCIDA </b></span> <br>';
+				}
+				vencimiento = '<br> Vence: <span class="green">'+precheck.charla.fecha_vencimiento_txt+'</span>';
+			   }else{
+				type = 'danger';
+				aprobado = 'No';
+			   }
+
+			   info = texto+' Código: <span class="red">' + precheck.charla.codigo+'</span>  Aprobado:<b class="red">'+aprobado+'</b> <i class= "fa fa-check-circle fa-lg" style="color:green"></i> <br> Categoria: <span class="red"> '+precheck.charla.categoria+'</span> '+vencimiento;
+			}else{
+				info = 'No se encontró la Charla';
+				type = 'danger';
+			}
+                        break;
+                default:
+                         info = (precheck.comprobante)?'Comprobante Nro. <span class="red">'+precheck.comprobante+'</span><br>'+precheck.updated_at:'';
           }
 
       }else{
@@ -232,9 +258,13 @@
       if(tramite.tramite_dgevyl_id == null && precheck.description != 'SINALIC' && type != 'success' ){
           precheckOnclick = 'onclick="runPrecheck('+precheck.tramite_a_iniciar_id+','+precheck.validation_id+')" ';
       }
-
+	
+      var mostrar = '';
+      if( precheck.description == 'SINALIC' && error == 'No verificado' ){
+      	mostrar = ' style="display:none;" ';
+      }
       //Boton del Log Prec-Check con su descripcion y fecha de ejecucion o Nro. Comrpobante
-      html = '<li>'+
+      html = '<li '+mostrar+'>'+
           '<div class="block_precheck">'+
           '<div class="tags_precheck">'+
               '<a id="btn_precheck_'+precheck.validation_id+'" '+precheckOnclick+' class="btn btn-'+type+' btn-xs btn-block">'+

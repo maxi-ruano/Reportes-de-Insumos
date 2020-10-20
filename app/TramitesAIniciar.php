@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use App\SigeciPrestacion;
 use App\SysMultivalue;
 use App\TramitesHabilitados;
+use App\Sigeci;
+
 class TramitesAIniciar extends Model
 {
   protected $table = 'tramites_a_iniciar';
@@ -55,8 +57,18 @@ class TramitesAIniciar extends Model
         return $motivo->description;
     else
         return "";  
-}
-
+  }
+ 
+  public function fechaTurno(){
+	  $fecha_sigeci = null;
+	  if($this->sigeci_idcita){
+	  	$fecha_sigeci = Sigeci::find($this->sigeci_idcita)->fecha;
+	  }
+	  $fecha_th = TramitesHabilitados::where('tramites_a_iniciar_id',$this->id)->orderby('id','DESC')->first()->fecha;
+	  
+	  $fecha = ($fecha_sigeci > $fecha_th)? $fecha_sigeci : $fecha_th;
+	  return $fecha;
+  }
 
   public function sigeci(){
      return $this->hasOne('App\Sigeci','tramite_a_iniciar_id','id');

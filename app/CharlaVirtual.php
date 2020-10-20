@@ -8,10 +8,17 @@ class CharlaVirtual extends Model
 {
     protected $table = 'charla_virtual';
     protected $fillable = ['id',
-             'tramites_a_iniciar_id',
-             'nro_doc',
-             'fecha_charla',
+             'codigo',
+	     'nro_doc',
+	     'apellido',
+	     'nombre',
+	     'sexo',
+	     'email',
+	     'fecha_nacimiento',
+	     'fecha_charla',
+	     'fecha_aprobado',
              'fecha_vencimiento',
-             'aprobado',
+	     'aprobado',
+	     'categoria',
              'response_ws'];
 }

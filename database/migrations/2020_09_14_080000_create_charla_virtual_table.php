@@ -14,13 +14,20 @@ class CreateCharlaVirtualTable extends Migration
     public function up()
     {
         Schema::create('charla_virtual', function (Blueprint $table) {
-            $table->increments('id');
-            $table->integer('tramites_a_iniciar_id');
-            $table->string('nro_doc',10);
-            $table->date('fecha_charla');
-            $table->date('fecha_vencimiento');
-            $table->boolean('aprobado')->nullable();
-            $table->text('response_ws')->nullable();
+	    $table->increments('id');
+	    $table->string('codigo')->unique();
+	    $table->string('nro_doc',10);
+	    $table->string('apellido');
+	    $table->string('nombre');
+	    $table->string('sexo');
+	    $table->string('email');
+	    $table->boolean('aprobado');
+	    $table->date('fecha_nacimiento')->nullable();
+	    $table->date('fecha_charla')->required();
+	    $table->date('fecha_aprobado')->nullable();
+	    $table->date('fecha_vencimiento')->nullable();
+	    $table->string('categoria');
+            $table->text('response_ws');
             $table->timestamps();
         });
     }

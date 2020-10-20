@@ -93,19 +93,19 @@ class MicroservicioController extends Controller
       $precheck='';
       
       switch ($request->validation) {
-        case 3: //SAFIT
+        case EMISION_BOLETA_SAFIT:
           if($tramitesAIniciar->buscarBoletaSafit($tramite, SAFIT))
             $precheck = $tramitesAIniciar->gestionarBoletaSafit($tramite, EMISION_BOLETA_SAFIT, VALIDACIONES);
           else
             $precheck = 'No se encontro la Boleta Safit';
         break;
-        case 4: //LIBRE DEUDA
+        case LIBRE_DEUDA:
           $precheck = $tramitesAIniciar->gestionarLibreDeuda($tramite, LIBRE_DEUDA, VALIDACIONES);
         break;
-        case 5: //BUI
+        case BUI:
           $precheck = $tramitesAIniciar->gestionarBui($tramite, BUI, VALIDACIONES);
         break;
-        case 6: //CHARLA_VIRTUAL
+        case CHARLA_VIRTUAL:
           $precheck = $tramitesAIniciar->getCharlaVirtual($tramite, CHARLA_VIRTUAL);
         break;
         default:

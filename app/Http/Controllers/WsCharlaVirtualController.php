@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\CharlaVirtual;
 
 class WsCharlaVirtualController extends Controller
 {
@@ -26,12 +27,20 @@ class WsCharlaVirtualController extends Controller
         $response = '';
         try {
             
-            $request = $this->url."?dni=".$tramite->nro_doc."&sexo=".strtolower($tramite->sexo);
-            $response = file_get_contents($request, false);
+	    $request 	= $this->url."/documento/".$tramite->nro_doc."/genero/".strtolower($tramite->sexo);
+	    $json 	= file_get_contents($request, false);
+	    $response 	= json_decode($json);
 
-            $success = $response->encontrado;
-            $message = isset($response->descripcion)?$response->descripcion:'';
-
+	    if($response->error->err == true){
+		$message = $response->error->message;
+	    }else{
+		if($response->codigo != null && $response->codigo != '' && $response->codigo != '0' ){    
+			$success = $response->encontrado;
+            		$message = isset($response->mensaje)?$response->mensaje:'';
+		}else{
+			$message = 'Código incorrecto: La charla no fue finalizada o aprobada con exito';
+		}
+	    }
         }catch(\Exception $e) {
             $message = $e->getMessage();
         }
@@ -39,9 +48,34 @@ class WsCharlaVirtualController extends Controller
         $salida = array(
             'success' => $success,
             'error' => $message,
-            'request' => parse_url($request), 
+            'request' => parse_url($request),
             'response' => $response 
         );
-        return (object) $salida;
+	return (object) $salida;
     }
+
+    public function guardar($charla)
+    {
+	    $codigo = trim($charla->codigo);   
+	    $existe = CharlaVirtual::where('codigo', $codigo)->count();
+	    if(!$existe){
+		CharlaVirtual::create([  
+			'codigo' 		=> $codigo,
+			'nro_doc' 		=> $charla->documento,
+			'apellido'		=> $charla->apellido,
+			'nombre'		=> $charla->nombre,
+			'sexo' 			=> $charla->genero,
+			'email'			=> $charla->email,
+			'aprobado'		=> $charla->aprobado,
+			'fecha_nacimiento'	=> $charla->fechaNacimiento,
+			'fecha_charla'		=> $charla->fechaIngreso,
+			'fecha_aprobado'	=> $charla->fechaAprobado,
+			'fecha_vencimiento'	=> $charla->fechaVencimiento,
+			'categoria'		=> $charla->categoria,
+			'response_ws'		=> json_encode($charla)
+		]);
+	    }
+	 return $codigo;
+    }
+ 
 }

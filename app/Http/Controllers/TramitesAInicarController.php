@@ -20,7 +20,6 @@ use App\AnsvCelExpedidor;
 use App\EmisionBoletaSafit;
 use App\ValidacionesPrecheck;
 use App\TramitesHabilitados;
-use App\CharlaVirtual;
 
 class TramitesAInicarController extends Controller
 {
@@ -728,8 +727,7 @@ class TramitesAInicarController extends Controller
   }
 
   public function validacionesTerminadas($id){
-      $res = ValidacionesPrecheck::where("tramite_a_iniciar_id", $id)->whereNotIn('validation_id',[SINALIC])->get();
-      //$res = ValidacionesPrecheck::where("tramite_a_iniciar_id", $id)->whereNotIn('validation_id',[SINALIC,CHARLA_VIRTUAL])->get();
+      $res = ValidacionesPrecheck::where("tramite_a_iniciar_id", $id)->whereNotIn('validation_id',[SINALIC,CHARLA_VIRTUAL])->get();
       foreach($res as $key => $validacion)
         if (!$validacion->validado)
           return false;
@@ -1291,13 +1289,12 @@ class TramitesAInicarController extends Controller
 
     $WsCharlaVirtual = new WsCharlaVirtualController();
     $consulta = $WsCharlaVirtual->consultar($tramite);
-
     if($consulta->success){
-
+	$codigo = $WsCharlaVirtual->guardar($consulta->response);
+	$this->guardarValidacion($tramite, true, $estadoValidacion, $codigo);
     }else {
-      $this->guardarError($consulta->response, $estadoValidacion, $tramite->id);
+      $this->guardarError($consulta, $estadoValidacion, $tramite->id);
     }
-    return $consulta;
   }
 
   public function obtener_prorroga_cuarentena($persona){
