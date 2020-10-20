@@ -20,7 +20,6 @@ use App\AnsvCelExpedidor;
 use App\EmisionBoletaSafit;
 use App\ValidacionesPrecheck;
 use App\TramitesHabilitados;
-use App\CharlaVirtual;
 use App\Http\Controllers\UserController;
 
 class TramitesAInicarController extends Controller
