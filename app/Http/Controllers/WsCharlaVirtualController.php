@@ -15,8 +15,6 @@ class WsCharlaVirtualController extends Controller
     public function __construct(){
       $this->crearConstantes();
       $this->url = CharlaVirtualWS_ws_url;
-      $this->userName = CharlaVirtualWS_userName;
-      $this->userPassword = CharlaVirtualWS_userPass;
       $this->wsEnabled = CharlaVirtualWS_enabled;
     }
 
@@ -34,11 +32,15 @@ class WsCharlaVirtualController extends Controller
 	    if($response->error->err == true){
 		$message = $response->error->message;
 	    }else{
-		if($response->codigo != null && $response->codigo != '' && $response->codigo != '0' ){    
-			$success = $response->encontrado;
-            		$message = isset($response->mensaje)?$response->mensaje:'';
-		}else{
+		    
+		$message = isset($response->mensaje)?$response->mensaje:'';    
+		
+		if($response->encontrado){    
+		    if($response->codigo != null && $response->codigo != '' && $response->codigo != '0' ){    
+			$success = true;
+		    }else{
 			$message = 'Código incorrecto: La charla no fue finalizada o aprobada con exito';
+		    }
 		}
 	    }
         }catch(\Exception $e) {
