@@ -198,6 +198,21 @@ class TramitesHabilitadosController extends Controller
                     }
                 }
 
+		//Validar motivo REIMPRESION no existe en LICTA un trámite inicado o finalizado
+		if($motivo_id == '29'){
+		  $existe = \DB::table('tramites')
+				->where('nro_doc',$nro_doc)
+				->where('tipo_doc',$tipo_doc)
+				->where('pais',$pais)
+				->where('sexo',strtolower($sexo))
+				->where('tipo_tramite_id', 1030)
+				->where('estado','<>',93)
+				->count();
+		  if($existe){
+		  	flash('El Documento Nro. '.$nro_doc.' ya tiene en LICTA un trámite como REIMPRESION.')->warning()->important();
+                        return back();	
+		  } 
+		}
 
                 //Si no existe ninguna restriccion entonces creamos el registro
                 $tramiteshabilitados = new TramitesHabilitados();
@@ -348,37 +363,7 @@ class TramitesHabilitadosController extends Controller
      */
     public function edit($id)
     {
-        /*$fecha_actual = date('Y-m-d');
-        $fecha_max = $this->calcularFecha();
-
-        $edit = TramitesHabilitados::where('tramites_habilitados.id',$id)
-                    ->selectRaw('tramites_habilitados.*, tramites_habilitados_observaciones.observacion')
-                    ->leftjoin('tramites_habilitados_observaciones','tramites_habilitados_observaciones.tramite_habilitado_id','tramites_habilitados.id')
-                    ->first();
-
-        $inicio_tramite = ($edit->tramites_a_iniciar_id)?TramitesAIniciar::find($edit->tramites_a_iniciar_id)->tramite_dgevyl_id:'';
-        //No realizar ninguna modificacion si el tramiteAIniciar inicio en Fotografia
-        if($inicio_tramite){
-            Flash::error('El Tramite ya se inicio no se puede modificar!');
-            return redirect()->route('tramitesHabilitados.index');
-        }else{
-
-            //Se cargan motivos segun el permiso asignado en roles_motivos_sel
-            $motivos = \DB::table('tramites_habilitados_motivos')->whereIn('id',$this->getRoleMotivos('role_motivos_sel'))->orderBy('description', 'asc')->pluck('description','id');
-
-            $SysMultivalue = new SysMultivalue();
-            $sucursales = $SysMultivalue->sucursales();
-            $tdocs = $SysMultivalue->tipodocs();
-            $paises = $SysMultivalue->paises();
-
-            return view($this->path.'.form')->with('edit', $edit)
-                                            ->with('fecha_actual',$fecha_actual)
-                                            ->with('fecha_max',$fecha_max)
-                                            ->with('sucursales',$sucursales)
-                                            ->with('tdocs',$tdocs)
-                                            ->with('paises',$paises)
-                                            ->with('motivos',$motivos);
-        }*/
+        //
     }
 
     /**
@@ -390,69 +375,7 @@ class TramitesHabilitadosController extends Controller
      */
     public function update(Request $request, $id)
     {
-        /*//validar nro_doc solo si es pasaporte acepte letras y numeros de lo contrario solo numeros
-        if($request->tipo_doc== '4')
-            $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/^[0-9a-zA-Z]+$/']);
-        else
-            $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^(\d+)?$)/u']);
-
-        //Validar si tiene turno en sigeci si el motivo es diferente de ERROR EN TURNO
-        if($request->motivo_id != '13'){
-            $editurno = $this->existeTurnoSigeci($request->tipo_doc, $request->nro_doc, $request->fecha);
-            if($editurno){
-                Flash::error('El Documento Nro. '.$request->nro_doc.' tiene un turno por SIGECI para el día '.$request->fecha);
-                return back();
-            }
-        }
-        //Validar si tiene turno en LICTA, si el motivo es diferente a REINICIA TRAMITE
-        if($request->motivo_id != '14'){
-            $editramite = $this->existeTramiteEnCurso($request->tipo_doc, $request->nro_doc, $request->pais, $request->fecha);
-            if($editramite){
-                Flash::error('El Documento Nro. '.$request->nro_doc.' tiene un turno iniciado en LICTA '.$editramite->tramite_id.' Por favor agregar por REINICIA TRAMITE');
-                return back();
-            }
-        }
-        //Buscar tramites habilitado, guardarmos tipo y nro de documento actual para comparar luego si fueron modificaron
-        $tramitesHabilitados = TramitesHabilitados::find($id);
-        $tipodoc = $tramitesHabilitados->tipo_doc;
-        $nrodoc = $tramitesHabilitados->nro_doc;
-        $tramitesAIniciar_id = $tramitesHabilitados->tramites_a_iniciar_id;
-
-        //Actualizar datos en TramitesHabilitados
-        $tramitesHabilitados->fill($request->except('user_id'));
-        $tramitesHabilitados->nro_doc = strtoupper($request->nro_doc);
-        $tramitesHabilitados->nombre = strtoupper($request->nombre);
-        $tramitesHabilitados->apellido = strtoupper($request->apellido);
-        $tramitesHabilitados->save();
-
-        if(isset($request->observacion))
-            $this->guardarObservacion($id, $request->observacion);
-
-        //Si existe un TramiteAIniciar asociado hacer lo siguiente
-        if($tramitesAIniciar_id){
-            //Si se modifico el Tipo o Nro de Documento se anula el tramiteAiniciar asociado y se crea uno nuevo
-            if( ($tipodoc != $tramitesHabilitados->tipo_doc) || ($nrodoc != $tramitesHabilitados->nro_doc)){
-                TramitesAIniciar::where('id',$tramitesAIniciar_id)
-                    ->whereNull('tramite_dgevyl_id')
-                    ->update(['estado'=> TURNO_VENCIDO]);
-                //Crear un nuevo tramitesAIniciar y procesar el Precheck
-                ProcessPrecheck::dispatch($tramitesHabilitados);
-            }else{
-                //De lo contrario se modifica en TramitesAIniciar los datos
-                $nacionalidad = AnsvPaises::where('id_dgevyl', $request->pais)->first()->id_ansv;
-                $tramiesAIniciar = TramitesAIniciar::find($tramitesAIniciar_id);
-                $tramiesAIniciar->nombre = strtoupper($request->nombre);
-                $tramiesAIniciar->apellido = strtoupper($request->apellido);
-                $tramiesAIniciar->sexo = $request->sexo;
-                $tramiesAIniciar->fecha_nacimiento = $request->fecha_nacimiento;
-                $tramiesAIniciar->nacionalidad = $nacionalidad;
-                $tramiesAIniciar->save();
-            }
-        }
-
-        Flash::success('El Tramite se ha editado correctamente');
-        return redirect()->route('tramitesHabilitados.index');
-        */
+	//
     }
 
     /**
@@ -530,6 +453,20 @@ class TramitesHabilitadosController extends Controller
             }
         }
         return json_encode($encontrado);
+    }
+
+    public function consultarUniversoReimpresion(Request $request){
+        $consulta =  \DB::table("universo_reimpresiones_v")
+			->where('tipo_doc',$request->tipo_doc)
+			->where('nro_doc',$request->nro_doc)
+			->where('sexo','ilike',$request->sexo)
+			->where('pais',$request->pais)
+			->get();
+	foreach ($consulta as $row){
+		$row->fec_emision = date('d-m-Y', strtotime($row->fec_emision));
+		$row->fec_vencimiento = date('d-m-Y', strtotime($row->fec_vencimiento));
+	}
+        return $consulta;
     }
 
     public function consultarTurnoSigeci(Request $request){

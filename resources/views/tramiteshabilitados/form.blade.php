@@ -211,11 +211,57 @@
                             $("#ultimo_turno").html('<h4 class="red"> <i class="fa fa-user-times" style="font-size:20px;"></i> Solo se permite para este motivo el genero Femenino. </h4>');
                         }
                         break;
+		    case 'REIMPRESION':
+			validarReimpresion();
+			break;
                     default:
                         //
                 }
                 
             }
+
+	    function validarReimpresion(){
+		var tipo_doc = $("select[name=tipo_doc").val();
+		var nro_doc = $("input[name=nro_doc]").val();
+		var sexo = $("select[name=sexo]").val();
+		var pais = $("select[name=pais]").val();
+		
+		$('button[type=submit]').attr("disabled",true);
+		if(nro_doc != ''){
+		    $.ajax({
+                        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                        url: './../consultarUniversoReimpresion',
+                        data: {nro_doc:nro_doc, tipo_doc:tipo_doc, sexo:sexo, pais:pais },
+                        type: "GET", dataType: "json",
+                        success: function(data){
+			     if(data.length){
+				console.log(data[0]);
+				var v = data[0];
+				var inhabilitado = (v.inhab_desde)?true:false;
+				var info_inhab 	 = (inhabilitado)?'<b class="red">Inhabilitado</b> desde '+v.inhab_desde+' hasta '+v.inhab_hasta:' <b class="green">No se detecto ninguna inhabilitación asociada a esta persona.</b>';
+				var cod_causa 	 = (v.inhab_causa)?v.inhab_causa+'-':'';
+				var causa 	 = (inhabilitado)?'Causa: '+cod_causa+''+v.inhab_observaciones:'';
+				var rehabilitado = (inhabilitado)?'Rehabilitado: '+v.inhab_fec_rehabilitado:'';
+				var check_on  	 = '<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>';
+				var check_off 	 = '<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>';
+
+				$("#ultimo_turno").html('Información de su último trámite: <table class="table table-striped jambo_table"><tr><td>Trámite Nº '+v.tramite_id+'</td><td> Otorgamiento: '+v.fec_emision+'</td><td> Vencimiento: '+v.fec_vencimiento+'</td><td>'+check_on+'</td></tr><tr><td>'+info_inhab+'</td><td>'+causa+'</td><td>'+rehabilitado+'</td><td class="icono"></td></tr></table>');
+
+				if ( inhabilitado == false || v.inhab_rehabilitado == true){
+				    $("#ultimo_turno .icono").html(check_on);
+                               	    $('button[type=submit]').attr("disabled",false);
+				}else{
+				    $("#ultimo_turno .icono").html(check_off);
+				    $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> La persona se encuentra INHABILITADA!.</h4>');
+                                    $('button[type=submit]').attr("disabled",true);
+				}
+			     }else{
+				$("#ultimo_turno").html('<h4 class="red"><i class="fa fa-user-times" style="font-size:30px;"></i>Esta persona no se encuentra en el universo de REIMPRESIONES! </h4>');
+			     }
+			}
+		    });
+		}
+	    }
 
              function validarErrorEnTurno(){
                 var idcita  = $("#div_observacion input").val();
@@ -229,7 +275,7 @@
                 if(idcita !='' && nro_doc != ''){
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                        url: '/consultarTurnoSigeci',
+                        url: './../consultarTurnoSigeci',
                         data: {idcita: idcita },
                         type: "GET", dataType: "json",
                         success: function(ret){
@@ -287,7 +333,7 @@
                 if(tramite_id !='' && nro_doc != ''){
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                        url: '/consultarTramite',
+                        url: './../consultarTramite',
                         data: {tramite_id: tramite_id},
                         type: "GET", dataType: "json",
                         success: function(ret){
@@ -341,7 +387,7 @@
                 if(nro_doc != ''){
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                        url: '/consultarUltimoTurno',
+                        url: './../consultarUltimoTurno',
                         data: {tipo_doc: tipo_doc, nro_doc: nro_doc, sexo:sexo },
                         type: "GET", dataType: "json",
                         success: function(ret){

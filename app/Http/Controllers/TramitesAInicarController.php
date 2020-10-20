@@ -20,6 +20,8 @@ use App\AnsvCelExpedidor;
 use App\EmisionBoletaSafit;
 use App\ValidacionesPrecheck;
 use App\TramitesHabilitados;
+use App\CharlaVirtual;
+use App\Http\Controllers\UserController;
 
 class TramitesAInicarController extends Controller
 {
@@ -40,7 +42,7 @@ class TramitesAInicarController extends Controller
 
   //BUI
   private $motivoTurnoEnElDia = '25';
-  private $conceptoBui = [["07.02.28"], ["07.02.31"], ["07.02.32"], ["07.02.33"], ["07.02.34"], ["07.02.35"]];
+  private $motivoReimpresion  = '29'; 
   private $userBui;
   private $passwordBui;
   private $urlVerificacionBui;
@@ -149,14 +151,19 @@ class TramitesAInicarController extends Controller
     return true;
   }
 
-  //Cambiar el concepto de BUI solo si motivo es TURNO EN EL DIA
-  public function esTurnoEnElDia($tramite) {
-    $existe = TramitesHabilitados::where('tramites_a_iniciar_id',$tramite->id)->where('motivo_id', $this->motivoTurnoEnElDia)->count();
-    if($existe){
-      $this->conceptoBui = [["07.02.30"]];
-      return true;
+  //Cambiar el concepto de BUI solo si motivo es TURNO EN EL DIA o REIMPRESION
+  public function obtenerConceptosBui($tramite) {
+    $turno = TramitesHabilitados::where('tramites_a_iniciar_id',$tramite->id)->where('deleted', false)->orderby('id','DESC')->first();
+    $motivo = isset($turno->motivo_id)?$turno->motivo_id:'';
+    switch ($motivo) {
+	case $this->motivoTurnoEnElDia:
+      		$conceptos = [["07.02.30"]];
+	case $this->motivoReimpresion:
+		$conceptos = [["07.02.48"]];
+	default:
+		$conceptos = [["07.02.28"], ["07.02.31"], ["07.02.32"], ["07.02.33"], ["07.02.34"], ["07.02.35"]];
     }
-    return false;
+    return $conceptos;
   }
 
   public function existeTramiteAIniciarConPrecheck($nro_doc, $tipo_doc, $sexo, $nacionalidad){
@@ -387,6 +394,45 @@ class TramitesAInicarController extends Controller
     $LibreDeudaLns->save();
   }
 
+  //API expuesta para se use desde LICTA - por problemas de permiso al servidor 
+  public function api_getLibreDeuda(Request $request){
+  	
+	if( isset($request->nrodoc) && isset($request->tipodoc) && isset($request->nu) && isset($request->pu) )
+	{
+	    $username = $request->nu;
+	    $password = $request->pu;
+
+	    $userdb = new UserController();
+	    if($userdb->validateCredentialsLICTA($username, $password))
+	    {	
+	    	$params = "method=getLibreDeuda".
+             	  	"&tipoDoc=".$request->tipodoc.
+             	  	"&numeroDoc=".$request->nrodoc.
+             	  	"&userName=".$this->userLibreDeuda.
+             	  	"&userPass=".$this->passwordLibreDeuda;
+    	    	$dargs	  = array("ssl"=>array("verify_peer"=>false,"verify_peer_name"=>false));
+      	    	$wsresult = file_get_contents($this->urlLibreDeuda.$params, false, stream_context_create($dargs));
+		/*
+		if($response == false){
+			 $wsresult = array( 'error'=> true, 'message' => 'Error de conexion con el WS');
+		}else{
+			$p = xml_parser_create();
+      			xml_parse_into_struct($p, $response, $vals, $index);
+      			xml_parser_free($p);
+      			$json = json_encode($vals);
+      			$info = json_decode($json,TRUE);
+
+	    		$wsresult = array( 'error'=> false, 'message' => 'Acceso verificado', 'response' => $info);
+		} */
+	    }else{
+		$wsresult = array( 'error'=> true, 'message' => 'Acceso denegado por credenciales incorrectas.');
+	    }
+	}else{
+		$wsresult = array( 'error'=> true, 'message' => 'Los parametros ingresados son incorrectos.');
+	}
+	
+	return $wsresult;
+  }
 
   /**
   * MicroservicioController: 3) Metodos asociados para completarBoletasEnTramitesAIniciar
@@ -584,9 +630,9 @@ class TramitesAInicarController extends Controller
   }
 
   public function gestionarBui($tramite, $estadoValidacion, $siguienteEstado){
-    $verificar = $this->esTurnoEnElDia($tramite);
+    $conceptos = $this->obtenerConceptosBui($tramite);
     $error = 'ninguno';
-      foreach ($this->conceptoBui as $key => $value) {
+      foreach ($conceptos as $key => $value) {
         $res = $this->verificarBui($tramite, $value);
         if( !empty($res['error']) ){
           if($res['error'] != $error){
