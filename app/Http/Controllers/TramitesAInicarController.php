@@ -295,51 +295,60 @@ class TramitesAInicarController extends Controller
     }
   }
 
-  public function verificarLibreDeuda($tramite){
+  public function verificarLibreDeuda($tramite){	  
     $tramite = TramitesAIniciar::find($tramite->id);
-    $res = array();  
-    $datos = "method=getLibreDeuda".
-             "&tipoDoc=".$tramite->tipoDocLibreDeuda().
-             "&numeroDoc=".$tramite->nro_doc.
-             "&userName=".$this->userLibreDeuda.
-             "&userPass=".$this->passwordLibreDeuda;
-    $dargs=array("ssl"=>array("verify_peer"=>false,"verify_peer_name"=>false));
-    $wsresult = file_get_contents($this->urlLibreDeuda.$datos, false, stream_context_create($dargs));
-    if ($wsresult == FALSE){
-      $res['res'] = false;
-      $res['error'] = 'Error en el Ws de Libre Deuda';
-      $res['request'] = $datos;
-      $res['response'] = null;
-      return $res;
-    }else{
-      $p = xml_parser_create();
-      xml_parse_into_struct($p, $wsresult, $vals, $index);
-      xml_parser_free($p);
-      $json = json_encode($vals);
-      $array = json_decode($json,TRUE);
-      $persona = null;
-      $libreDeuda = null;
+    $res = array();
+    $url = $this->urlLibreDeuda; 
+
+    if($this->file_contents_exist($url)){
+
+	$datos = "method=getLibreDeuda".
+             	"&tipoDoc=".$tramite->tipoDocLibreDeuda().
+             	"&numeroDoc=".$tramite->nro_doc.
+             	"&userName=".$this->userLibreDeuda.
+	     	"&userPass=".$this->passwordLibreDeuda;
+    	$options=array("ssl"=>array("verify_peer"=>false,"verify_peer_name"=>false));
+    	$wsresult = file_get_contents($url.$datos, false, stream_context_create($options));
+	
+	if ($wsresult == FALSE){
+      		$res['res'] = false;
+      		$res['error'] = 'Error en el Ws de Libre Deuda';
+      		$res['request'] = $datos;
+      		$res['response'] = null;
+    	}else{
+      		$p = xml_parser_create();
+      		xml_parse_into_struct($p, $wsresult, $vals, $index);
+      		xml_parser_free($p);
+      		$json = json_encode($vals);
+      		$array = json_decode($json,TRUE);
+      		$persona = null;
+      		$libreDeuda = null;
       
-      foreach ($array as $key => $value) {
-        if($value['tag'] == 'ERROR' ){
-          $res['res'] = false;
-          $res['error'] = ( isset($value['value'])? $value['value'] : "" );
-          $res['request'] = $datos;
-          $res['response'] = $array;
-          return $res;
-        }
-        else{
-          if($value['tag'] == 'PERSONA' )
-            $persona = $value['attributes'];
-          if($value['tag'] == 'LIBREDEUDA' )
-            $libreDeuda = $value['attributes'];
-        }
-      }
-        $libreDeudaHdr = $this->guardarDatosPersonaLibreDeuda($persona, $tramite);
-        $this->guardarDatosLibreDeuda($libreDeuda, $libreDeudaHdr);
-        $res['res'] = true;
-        $res['comprobante'] = $libreDeuda['NUMEROLD'];
-    }
+      		foreach ($array as $key => $value) {
+        	    if($value['tag'] == 'ERROR' ){
+          		$res['res'] = false;
+          		$res['error'] = ( isset($value['value'])? $value['value'] : "" );
+          		$res['request'] = $datos;
+          		$res['response'] = $array;
+        	    }else{
+          		if($value['tag'] == 'PERSONA' )
+            		   $persona = $value['attributes'];
+          		if($value['tag'] == 'LIBREDEUDA' )
+            		   $libreDeuda = $value['attributes'];
+        	    }
+      		}
+		
+		$libreDeudaHdr = $this->guardarDatosPersonaLibreDeuda($persona, $tramite);
+        	$this->guardarDatosLibreDeuda($libreDeuda, $libreDeudaHdr);
+        	$res['res'] = true;
+        	$res['comprobante'] = $libreDeuda['NUMEROLD'];
+    	}
+    }else{
+    	$res['res'] = false;
+        $res['error'] = 'El web service no se enuentra disponible';
+        $res['request'] = $url;
+        $res['response'] = null;
+    }	
     return $res;
   }
 
@@ -403,26 +412,34 @@ class TramitesAInicarController extends Controller
 
 	    $userdb = new UserController();
 	    if($userdb->validateCredentialsLICTA($username, $password))
-	    {	
-	    	$params = "method=getLibreDeuda".
+	    {
+	    	$url = $this->urlLibreDeuda;
+    		if($this->file_contents_exist($url)){
+		
+	    	   $params = "method=getLibreDeuda".
              	  	"&tipoDoc=".$request->tipodoc.
              	  	"&numeroDoc=".$request->nrodoc.
              	  	"&userName=".$this->userLibreDeuda.
              	  	"&userPass=".$this->passwordLibreDeuda;
-    	    	$dargs	  = array("ssl"=>array("verify_peer"=>false,"verify_peer_name"=>false));
-      	    	$wsresult = file_get_contents($this->urlLibreDeuda.$params, false, stream_context_create($dargs));
-		/*
-		if($response == false){
+    	    	   $options  = array("ssl"=>array("verify_peer"=>false,"verify_peer_name"=>false));
+      	    	   $wsresult = file_get_contents($url.$params, false, stream_context_create($options));
+		
+		   /*
+		    * Convertir el resultado en JSON
+		   $response = $wsresult;
+		   if($respose == false){
 			 $wsresult = array( 'error'=> true, 'message' => 'Error de conexion con el WS');
-		}else{
+		   }else{
 			$p = xml_parser_create();
       			xml_parse_into_struct($p, $response, $vals, $index);
       			xml_parser_free($p);
       			$json = json_encode($vals);
       			$info = json_decode($json,TRUE);
-
 	    		$wsresult = array( 'error'=> false, 'message' => 'Acceso verificado', 'response' => $info);
-		} */
+		   } */
+		}else{
+			$wsresult = array( 'error'=> true, 'message' => 'El web service no se encuentra disponible.');
+		}
 	    }else{
 		$wsresult = array( 'error'=> true, 'message' => 'Acceso denegado por credenciales incorrectas.');
 	    }
