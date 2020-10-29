@@ -15,7 +15,7 @@ class SysMultivalue extends Model
   public function sucursales()
   {
     $sucursales = SysMultivalue::where('type','SUCU')
-                                ->whereNotIn('id',['2','3','20','80','101','102','104','121','150'])
+                                ->whereNotIn('id',['2','3','20','80','101','102','104','121'])
                                 ->pluck('description', 'id');
     return $sucursales;
   }
