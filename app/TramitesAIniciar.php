@@ -66,7 +66,7 @@ class TramitesAIniciar extends Model
         }
         $turno_sath = TramitesHabilitados::where('tramites_a_iniciar_id',$this->id)->orderby('id','DESC')->first();
 
-        if(count($turno_sath)){
+        if($turno_sath){
                 $fecha_th = $turno_sath->fecha;
                 $fecha = ($fecha_sigeci > $fecha_th)? $fecha_sigeci : $fecha_th;
         }else{
