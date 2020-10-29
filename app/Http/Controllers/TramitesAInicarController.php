@@ -330,6 +330,7 @@ class TramitesAInicarController extends Controller
           		$res['error'] = ( isset($value['value'])? $value['value'] : "" );
           		$res['request'] = $datos;
           		$res['response'] = $array;
+			return $res;
         	    }else{
           		if($value['tag'] == 'PERSONA' )
             		   $persona = $value['attributes'];
@@ -338,10 +339,12 @@ class TramitesAInicarController extends Controller
         	    }
       		}
 		
-		$libreDeudaHdr = $this->guardarDatosPersonaLibreDeuda($persona, $tramite);
-        	$this->guardarDatosLibreDeuda($libreDeuda, $libreDeudaHdr);
-        	$res['res'] = true;
-        	$res['comprobante'] = $libreDeuda['NUMEROLD'];
+		if(isset($libreDeuda['NUMEROLD'])){
+			$libreDeudaHdr = $this->guardarDatosPersonaLibreDeuda($persona, $tramite);
+        		$this->guardarDatosLibreDeuda($libreDeuda, $libreDeudaHdr);
+        		$res['res'] = true;
+        		$res['comprobante'] = $libreDeuda['NUMEROLD'];
+		}
     	}
     }else{
     	$res['res'] = false;
