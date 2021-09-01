@@ -65,10 +65,10 @@ class MicroservicioController extends Controller
     public function run(){
       ini_set('default_socket_timeout', 600);
       $tramitesAIniciar = new TramitesAInicarController();
-      dd('entro a Microservicio');
-      $tramitesAIniciar->revisarTurnosVencidos();
+      //dd('entro a Microservicio');
+      //$tramitesAIniciar->revisarTurnosVencidos();
       //  pasa a estarunPrecheckdo 1
-      $tramitesAIniciar->completarTurnosEnTramitesAIniciar( INICIO );
+      //$tramitesAIniciar->completarTurnosEnTramitesAIniciar( INICIO );
       // Verificar LirunPrecheckbre deuda, pasa a estado 4 en validaciones precheck
       $tramitesAIniciar->verificarLibreDeudaDeTramites(INICIO, LIBRE_DEUDA, VALIDACIONES); //ID validacion 4
       // pasa de estarunPrecheckdo 1 a 2 los tramites
@@ -80,7 +80,7 @@ class MicroservicioController extends Controller
       // Si bui, cenat y infracciones pasa de estado 2 a 6
       $tramitesAIniciar->revisarValidaciones(VALIDACIONES_COMPLETAS);
       // pasa de estado 6 a 7 los tramites
-      $tramitesAIniciar->enviarTramitesASinalic( VALIDACIONES_COMPLETAS, INICIO_EN_SINALIC);
+      //$tramitesAIniciar->enviarTramitesASinalic( VALIDACIONES_COMPLETAS, INICIO_EN_SINALIC);
       //
     }
 

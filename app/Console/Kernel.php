@@ -25,20 +25,20 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         //Turnos vencidos
-        $schedule->call('App\Http\Controllers\MicroservicioController@revisarTurnosVencidos')->weekdays()->at('16:30');
+        $schedule->call('App\Http\Controllers\MicroservicioController@revisarTurnosVencidos')->weekdays()->at('18:30');
         //Validaciones Completas
         //$schedule->call('App\Http\Controllers\MicroservicioController@revisarValidaciones')->weekdays()->at('16:55');
 
         //PRECHECK
-        $schedule->call('App\Http\Controllers\MicroservicioController@completarTurnosEnTramitesAIniciar')->weekdays()->at('16:40');//Turnos
-        $schedule->call('App\Http\Controllers\MicroservicioController@verificarLibreDeudaDeTramites')->weekdays()->at('17:15');//Libre Deuda
-        $schedule->call('App\Http\Controllers\MicroservicioController@verificarBuiTramites')->weekdays()->at('17:20');//Bui
-        $schedule->call('App\Http\Controllers\MicroservicioController@completarBoletasEnTramitesAIniciar')->weekdays()->at('17:10');//Buscar Boleta Cenat
-        $schedule->call('App\Http\Controllers\MicroservicioController@emitirBoletasVirtualPago')->weekdays()->at('17:30');//Obtener Certificado Virtual Cenat
+        $schedule->call('App\Http\Controllers\MicroservicioController@completarTurnosEnTramitesAIniciar')->weekdays()->at('18:40');//Turnos
+        $schedule->call('App\Http\Controllers\MicroservicioController@verificarLibreDeudaDeTramites')->weekdays()->at('19:15');//Libre Deuda
+        $schedule->call('App\Http\Controllers\MicroservicioController@verificarBuiTramites')->weekdays()->at('19:20');//Bui
+        $schedule->call('App\Http\Controllers\MicroservicioController@completarBoletasEnTramitesAIniciar')->weekdays()->at('19:10');//Buscar Boleta Cenat
+        $schedule->call('App\Http\Controllers\MicroservicioController@emitirBoletasVirtualPago')->weekdays()->at('19:30');//Obtener Certificado Virtual Cenat
         
         //Revisar validaciones completas e iniciar en Sinalic
-	    $schedule->call('App\Http\Controllers\MicroservicioController@revisarValidaciones')->weekdays()->at('18:00');//Validaciones Completas
-        $schedule->call('App\Http\Controllers\MicroservicioController@enviarTramitesASinalic')->weekdays()->at('18:10');//Turnos a Enviar a Sinalic
+	    $schedule->call('App\Http\Controllers\MicroservicioController@revisarValidaciones')->weekdays()->at('20:00');//Validaciones Completas
+        $schedule->call('App\Http\Controllers\MicroservicioController@enviarTramitesASinalic')->weekdays()->at('20:10');//Turnos a Enviar a Sinalic
         //FIN PRECHECK
     }
 

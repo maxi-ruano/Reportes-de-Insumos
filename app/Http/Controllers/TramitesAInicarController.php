@@ -158,7 +158,7 @@ class TramitesAInicarController extends Controller
 	case $this->motivoTurnoEnElDia:
       		$conceptos = [["07.02.30"]];
 	case $this->motivoReimpresion:
-		$conceptos = [["07.02.48"]];
+		$conceptos = [["07.02.49"]];
 	default:
 		$conceptos = [["07.02.28"], ["07.02.31"], ["07.02.32"], ["07.02.33"], ["07.02.34"], ["07.02.35"]];
     }

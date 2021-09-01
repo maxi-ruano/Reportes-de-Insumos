@@ -171,6 +171,24 @@ class TramitesHabilitadosController extends Controller
                     flash('El Documento Nro. '.$nro_doc.' tiene un turno asignado para el día '.$fecha.' por tramites habilitados')->error()->important();
                     return back();
                 }
+		//Validar si existe una licencia vigente para Duplicados
+		if ($motivo_id == '12') {
+                        $existe = \DB::table('tramites')
+                                ->where('nro_doc', $nro_doc)
+                                ->where('tipo_doc', $tipo_doc)
+                                ->where('pais', $pais)
+                                ->where('sexo', strtolower($sexo))
+                                ->whereRaw('estado IN(14, 95)')
+                                ->whereRaw('fec_vencimiento >= current_date')
+                                ->first();
+
+                        if (!$existe) {
+                              flash('El Documento Nro. ' . $nro_doc . ' no tiene una licencia VIGENTE.')->warning()->important();
+                        return back();
+                        }
+                }
+
+
                 //Validar si tiene turno en sigeci si el motivo es diferente de ERROR EN TURNO
                 if($motivo_id != '13'){
                     $existeturno = $this->existeTurnoSigeci($tipo_doc, $nro_doc, $fecha);
@@ -208,10 +226,11 @@ class TramitesHabilitadosController extends Controller
 				->where('tipo_tramite_id', 1030)
 				->where('estado','<>',93)
 				->count();
-		  if($existe){
+		  //Se comenta validadcion por cambio decreto enero 2021 donde permite hacer otro tramite de REIMPRESION
+		  /*if($existe){
 		  	flash('El Documento Nro. '.$nro_doc.' ya tiene en LICTA un trámite como REIMPRESION.')->warning()->important();
                         return back();	
-		  } 
+			} */
 		}
 
                 //Si no existe ninguna restriccion entonces creamos el registro
