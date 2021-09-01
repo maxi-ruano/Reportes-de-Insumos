@@ -30,6 +30,8 @@
                 <tr>
                     <th class="column-title">Id</th>
                     <th class="column-title">Motivo</th>
+                    <th class="column-title">Limite</th>
+                    <th class="column-title">Sucursal</th>
                     <th class="column-title">Activo</th>
                     <th></th>
                 </tr>
@@ -39,6 +41,8 @@
                 <tr>
                     <td>{{ $row->id }}</td>
                     <td>{{ $row->description }}</td>
+                    <td>{{ $row->limite }}</td>
+                    <td>{{ $row->sucursal }}</td>
                     <td>
                         @if($row->activo)
                             <input id="motivo{{ $row->id }}" type="checkbox" checked onchange="habilitarMotivo({{ $row->id }})" data-toggle="toggle" data-on="Si" data-off="No" data-onstyle="success" data-offstyle="danger" data-size="mini" data-width="60">

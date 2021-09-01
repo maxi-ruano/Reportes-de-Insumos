@@ -46,8 +46,11 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
-        if (!$exception instanceof HttpException && !config('app.debug')){
+        /*if (!$exception instanceof HttpException && !config('app.debug')){
             $exception = new HttpException(500, $exception->getMessage(), $exception);
+        }*/
+        if ($exception instanceof NotFoundHttpException) {
+            return redirect('/home');
         }
         return parent::render($request, $exception);
     }

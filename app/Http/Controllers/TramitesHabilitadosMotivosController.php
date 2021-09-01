@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laracasts\Flash\Flash;
 use App\TramitesHabilitadosMotivos;
+use App\SysMultivalue;
 
 class TramitesHabilitadosMotivosController extends Controller
 {
@@ -17,9 +18,17 @@ class TramitesHabilitadosMotivosController extends Controller
      */
     public function index(Request $request)
     {
-        $data = TramitesHabilitadosMotivos::orderBy('id','asc')
+        $data = TramitesHabilitadosMotivos::whereNull('deleted_at')
                     ->where('description', 'iLIKE', '%'. $request->search .'%')
+                    ->orderBy('id','asc')
                     ->paginate(10);
+        
+        if(count($data)){
+            foreach ($data as $key => $value) {
+                $buscar = TramitesHabilitadosMotivos::find($value->id);
+                $value->sucursal = $buscar->sucursalTexto();
+            }
+        }
 
         return view('motivos.index')->with('data', $data);                                         ;
     }
@@ -31,7 +40,10 @@ class TramitesHabilitadosMotivosController extends Controller
      */
     public function create()
     {
-        return view('motivos.form');
+        $SysMultivalue = new SysMultivalue();        
+        $sucursales = $SysMultivalue->sucursales();
+
+        return view('motivos.form')->with('sucursales', $sucursales);
     }
 
     /**
@@ -51,6 +63,10 @@ class TramitesHabilitadosMotivosController extends Controller
             $motivos = new TramitesHabilitadosMotivos();
             $motivos->description = $request->description;
             $motivos->activo = true;
+            if($request->limite)
+                $motivos->limite = $request->limite;
+            if($request->sucursal_id)
+                $motivos->sucursal_id = $request->sucursal_id;
             $motivos->save();
 
             Flash::success('El Motivo se ha creado correctamente');
@@ -81,7 +97,10 @@ class TramitesHabilitadosMotivosController extends Controller
     public function edit($id)
     {
         $edit = TramitesHabilitadosMotivos::find($id);
-        return view('motivos.form')->with('edit', $edit);
+        $SysMultivalue = new SysMultivalue();        
+        $sucursales = $SysMultivalue->sucursales();
+
+        return view('motivos.form')->with('edit', $edit)->with('sucursales', $sucursales);
     }
 
     /**
@@ -95,6 +114,8 @@ class TramitesHabilitadosMotivosController extends Controller
     {
         $motivos = TramitesHabilitadosMotivos::find($id);
         $motivos->description = $request->description;
+        $motivos->limite = ($request->limite)?$request->limite:null;
+        $motivos->sucursal_id = ($request->sucursal_id)?$request->sucursal_id:0;
         $motivos->save();
 
         Flash::success('El Motivo se ha editado correctamente');
@@ -111,8 +132,11 @@ class TramitesHabilitadosMotivosController extends Controller
     {
         try{
             $motivos = TramitesHabilitadosMotivos::find($id);
-            $motivos->delete();
-           
+            $motivos->activo = false;
+            $motivos->deleted_at = date('Y-m-d H:i:s');
+            $motivos->deleted_by = Auth::user()->id;
+            $motivos->save();
+
             Flash::success('El Motivo se ha eliminado correctamente');
             return redirect()->route('tramitesHabilitadosMotivos.index');
         }

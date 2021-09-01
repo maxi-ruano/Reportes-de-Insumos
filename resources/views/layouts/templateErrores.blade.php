@@ -12,7 +12,7 @@
             <nav class="navbar navbar-default navbar-static-top">
                 <div class="container">
                     <div class="navbar-header">
-                        <img src="http://cdn2.buenosaires.gob.ar/campanias/2015-1/img/bac.png" class="img-responsive" style="height: 50px;display: initial;">
+			<!-- <img src="http://cdn2.buenosaires.gob.ar/campanias/2015-1/img/bac.png" class="img-responsive" style="height: 50px;display: initial;"> -->
                     </div>
                 </div>
             </nav>

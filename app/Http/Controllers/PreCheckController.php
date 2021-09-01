@@ -14,6 +14,7 @@ use App\Http\Controllers\TramitesController;
 use App\Http\Controllers\TramitesAInicarController;
 use App\Sigeci;
 use App\BoletaBui;
+use App\CharlaVirtual;
 
 class PreCheckController extends Controller
 {
@@ -93,11 +94,11 @@ class PreCheckController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function anular_cenat(Request $request)
+    public function anularPreCheckComprobante(Request $request)
     {
         try{
             $anular = \DB::table('validaciones_precheck')->where('id',$request->id)
-                ->update(array('validado' => false, 'comprobante' => null));
+                            ->update(array('validado' => false, 'comprobante' => null));
             return $anular;
         }
         catch(Exception $e){   
@@ -150,13 +151,15 @@ class PreCheckController extends Controller
     if($tramiteAIniciar){
       $tramiteAIniciar->nacionalidad = $tramiteAIniciar->nacionalidadTexto();
       $tramiteAIniciar->motivo = $tramiteAIniciar->motivo();
+      $tramiteAIniciar->fecha_turno = $tramiteAIniciar->fechaTurno();
 
       $precheck =  \DB::table('validaciones_precheck as v')
                       ->select('v.tramite_a_iniciar_id', 'v.validado', 's.description', 'v.validation_id','v.comprobante', 'v.updated_at')
                       ->join('sys_multivalue as s', 's.id', '=', 'v.validation_id')
                       ->where('s.type', 'VALP')
-                      ->where('v.tramite_a_iniciar_id', $tramiteAIniciar->id)
-                      ->get();
+		      ->where('v.tramite_a_iniciar_id', $tramiteAIniciar->id)
+		      ->orderby('s.id','desc')
+		      ->get();
                       
       if(count($precheck)){
         $precheck = $this->getErroresTramite($precheck);
@@ -192,7 +195,13 @@ class PreCheckController extends Controller
       if($value->validation_id == BUI){
         $value->boleta = BoletaBui::where('tramite_a_iniciar_id', $value->tramite_a_iniciar_id)->first();
       }
-    }
+      if($value->validation_id == CHARLA_VIRTUAL){
+	 $value->charla = CharlaVirtual::where('codigo', trim($value->comprobante) )->first();
+	 if(isset($value->charla->fecha_vencimiento)){
+	 	$value->charla->fecha_vencimiento_txt = date('d-m-Y', strtotime($value->charla->fecha_vencimiento));
+	 }
+      }
+    } 
     return $precheck;
   }
 

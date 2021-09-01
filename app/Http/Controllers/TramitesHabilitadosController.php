@@ -25,8 +25,6 @@ class TramitesHabilitadosController extends Controller
 
     public function __construct(){
         $this->centrosEmisores = new AnsvCelExpedidor();
-        //Iniciar precheck de los tramites que no iniciaron el dia de hoy --PAUSADO Colapsa el demonio Queque
-        //$this->verificarPrecheckHabilitados();
     }
     
     /**
@@ -38,10 +36,14 @@ class TramitesHabilitadosController extends Controller
     {
         $fecha = isset($_GET['fecha'])?$_GET['fecha']:'';
 
+        $user = Auth::user();
+        $admin = $user->roles->where('name','Admin')->count();
+        $administrador = $user->roles->where('name','Administrador Tramites Habilitados')->count();
+        $auditor = $user->roles->where('name','Auditoria')->count();
+        
         $data = TramitesHabilitados::selectRaw('tramites_habilitados.*, tramites_habilitados_observaciones.observacion, tramites_a_iniciar.tramite_dgevyl_id')
                     ->leftjoin('tramites_a_iniciar','tramites_a_iniciar.id','tramites_habilitados.tramites_a_iniciar_id')
                     ->leftjoin('tramites_habilitados_observaciones','tramites_habilitados_observaciones.tramite_habilitado_id','tramites_habilitados.id')
-                    ->whereIn('tramites_habilitados.motivo_id', $this->getRoleMotivos('role_motivos_lis'))
                     ->where(function($query) use ($request) {
                         $query->where('tramites_habilitados.nombre', 'iLIKE', '%'. $request->search .'%')
                             ->orWhere('tramites_habilitados.apellido', 'iLIKE', '%'. $request->search .'%')
@@ -53,6 +55,9 @@ class TramitesHabilitadosController extends Controller
         
         if(isset($request->sucursal))
             $data = $data->where('sucursal',$request->sucursal);
+        
+        if(!$auditor && !$admin && !$administrador)
+            $data = $data->whereIn('tramites_habilitados.motivo_id', $this->getRoleMotivos('role_motivos_lis'));
                     
         //Verificar si tiene permisos para filtrar solo los que registro
         $user = Auth::user();
@@ -81,7 +86,7 @@ class TramitesHabilitadosController extends Controller
             }
         }
 
-        //Se envia listado d elas Sucursales para el select del buscar
+        //Se envia listado de las Sucursales para el select del buscar
         $SysMultivalue = new SysMultivalue();        
         $sucursales = $SysMultivalue->sucursales();
 
@@ -97,17 +102,34 @@ class TramitesHabilitadosController extends Controller
      */
     public function create()
     {
-        $fecha = $this->calcularFecha();
+        $fecha_actual = date('Y-m-d');
+        $fecha_max = $this->calcularFecha();
 
-        //Se cargan motivos segun el permiso asignado en roles_motivos_sel
-        $motivos = \DB::table('tramites_habilitados_motivos')->whereIn('id',$this->getRoleMotivos('role_motivos_sel'))->orderBy('description', 'asc')->pluck('description','id');
+        //MOSTRAR CONVENIOS SOLO A ABOGADOS, ACA LIBERTADOR Y ECONOMICAS  -temporal mientras se normaliza en la DB
+        $sucursal = Auth::user()->sucursal;
+        $no_include = 27;
+        if(in_array($sucursal, array(10,100,103))){
+            $no_include = 0;
+        }
+
+        //Se cargan motivos segun los permisos asignados en roles_motivos_sel
+        $motivos = TramitesHabilitadosMotivos::whereNull('deleted_at')
+                        ->where('activo',true)
+                        ->whereIn('id',$this->getRoleMotivos('role_motivos_sel'))
+                        ->where(function($query) use($sucursal){
+                            $query->where('sucursal_id',0)->orwhere('sucursal_id',$sucursal);
+                        })
+                        ->where('id','<>',$no_include)
+                        ->orderBy('description', 'asc')
+                        ->pluck('description','id');
         
         $SysMultivalue = new SysMultivalue();
         $sucursales = $SysMultivalue->sucursales();
         $tdocs = $SysMultivalue->tipodocs(); 
         $paises = $SysMultivalue->paises();
         
-        return view($this->path.'.form')->with('fecha',$fecha)
+        return view($this->path.'.form')->with('fecha_actual',$fecha_actual)
+                                        ->with('fecha_max',$fecha_max)
                                         ->with('sucursales',$sucursales)
                                         ->with('tdocs',$tdocs)
                                         ->with('paises',$paises)
@@ -127,6 +149,7 @@ class TramitesHabilitadosController extends Controller
 
                 $tipo_doc   = $request->tipo_doc;
                 $nro_doc    = strtoupper($request->nro_doc);
+		$sexo 	    = $request->sexo;
                 $pais       = $request->pais;
                 $fecha      = $request->fecha;
                 $motivo_id  = $request->motivo_id;
@@ -145,14 +168,32 @@ class TramitesHabilitadosController extends Controller
                                                 ->where('deleted',false)
                                                 ->count();
                 if($existe){
-                    Flash::error('El Documento Nro. '.$nro_doc.' tiene un turno asignado para el día '.$fecha.' por tramites habilitados');
+                    flash('El Documento Nro. '.$nro_doc.' tiene un turno asignado para el día '.$fecha.' por tramites habilitados')->error()->important();
                     return back();
                 }
+		//Validar si existe una licencia vigente para Duplicados
+		if ($motivo_id == '12') {
+                        $existe = \DB::table('tramites')
+                                ->where('nro_doc', $nro_doc)
+                                ->where('tipo_doc', $tipo_doc)
+                                ->where('pais', $pais)
+                                ->where('sexo', strtolower($sexo))
+                                ->whereRaw('estado IN(14, 95)')
+                                ->whereRaw('fec_vencimiento >= current_date')
+                                ->first();
+
+                        if (!$existe) {
+                              flash('El Documento Nro. ' . $nro_doc . ' no tiene una licencia VIGENTE.')->warning()->important();
+                        return back();
+                        }
+                }
+
+
                 //Validar si tiene turno en sigeci si el motivo es diferente de ERROR EN TURNO
                 if($motivo_id != '13'){
                     $existeturno = $this->existeTurnoSigeci($tipo_doc, $nro_doc, $fecha);
                     if($existeturno){
-                        Flash::error('El Documento Nro. '.$nro_doc.' tiene un turno por SIGECI para el día '.$fecha);
+                        flash('El Documento Nro. '.$nro_doc.' tiene un turno por SIGECI para el día '.$fecha)->warning()->important();
                         return back();
                     }
                 }
@@ -161,10 +202,36 @@ class TramitesHabilitadosController extends Controller
                 if($motivo_id != '14'){
                     $tramite = $this->existeTramiteEnCurso($tipo_doc, $nro_doc, $pais, $fecha);
                     if($tramite){
-                        Flash::error('El Documento Nro. '.$nro_doc.' tiene un turno iniciado en LICTA '.$tramite->tramite_id.' Por favor agregar por REINICIA TRAMITE');
+                        flash('El Documento Nro. '.$nro_doc.' tiene un turno iniciado en LICTA '.$tramite->tramite_id.' Por favor agregar por REINICIA TRAMITE')->warning()->important();
                         return back();
                     }
                 }
+		
+		//Validar motivo CUARENTENA exista en la tabla t_cuarentena
+                if($motivo_id == '28'){
+                    $existe = $this->existePersonaEnCuarentena($tipo_doc, $nro_doc, $sexo, $pais);
+                    if(!$existe){
+			flash('El Documento Nro. '.$nro_doc.' no se encuentra habilitado para ingresar como CUARENTENA.')->warning()->important();
+			return back();
+                    }
+                }
+
+		//Validar motivo REIMPRESION no existe en LICTA un trámite inicado o finalizado
+		if($motivo_id == '29'){
+		  $existe = \DB::table('tramites')
+				->where('nro_doc',$nro_doc)
+				->where('tipo_doc',$tipo_doc)
+				->where('pais',$pais)
+				->where('sexo',strtolower($sexo))
+				->where('tipo_tramite_id', 1030)
+				->where('estado','<>',93)
+				->count();
+		  //Se comenta validadcion por cambio decreto enero 2021 donde permite hacer otro tramite de REIMPRESION
+		  /*if($existe){
+		  	flash('El Documento Nro. '.$nro_doc.' ya tiene en LICTA un trámite como REIMPRESION.')->warning()->important();
+                        return back();	
+			} */
+		}
 
                 //Si no existe ninguna restriccion entonces creamos el registro
                 $tramiteshabilitados = new TramitesHabilitados();
@@ -173,7 +240,7 @@ class TramitesHabilitadosController extends Controller
                 $tramiteshabilitados->nombre        = strtoupper($request->nombre);
                 $tramiteshabilitados->tipo_doc      = $tipo_doc;
                 $tramiteshabilitados->nro_doc       = $nro_doc;
-                $tramiteshabilitados->sexo          = $request->sexo;
+                $tramiteshabilitados->sexo          = $sexo;
                 $tramiteshabilitados->fecha_nacimiento     = $request->fecha_nacimiento;
                 $tramiteshabilitados->pais          = $pais;
                 $tramiteshabilitados->user_id       = $request->user_id;
@@ -191,7 +258,8 @@ class TramitesHabilitadosController extends Controller
                 return redirect()->route('tramitesHabilitados.create');
 
             }else{
-                Flash::error('LIMITE DIARIO PERMITIDO para la sucursal seleccionada.!!');
+                //CUANDO SE VALIDA EL LIMITE POR ROL, SUCURSAL Y MOTIVO
+                //Flash::error('LIMITE DIARIO PERMITIDO para la sucursal según el motivo seleccionado.!!');
                 return back();  
             }
         }
@@ -208,7 +276,7 @@ class TramitesHabilitadosController extends Controller
         $precheck = null;
 
         $tramiteAIniciarController = new TramitesAInicarController();
-        $precheck_disponible = $tramiteAIniciarController->existeTramiteAIniciarConPrecheck($tramiteshabilitados->nro_doc, $tramiteshabilitados->tipo_doc, $nacionalidad);
+        $precheck_disponible = $tramiteAIniciarController->existeTramiteAIniciarConPrecheck($tramiteshabilitados->nro_doc, $tramiteshabilitados->tipo_doc, $tramiteshabilitados->sexo, $nacionalidad);
 
         switch ($motivo) {
             case "REINICIA TRAMITE":
@@ -229,7 +297,7 @@ class TramitesHabilitadosController extends Controller
 
                 if($precheck){
                     $precheck = TramitesAIniciar::find($precheck->id);
-                    if($precheck->nro_doc == $tramiteshabilitados->nro_doc && $precheck->tipo_doc == $tramiteshabilitados->tipo_doc){
+                    if($precheck->nro_doc == $tramiteshabilitados->nro_doc && $precheck->tipo_doc == $tramiteshabilitados->tipo_doc && $precheck->sexo == $tramiteshabilitados->sexo){
 
                         $tramiteshabilitados->tramites_a_iniciar_id = $precheck->id;
                         $tramiteshabilitados->save();
@@ -314,35 +382,7 @@ class TramitesHabilitadosController extends Controller
      */
     public function edit($id)
     {
-        $fecha = $this->calcularFecha();
-
-        $edit = TramitesHabilitados::where('tramites_habilitados.id',$id)
-                    ->selectRaw('tramites_habilitados.*, tramites_habilitados_observaciones.observacion')
-                    ->leftjoin('tramites_habilitados_observaciones','tramites_habilitados_observaciones.tramite_habilitado_id','tramites_habilitados.id')
-                    ->first();
-
-        $inicio_tramite = ($edit->tramites_a_iniciar_id)?TramitesAIniciar::find($edit->tramites_a_iniciar_id)->tramite_dgevyl_id:'';
-        //No realizar ninguna modificacion si el tramiteAIniciar inicio en Fotografia
-        if($inicio_tramite){
-            Flash::error('El Tramite ya se inicio no se puede modificar!');
-            return redirect()->route('tramitesHabilitados.index');
-        }else{
-
-            //Se cargan motivos segun el permiso asignado en roles_motivos_sel
-            $motivos = \DB::table('tramites_habilitados_motivos')->whereIn('id',$this->getRoleMotivos('role_motivos_sel'))->orderBy('description', 'asc')->pluck('description','id');
-
-            $SysMultivalue = new SysMultivalue();
-            $sucursales = $SysMultivalue->sucursales();
-            $tdocs = $SysMultivalue->tipodocs();
-            $paises = $SysMultivalue->paises();
-
-            return view($this->path.'.form')->with('edit', $edit)
-                                            ->with('fecha',$fecha)
-                                            ->with('sucursales',$sucursales)
-                                            ->with('tdocs',$tdocs)
-                                            ->with('paises',$paises)
-                                            ->with('motivos',$motivos);
-        }
+        //
     }
 
     /**
@@ -354,68 +394,7 @@ class TramitesHabilitadosController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //validar nro_doc solo si es pasaporte acepte letras y numeros de lo contrario solo numeros
-        if($request->tipo_doc== '4')
-            $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/^[0-9a-zA-Z]+$/']);
-        else
-            $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^(\d+)?$)/u']);
-
-        //Validar si tiene turno en sigeci si el motivo es diferente de ERROR EN TURNO
-        if($request->motivo_id != '13'){
-            $editurno = $this->existeTurnoSigeci($request->tipo_doc, $request->nro_doc, $request->fecha);
-            if($editurno){
-                Flash::error('El Documento Nro. '.$request->nro_doc.' tiene un turno por SIGECI para el día '.$request->fecha);
-                return back();
-            }
-        }
-        //Validar si tiene turno en LICTA, si el motivo es diferente a REINICIA TRAMITE
-        if($request->motivo_id != '14'){
-            $editramite = $this->existeTramiteEnCurso($request->tipo_doc, $request->nro_doc, $request->pais, $request->fecha);
-            if($editramite){
-                Flash::error('El Documento Nro. '.$request->nro_doc.' tiene un turno iniciado en LICTA '.$editramite->tramite_id.' Por favor agregar por REINICIA TRAMITE');
-                return back();
-            }
-        }
-        //Buscar tramites habilitado, guardarmos tipo y nro de documento actual para comparar luego si fueron modificaron
-        $tramitesHabilitados = TramitesHabilitados::find($id);
-        $tipodoc = $tramitesHabilitados->tipo_doc;
-        $nrodoc = $tramitesHabilitados->nro_doc;
-        $tramitesAIniciar_id = $tramitesHabilitados->tramites_a_iniciar_id;
-
-        //Actualizar datos en TramitesHabilitados
-        $tramitesHabilitados->fill($request->except('user_id'));
-        $tramitesHabilitados->nro_doc = strtoupper($request->nro_doc);
-        $tramitesHabilitados->nombre = strtoupper($request->nombre);
-        $tramitesHabilitados->apellido = strtoupper($request->apellido);
-        $tramitesHabilitados->save();
-
-        if(isset($request->observacion))
-            $this->guardarObservacion($id, $request->observacion);
-
-        //Si existe un TramiteAIniciar asociado hacer lo siguiente
-        if($tramitesAIniciar_id){
-            //Si se modifico el Tipo o Nro de Documento se anula el tramiteAiniciar asociado y se crea uno nuevo
-            if( ($tipodoc != $tramitesHabilitados->tipo_doc) || ($nrodoc != $tramitesHabilitados->nro_doc)){
-                TramitesAIniciar::where('id',$tramitesAIniciar_id)
-                    ->whereNull('tramite_dgevyl_id')
-                    ->update(['estado'=> TURNO_VENCIDO]);
-                //Crear un nuevo tramitesAIniciar y procesar el Precheck
-                ProcessPrecheck::dispatch($tramitesHabilitados);
-            }else{
-                //De lo contrario se modifica en TramitesAIniciar los datos
-                $nacionalidad = AnsvPaises::where('id_dgevyl', $request->pais)->first()->id_ansv;
-                $tramiesAIniciar = TramitesAIniciar::find($tramitesAIniciar_id);
-                $tramiesAIniciar->nombre = strtoupper($request->nombre);
-                $tramiesAIniciar->apellido = strtoupper($request->apellido);
-                $tramiesAIniciar->sexo = $request->sexo;
-                $tramiesAIniciar->fecha_nacimiento = $request->fecha_nacimiento;
-                $tramiesAIniciar->nacionalidad = $nacionalidad;
-                $tramiesAIniciar->save();
-            }
-        }
-
-        Flash::success('El Tramite se ha editado correctamente');
-        return redirect()->route('tramitesHabilitados.index');
+	//
     }
 
     /**
@@ -440,7 +419,11 @@ class TramitesHabilitadosController extends Controller
                 $tramiteshabilitados = TramitesHabilitados::find($id);
                 $tramiteshabilitados->deleted = true;
                 $tramiteshabilitados->deleted_by = Auth::user()->id;
-                $tramiteshabilitados->save();
+		$tramiteshabilitados->save();
+		
+		// No me quiso aceptar la constante TURNO_VENCIDO
+		$vencido = 8;
+		$anular_precheck = TramitesAIniciar::where("id",$t->tramites_a_iniciar_id)->update(['estado' => $vencido]);
             
                 Flash::success('El Tramite se ha anulado correctamente');
                 return redirect()->route('tramitesHabilitados.index');
@@ -469,26 +452,40 @@ class TramitesHabilitadosController extends Controller
 
     public function buscarDatosPersonales(Request $request)
     {
-        $buscar='';
-        $sql = DatosPersonales::selectRaw('nombre, apellido, UPPER(sexo) as sexo, fec_nacimiento as fecha_nacimiento, pais')->where("tipo_doc",$request->tipo_doc)->where("nro_doc",$request->nro_doc)->orderBy('modification_date','DESC');
-        $duplicado = $sql->count();
-        //Verificar si existe una persona con el mismo numero de documento
-        if(!($duplicado>2)){
-            if($duplicado==1){
-                $buscar = $sql->first();
-            }else{
-                $buscar = TramitesHabilitados::where("tipo_doc",$request->tipo_doc)->where("nro_doc",$request->nro_doc)->orderBy('id','DESC')->first();
-                if(!$buscar){
-                    $buscar = TramitesAIniciar::selectRaw("tramites_a_iniciar.*, ansv_paises.id_dgevyl as pais")
-                                ->join('ansv_paises','ansv_paises.id_ansv','tramites_a_iniciar.nacionalidad')
-                                ->where("tipo_doc",$request->tipo_doc)
-                                ->where("nro_doc",$request->nro_doc)
-                                ->orderBy('id','DESC')
-                                ->first();      
-                }
+        $encontrado = null;
+        $encontrado = DatosPersonales::selectRaw('nombre, apellido, UPPER(sexo) as sexo, fec_nacimiento as fecha_nacimiento, pais')
+                                        ->where("tipo_doc",$request->tipo_doc)
+                                        ->where("nro_doc",$request->nro_doc)
+                                        ->where("sexo",strtolower($request->sexo))
+                                        ->orderBy('modification_date','DESC')
+                                        ->first();
+        if(!$encontrado){
+            $encontrado = TramitesHabilitados::where("tipo_doc",$request->tipo_doc)->where("nro_doc",$request->nro_doc)->where("sexo",$request->sexo)->orderBy('id','DESC')->first();
+            if(!$encontrado){
+                $encontrado = TramitesAIniciar::selectRaw("tramites_a_iniciar.*, ansv_paises.id_dgevyl as pais")
+                            ->join('ansv_paises','ansv_paises.id_ansv','tramites_a_iniciar.nacionalidad')
+                            ->where("tipo_doc",$request->tipo_doc)
+                            ->where("nro_doc",$request->nro_doc)
+                            ->where("sexo",$request->sexo)
+                            ->orderBy('id','DESC')
+                            ->first();      
             }
         }
-        return $buscar;
+        return json_encode($encontrado);
+    }
+
+    public function consultarUniversoReimpresion(Request $request){
+        $consulta =  \DB::table("universo_reimpresiones_v")
+			->where('tipo_doc',$request->tipo_doc)
+			->where('nro_doc',$request->nro_doc)
+			->where('sexo','ilike',$request->sexo)
+			->where('pais',$request->pais)
+			->get();
+	foreach ($consulta as $row){
+		$row->fec_emision = date('d-m-Y', strtotime($row->fec_emision));
+		$row->fec_vencimiento = date('d-m-Y', strtotime($row->fec_vencimiento));
+	}
+        return $consulta;
     }
 
     public function consultarTurnoSigeci(Request $request){
@@ -509,6 +506,12 @@ class TramitesHabilitadosController extends Controller
                         ->whereNotIn('sigeci.idprestacion', $this->prestacionesCursos)
                         ->orderBy('sigeci.idcita','DESC')
                         ->first();
+        if($consulta){
+            $turno = Sigeci::where('idcita',$consulta->idcita)->first();
+            $sexo = $turno->getSexo();
+            if(strtoupper($sexo) != strtoupper($request->sexo))
+                $consulta = null;
+        }
         return $consulta;
     }
     public function existeTurnoSigeci($tipo_doc, $nro_doc, $fecha){
@@ -530,59 +533,78 @@ class TramitesHabilitadosController extends Controller
                         ->first();
         return $tramite;
     }
+    public function existePersonaEnCuarentena($tipo_doc, $nro_doc, $sexo, $pais){
+	$cuarentena = \DB::table('t_cuarentena')
+                        ->where("tipo_doc",$tipo_doc)
+                        ->where("nro_doc",$nro_doc)
+                        ->where("sexo",strtoupper($sexo))
+			->where("pais",$pais)
+			->count();
+	return $cuarentena;
+    } 
     public function calcularFecha(){
-        $fecha = date('Y-m-d');
         $dia_semana = date('w');
-
         //Si es Jueves o viernes sumar 5, por incluir fin de semana, de lo contrario sumar 3
-        $sumar_dias = ($dia_semana == 4 || $dia_semana == 5)?'5':'3'; 
-        
-        //Se valida que solo para el Rol Comuna permita ingresar 72 en adelante
-        $user = Auth::user();
-        if($user->hasRole('Comuna'))
-            $fecha = date('Y-m-d', strtotime('+'.$sumar_dias.' days', strtotime(date('Y-m-d'))));
-            
+        //$sumar_dias = ($dia_semana == 4 || $dia_semana == 5)?'5':'3'; 
+        $sumar_dias = 3;
+        $fecha = date('Y-m-d', strtotime('+'.$sumar_dias.' days', strtotime(date('Y-m-d'))));  
         return $fecha;
     }
     public function verificarLimite($sucursal, $motivo, $fecha){
         $acceso= false;
         $user = Auth::user();
         $role_id = $user->roles->pluck('id')->first();
-        
-        //Encontrar todas las posibilidades establecidas en roles_limites
-        $roles_limites = \DB::table('roles_limites')->where('role_id',$role_id)->where('sucursal',$sucursal)->where('motivo_id',$motivo)->where('activo', true)->first();
-        
-        if($roles_limites == null)
-            $roles_limites = \DB::table('roles_limites')->where('role_id',$role_id)->where('sucursal',$sucursal)->whereNull('motivo_id')->where('activo', true)->first();
-        
-        if($roles_limites == null)
-            $roles_limites = \DB::table('roles_limites')->where('role_id',$role_id)->where('motivo_id',$motivo)->whereNull('sucursal')->where('activo', true)->first();
-        
-        if($roles_limites == null)
-            $roles_limites = \DB::table('roles_limites')->where('role_id',$role_id)->whereNull('sucursal')->whereNull('motivo_id')->where('activo', true)->first();
+        $mensaje = 'LIMITE DIARIO PERMITIDO para la sucursal según el motivo seleccionado.!!';
 
-        if($roles_limites){
-
-            $consulta = TramitesHabilitados::where('fecha',$fecha)
-                            ->whereIn('user_id',function($query) use($role_id){
-                                $query->select('model_id')->from('model_has_roles')->where('role_id',$role_id);
-                             });
-            
-            if($roles_limites->sucursal)
-                $consulta = $consulta->where('sucursal',$roles_limites->sucursal);
-            
-            if($roles_limites->motivo_id)
-                $consulta = $consulta->where('motivo_id',$roles_limites->motivo_id);
-                        
-            $consulta = $consulta->count();
-
-            if($consulta >= $roles_limites->limite)
-                $acceso = false;
-            else
-                $acceso = true;
+        //VERIFICAR LIMITE ESTABLECIDO EN LA TABLA tramites_habilitados_motivos
+        $th_motivos = TramitesHabilitadosMotivos::where('id',$motivo)->first();
+        if($th_motivos->limite){
+            if($th_motivos->sucursal_id == $sucursal){
+                $total = TramitesHabilitados::where('motivo_id',$motivo)->where('sucursal',$sucursal)->where('fecha',$fecha)->where('deleted',false)->count();
+                if($total < $th_motivos->limite)
+                    $acceso = true;
+            }else{
+                $mensaje = 'SUCURSAL NO HABILITADA para el motivo seleccionado.';
+            }
         }else{
-            $acceso = true;
+            
+            //VERIFICAR LIMITE ESTABLECIDO EN LA TABLA roles_motivos
+            $roles_limites = \DB::table('roles_limites')->where('role_id',$role_id)->where('sucursal',$sucursal)->where('motivo_id',$motivo)->where('activo', true)->first();
+            //Encontrar todas las posibilidades establecidas en roles_limites
+            if($roles_limites == null)
+                $roles_limites = \DB::table('roles_limites')->where('role_id',$role_id)->where('sucursal',$sucursal)->whereNull('motivo_id')->where('activo', true)->first();
+            
+            if($roles_limites == null)
+                $roles_limites = \DB::table('roles_limites')->where('role_id',$role_id)->where('motivo_id',$motivo)->whereNull('sucursal')->where('activo', true)->first();
+            
+            if($roles_limites == null)
+                $roles_limites = \DB::table('roles_limites')->where('role_id',$role_id)->whereNull('sucursal')->whereNull('motivo_id')->where('activo', true)->first();
+
+            if($roles_limites){
+                $consulta = TramitesHabilitados::where('fecha',$fecha)
+                                ->whereIn('user_id',function($query) use($role_id){
+                                    $query->select('model_id')->from('model_has_roles')->where('role_id',$role_id);
+                                });
+                
+                if($roles_limites->sucursal)
+                    $consulta = $consulta->where('sucursal',$roles_limites->sucursal);
+                
+                if($roles_limites->motivo_id)
+                    $consulta = $consulta->where('motivo_id',$roles_limites->motivo_id);
+                            
+                $consulta = $consulta->count();
+
+                if($consulta >= $roles_limites->limite)
+                    $acceso = false;
+                else
+                    $acceso = true;
+            }else{
+                $acceso = true;
+            }
         }
+
+        if(!$acceso)
+            Flash::error($mensaje);
 
         return $acceso;  
     }
@@ -594,7 +616,7 @@ class TramitesHabilitadosController extends Controller
         return $motivos;
     }
 
-    //Se envia masivamente los turnos que no ha inciado a procesar Precheck con el queque (Demonio)
+    //Se envia masivamente los turnos que no ha inciado a procesar Precheck con el queque (Demonio)- PAUSADO
     public function verificarPrecheckHabilitados(){
         $turnos =  TramitesHabilitados::whereNull('tramites_a_iniciar_id')->where('fecha',date('Y-m-d'))->get();
         foreach ($turnos as $key => $turno) {

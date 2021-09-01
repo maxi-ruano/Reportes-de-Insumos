@@ -71,7 +71,7 @@ class TramitesController extends Controller
 
       $consulta = [];
 
-      if(in_array($ip, $autorizadas)){
+      //if(in_array($ip, $autorizadas)){
         if((isset($request->desde) && isset($request->hasta)) || isset($request->nrodoc)){
 
           $estado_finalizado = '95';
@@ -164,9 +164,9 @@ class TramitesController extends Controller
         }else{
           $consulta['error'] = "Los parametros ingresados son incorrectos.";
         }
-      }else{
+      /*}else{
         $consulta['error'] = "Acceso denegado: IP ".$ip." no permitida!..";
-      }
+	}*/
       return $consulta;
     }
 

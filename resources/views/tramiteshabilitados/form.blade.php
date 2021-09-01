@@ -16,57 +16,61 @@
         <input type="hidden" name="_token" value="{{ csrf_token() }}">
         <input type="hidden" name="user_id" value="{{ Auth::user()->id }}">
 
-        <div class="form-group">
-            <div class="col-md-3 col-xs-12">
+	<div class="form-group">
+	    <div class="col-md-8 col-xs-12">
+                {!! Form::label('sucursal', ' Sucursal') !!}
+                @can('enable_sede_tramites_habilitados')
+                    {!! Form::select('sucursal', $sucursales, isset($edit) ? $edit->sucursal : Auth::user()->sucursal , ['class' => 'form-control' ]) !!}
+                @else
+                    {!! Form::select('sucursal', $sucursales, isset($edit) ? $edit->sucursal : Auth::user()->sucursal , ['class' => 'form-control', 'readonly' => 'readonly', 'disabled' ]) !!}
+                    <input type="hidden" name="sucursal" value="{{ isset($edit) ? $edit->sucursal : Auth::user()->sucursal }}">
+                @endcan
+            </div>
+
+            <div class="col-md-4 col-xs-12">
                 {!! Form::label('fecha', ' Fecha') !!}
                 <div class="input-group">
                     <div class="input-group-addon">
                         <span class="glyphicon glyphicon-calendar"></span>
                     </div>
                     @can('enable_fecha_tramites_habilitados')
-                        <input type="date" name="fecha" value="{{ isset($edit) ? $edit->fecha : $fecha }}" class="form-control" required="required" min="{{ $fecha }}" >    
+                        <input type="date" name="fecha" value="{{ isset($edit) ? $edit->fecha : $fecha_actual }}" class="form-control" required="required" min="{{ $fecha_actual }}" max="{{ $fecha_max }}">    
                     @else
-                        <input type="date" name="fecha" value="{{ isset($edit) ? $edit->fecha : $fecha }}" class="form-control" required="required" readonly="readonly" >
+                        <input type="date" name="fecha" value="{{ isset($edit) ? $edit->fecha : $fecha_actual }}" class="form-control" required="required" readonly="readonly" >
                     @endcan
                 </div>
             </div>
+        </div>
 
-            <div class="col-md-9 col-xs-12">
-                {!! Form::label('sucursal', ' Sucursal') !!}
-                @can('enable_sede_tramites_habilitados')
-                    {!! Form::select('sucursal', $sucursales, isset($edit) ? $edit->sucursal : Auth::user()->sucursal , ['class' => 'form-control' ]) !!}
-                @else
-                    {!! Form::select('sucursal', $sucursales, isset($edit) ? $edit->sucursal : Auth::user()->sucursal , ['class' => 'form-control', 'readonly' => 'readonly', 'disabled' ]) !!}
-                    <input type="hidden" name="sucursal" value="{{ isset($edit) ? $edit->sucursal : Auth::user()->sucursal }}">        
-                @endcan
+        <div class="form-group">
+	    <div class="col-md-6 col-xs-12">
+		{!! Form::label('tipo_doc', ' Documento') !!}
+            	{!! Form::select('tipo_doc', $tdocs, isset($edit) ? $edit->tipo_doc : null, ['class' => 'form-control']) !!}
+            	{!! Form::text('nro_doc', isset($edit) ? $edit->nro_doc : null, ['class' => 'form-control', 'placeholder' => 'Nro. Documento', 'maxlength' => 10, 'required' => 'required' ]) !!}
+	    </div> 
+	    <div class="col-md-6 col-xs-12">
+                {!! Form::label('sexo', ' Sexo') !!}
+		{!! Form::select('sexo', ['F' => 'Femenino', 'M' => 'Masculino'], isset($edit) ? $edit->sexo : 'M' , ['class' => 'form-control', 'required' => 'required']) !!} 
+		<i>(*) Debes seleccionar el sexo para autocompletar los datos.</i>
             </div>
+
+	</div>
+
+	<div class="form-group">
+	     <div class="col-md-6 col-xs-12">
+                {!! Form::label('nombre', ' Nombres') !!}
+                {!! Form::text('nombre', isset($edit) ? $edit->nombre : null, ['class' => 'form-control', 'placeholder' => 'Nombres', 'required' => 'required']) !!}
+            </div>
+	    <div class="col-md-6 col-xs-12">
+            	{!! Form::label('apellido', ' Apellidos') !!}
+            	{!! Form::text('apellido', isset($edit) ? $edit->apellido : null, ['class' => 'form-control', 'placeholder' => 'Apellidos', 'required' => 'required']) !!}
+	    </div>
         </div>
 
         <div class="form-group">
-            {!! Form::label('tipo_doc', ' Documento') !!}
-            {!! Form::select('tipo_doc', $tdocs, isset($edit) ? $edit->tipo_doc : null, ['class' => 'form-control']) !!}
-            {!! Form::text('nro_doc', isset($edit) ? $edit->nro_doc : null, ['class' => 'form-control', 'placeholder' => 'Nro. Documento', 'maxlength' => 10, 'required' => 'required' ]) !!}
-        </div>
-
-        <div class="form-group">
-            {!! Form::label('apellido', ' Apellidos') !!}
-            {!! Form::text('apellido', isset($edit) ? $edit->apellido : null, ['class' => 'form-control', 'placeholder' => 'Apellidos', 'required' => 'required']) !!}
-        </div>
-
-        <div class="form-group">
-            {!! Form::label('nombre', ' Nombres') !!}
-            {!! Form::text('nombre', isset($edit) ? $edit->nombre : null, ['class' => 'form-control', 'placeholder' => 'Nombres', 'required' => 'required']) !!}
-        </div>
-
-        <div class="form-group">
-            <div class="col-md-2 col-xs-12">
+            <div class="col-md-4 col-xs-12">
                 {!! Form::label('fecha_nacimiento', ' Fecha de Nacimiento') !!}
                 <input type="date" name="fecha_nacimiento" value="{{ isset($edit) ? $edit->fecha_nacimiento : NULL }}" class="form-control" required="required" >
-            </div>
-
-            <div class="col-md-2 col-xs-12">
-                {!! Form::label('sexo', ' Sexo') !!}
-                {!! Form::select('sexo', ['F' => 'Femenino', 'M' => 'Masculino'], isset($edit) ? $edit->sexo : 'M' , ['class' => 'form-control', 'required' => 'required']) !!}
             </div>
 
             <div class="col-md-8 col-xs-12">
@@ -75,22 +79,23 @@
             </div>
         </div>
 
-        <div class="form-group">                
-            {!! Form::label('motivo_id', ' Motivo') !!}
-            @if(count($motivos)==1)
-                {!! Form::select('motivo_id', $motivos, isset($edit) ? $edit->motivo_id : null , ['class' => 'form-control', 'required' => 'required']) !!}
-            @else
-                {!! Form::select('motivo_id', $motivos, isset($edit) ? $edit->motivo_id : null , ['class' => 'form-control', 'placeholder' => 'Seleccione', 'required' => 'required']) !!}
-            @endif
-        </div>
-
-       
-        <div id="div_observacion" class="form-group">    
-            {!! Form::label('observacion', ' Observación: ') !!}
-            {!! Form::text('observacion', isset($edit) ? $edit->observacion : null, ['class' => 'form-control', 'required' => 'required']) !!}
-            <input type="hidden" name="precheck_id" id="precheck_id" value="">
-        </div>
- 
+	<div class="form-group"> 
+	    <div class="col-md-4 col-xs-12" >	       
+            	{!! Form::label('motivo_id', ' Motivo') !!}
+            	@if (count($motivos)==1)
+                   {!! Form::select('motivo_id', $motivos, isset($edit) ? $edit->motivo_id : null , ['class' => 'form-control', 'required' => 'required']) !!}
+            	@else
+                    {!! Form::select('motivo_id', $motivos, isset($edit) ? $edit->motivo_id : null , ['class' => 'form-control', 'placeholder' => 'Seleccione', 'required' => 'required']) !!}
+            	@endif
+	    </div>
+	    <div class="col-md-8 col-xs-12">
+		<div id="div_observacion">    
+            	     {!! Form::label('observacion', ' Observación: ') !!}
+             	     {!! Form::text('observacion', isset($edit) ? $edit->observacion : null, ['class' => 'form-control', 'required' => 'required']) !!}
+            	     <input type="hidden" name="precheck_id" id="precheck_id" value="">
+		</div>
+            </div>
+	</div> 
         
         <div id="ultimo_turno"> </div>
         <hr>
@@ -110,40 +115,39 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
-            var edad;
+            $("select[name=pais]").val(1);
             validarMotivos();
 
             @if(!isset($edit)) 
                 //Autocompletar datos solo si nuevo registro, si esta editando no realizara la buscqueda
-                $("input[name=nro_doc]").change(function(){
-                    var nro_doc = $(this).val();
+                $("select[name=tipo_doc], input[name=nro_doc], select[name=sexo]").change(function(){
+                    var nro_doc = $("input[name=nro_doc]").val();
                     var tipo_doc = $("select[name=tipo_doc]").val();
-                    
-                    $("input[name=nombre], input[name=apellido], input[name=fecha_nacimiento]").val('');
-                    $("select[name=pais]").val(1);
-            
+                    var sexo = $("select[name=sexo]").val();
+                
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                        url: '/buscarDatosPersonales',
-                        data: {tipo_doc: tipo_doc, nro_doc: nro_doc },
-                        type: "GET", dataType: "json",
+                        url: './../buscarDatosPersonales',
+                        data: {tipo_doc: tipo_doc, nro_doc: nro_doc, sexo:sexo },
+                        type: "GET", dataType: "json", Async: false,
                         success: function(ret){
                             console.log(ret);
-                            $("input[name=nombre]").val(ret.nombre);
-                            $("input[name=apellido]").val(ret.apellido);
-                            $("input[name=fecha_nacimiento]").val(ret.fecha_nacimiento);
-                            $("select[name=sexo]").val(ret.sexo);
-                            $("select[name=pais]").val(ret.pais);                            
+                            if(ret){
+                                $("input[name=nombre]").val(ret.nombre);
+                                $("input[name=apellido]").val(ret.apellido);
+                                $("input[name=fecha_nacimiento]").val(ret.fecha_nacimiento);
+                                $("select[name=sexo]").val(ret.sexo);
+                                $("select[name=pais]").val(ret.pais);
+                                validarMotivos();
+                            }else{
+                                $("input[name=nombre], input[name=apellido], input[name=fecha_nacimiento]").val('');
+                            }                        
                         }
                     });
                 });
             @endif
 
-           
-            $("input[name=fecha], select[name=sucursal], input[name=nro_doc], input[name=tipo_doc], select[name=motivo_id], input[name=fecha_nacimiento]").change(function(){
-                var fecha = $('input[name=fecha_nacimiento]').val();
-                edad = calcularEdad(fecha);
-                $("#precheck_id").val('');
+            $("#formTramitesHabilitados input, #formTramitesHabilitados select").change(function(){
                 validarMotivos();
             });
 
@@ -153,13 +157,16 @@
 
                 $("#div_observacion input").removeAttr('required minlength maxlength');
                 $("#div_observacion label").html('Observación: ');
-                $("#div_observacion input").attr('placeholder','');
-                $("#div_observacion input").off('change');
-
+                $("#div_observacion input").attr('placeholder','');                
                 $("#ultimo_turno").empty();
+                $("#precheck_id").val('');
                 $('button[type=submit]').attr("disabled",false);
 
                 switch(motivo) {
+                    case 'DIRECCIÓN':
+                        //Campo Obligatorio dejar constancia de quien viene (Obligatorio)
+                        $("#div_observacion input").attr('placeholder','Ingrese el responsable de la solictud').attr('required','required');
+                        break;
                     case 'LEGALES':
                         //Nro. de Expediente (Obligatorio)
                         $("#div_observacion label").html('Nro. de Expediente / Carpeta: ');
@@ -170,28 +177,24 @@
                         $("#div_observacion label").html('Nro. de Cita: ');
                         $("#div_observacion input").attr('placeholder','Ingrese el Nro. de la Cita').attr('required','required').attr('minlength','8').attr('maxlength','8');
                         $('button[type=submit]').attr("disabled",true);
-                        $("#formTramitesHabilitados input, #formTramitesHabilitados select").change(function(){
-                            validarErrorEnTurno();
-                        });
+                        validarErrorEnTurno();
                         break;
                     case 'REINICIA TRAMITE':
                         //ID del Tramite (Obligatorio)
                         $("#div_observacion label").html('ID del Tramite: ');
                         $("#div_observacion input").attr('placeholder','Ingrese el ID del Tramite').attr('required','required').attr('minlength','7').attr('maxlength','7');;
                         $('button[type=submit]').attr("disabled",true);
-                        $("#formTramitesHabilitados input, #formTramitesHabilitados select").change(function(){
-                            validarReiniciaTramite();
-                        });
+                        validarReiniciaTramite();
                         break;
-                    case 'DIRECCIÓN':
-                        //Campo Obligatorio dejar constancia de quien viene (Obligatorio)
-                        $("#div_observacion input").attr('placeholder','Ingrese el responsable de la solictud').attr('required','required');
-                        break;
-                    case 'GOEGS':
-                        //Dejar constancia de quien viene NO Obligatorio
-                        $("#div_observacion input").attr('placeholder','Ingrese el responsable de la solictud');
+                    case 'RETOMA TURNO':
+                        //Nro. de Cita (Obligatorio)
+                        $("#div_observacion label").html('Nro. de Cita: ');
+                        $("#div_observacion input").attr('placeholder','Ingrese el Nro. de la Cita').attr('required','required').attr('minlength','8').attr('maxlength','8');
+                        validarRetomaTurno();
                         break;
                     case 'MAYOR DE 65':
+                        var fecha = $('input[name=fecha_nacimiento]').val();
+                        var edad = calcularEdad(fecha);
                         if(edad >= 65 && edad < 100){
                             $('button[type=submit]').attr("disabled",false);
                         }else{
@@ -199,24 +202,71 @@
                             $("#ultimo_turno").html('<h4 class="red"> <i class="fa fa-user-times" style="font-size:20px;"></i> Esta persona no cuenta con la edad permitida! tiene: '+edad+' años </h4>');
                         }
                         break;
-                    case 'RETOMA TURNO':
-                        //Nro. de Cita (Obligatorio)
-                        $("#div_observacion label").html('Nro. de Cita: ');
-                        $("#div_observacion input").attr('placeholder','Ingrese el Nro. de la Cita').attr('required','required').attr('minlength','8').attr('maxlength','8');
-                        $("#formTramitesHabilitados input, #formTramitesHabilitados select").change(function(){
-                            validarRetomaTurno();
-                        });
+                    case 'EMBARAZADAS':
+                        var sexo = $("select[name=sexo]").val();
+                        if(sexo == 'F'){
+                            $('button[type=submit]').attr("disabled",false);
+                        }else{
+                            $('button[type=submit]').attr("disabled",true);
+                            $("#ultimo_turno").html('<h4 class="red"> <i class="fa fa-user-times" style="font-size:20px;"></i> Solo se permite para este motivo el genero Femenino. </h4>');
+                        }
                         break;
+		    case 'REIMPRESION':
+			validarReimpresion();
+			break;
                     default:
                         //
                 }
                 
             }
 
+	    function validarReimpresion(){
+		var tipo_doc = $("select[name=tipo_doc").val();
+		var nro_doc = $("input[name=nro_doc]").val();
+		var sexo = $("select[name=sexo]").val();
+		var pais = $("select[name=pais]").val();
+		
+		$('button[type=submit]').attr("disabled",true);
+		if(nro_doc != ''){
+		    $.ajax({
+                        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                        url: './../consultarUniversoReimpresion',
+                        data: {nro_doc:nro_doc, tipo_doc:tipo_doc, sexo:sexo, pais:pais },
+                        type: "GET", dataType: "json",
+                        success: function(data){
+			     if(data.length){
+				console.log(data[0]);
+				var v = data[0];
+				var inhabilitado = (v.inhab_desde)?true:false;
+				var info_inhab 	 = (inhabilitado)?'<b class="red">Inhabilitado</b> desde '+v.inhab_desde+' hasta '+v.inhab_hasta:' <b class="green">No se detecto ninguna inhabilitación asociada a esta persona.</b>';
+				var cod_causa 	 = (v.inhab_causa)?v.inhab_causa+'-':'';
+				var causa 	 = (inhabilitado)?'Causa: '+cod_causa+''+v.inhab_observaciones:'';
+				var rehabilitado = (inhabilitado)?'Rehabilitado: '+v.inhab_fec_rehabilitado:'';
+				var check_on  	 = '<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>';
+				var check_off 	 = '<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>';
+
+				$("#ultimo_turno").html('Información de su último trámite: <table class="table table-striped jambo_table"><tr><td>Trámite Nº '+v.tramite_id+'</td><td> Otorgamiento: '+v.fec_emision+'</td><td> Vencimiento: '+v.fec_vencimiento+'</td><td>'+check_on+'</td></tr><tr><td>'+info_inhab+'</td><td>'+causa+'</td><td>'+rehabilitado+'</td><td class="icono"></td></tr></table>');
+
+				if ( inhabilitado == false || v.inhab_rehabilitado == true){
+				    $("#ultimo_turno .icono").html(check_on);
+                               	    $('button[type=submit]').attr("disabled",false);
+				}else{
+				    $("#ultimo_turno .icono").html(check_off);
+				    $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> La persona se encuentra INHABILITADA!.</h4>');
+                                    $('button[type=submit]').attr("disabled",true);
+				}
+			     }else{
+				$("#ultimo_turno").html('<h4 class="red"><i class="fa fa-user-times" style="font-size:30px;"></i>Esta persona no se encuentra en el universo de REIMPRESIONES! </h4>');
+			     }
+			}
+		    });
+		}
+	    }
+
              function validarErrorEnTurno(){
-                var idcita = $("#div_observacion input").val();
+                var idcita  = $("#div_observacion input").val();
                 var nro_doc = $("input[name=nro_doc]").val();
-                var nombre = $("input[name=nombre]").val();
+                var nombre  = $("input[name=nombre]").val();
                 var apellido = $("input[name=apellido]").val();
                 var sucursal = $("select[name=sucursal]").val();
 
@@ -225,7 +275,7 @@
                 if(idcita !='' && nro_doc != ''){
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                        url: '/consultarTurnoSigeci',
+                        url: './../consultarTurnoSigeci',
                         data: {idcita: idcita },
                         type: "GET", dataType: "json",
                         success: function(ret){
@@ -240,11 +290,9 @@
                             var fecha = f[2]+'/'+f[1]+'/'+f[0];
 
                             $("#ultimo_turno").html('Información de su turno: <table class="table table-striped jambo_table"><tr><td>'+fecha+'</td><td>'+ret.hora+'</td><td>'+ret.tipodoc+'</td><td>'+ret.numdoc+'</td><td>'+ret.nombre+' '+ret.apellido+'</td><td>'+ret.descsede+'</td><td>'+ret.descprestacion+'</td><td class="red"> '+dias+' días</td><td class="icono"></td></tr></table>');
+                            console.log(nro_doc+" | "+ret.numdoc+" | "+nombre+" | "+ret.nombre+" | "+apellido+" | "+ret.apellido);
+                            if (nro_doc == ret.numdoc || nombre == ret.nombre || apellido == ret.apellido){                             
 
-                            if (nro_doc != ret.numdoc && nombre != ret.nombre && apellido != ret.apellido){
-                                $('button[type=submit]').attr("disabled",true);
-                                $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El número de cita ingresado no corresponde a la persona que intenta TOMAR TURNO!.</h4>');
-                            }else{
                                 if(ret.tramite_dgevyl_id){
                                     $('button[type=submit]').attr("disabled",true);
                                     $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El número de cita ingresado ya cuenta con un tramite en LICTA: '+ret.tramite_dgevyl_id+'</h4>');
@@ -254,6 +302,7 @@
                                             $("#ultimo_turno .icono").html('<i class="fa fa-check-circle" style="font-size:26px;color:green"></i>');
                                             $('button[type=submit]').attr("disabled",false);
                                             $("#precheck_id").val(precheck_id);
+                                            $("#ultimo_turno").append('<h4 class="green"> <i class="fa fa-user-circle" style="font-size:30px;"></i> Usted certifica que los datos del TURNO son incorrectos!.</h4>');
                                         }else{
                                             $("#ultimo_turno .icono").html('<i class="fa fa-times-circle" style="font-size:26px;color:red"></i>');
                                             $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno no cumple con los 15 días correspondientes para poder TOMAR TURNO!.</h4>');
@@ -263,6 +312,9 @@
                                         $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El turno ingresado no corresponde con la Sucursal que intenta registrar!.</h4>');
                                     }*/
                                 }
+                            }else{
+                                $('button[type=submit]').attr("disabled",true);
+                                $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> El número de cita ingresado no corresponde a la persona que intenta TOMAR TURNO!.</h4>');
                             }
                         },
                         error: function(err) {
@@ -281,7 +333,7 @@
                 if(tramite_id !='' && nro_doc != ''){
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                        url: '/consultarTramite',
+                        url: './../consultarTramite',
                         data: {tramite_id: tramite_id},
                         type: "GET", dataType: "json",
                         success: function(ret){
@@ -327,6 +379,7 @@
                 var motivo = $("select[name=motivo_id] option:selected").text();
                 var tipo_doc = $("select[name=tipo_doc]").val();
                 var nro_doc = $("input[name=nro_doc]").val();
+                var sexo =  $("select[name=sexo]").val();
                 var sucursal = $("select[name=sucursal]").val();
 
                 $('button[type=submit]').attr("disabled",true);
@@ -334,8 +387,8 @@
                 if(nro_doc != ''){
                     $.ajax({
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                        url: '/consultarUltimoTurno',
-                        data: {tipo_doc: tipo_doc, nro_doc: nro_doc },
+                        url: './../consultarUltimoTurno',
+                        data: {tipo_doc: tipo_doc, nro_doc: nro_doc, sexo:sexo },
                         type: "GET", dataType: "json",
                         success: function(ret){
                             

@@ -30,6 +30,7 @@ Route::group( ['middleware' => ['auth']], function() {
   Route::get('consultarUltimoTurno', 'TramitesHabilitadosController@consultarUltimoTurno');
   Route::get('consultarTurnoSigeci', 'TramitesHabilitadosController@consultarTurnoSigeci');
   Route::get('consultarTramite', 'TramitesController@consultarTramite');
+  Route::get('consultarUniversoReimpresion', 'TramitesHabilitadosController@consultarUniversoReimpresion');
   
   //TRAMITES HABILITADOS MOTIVOS
   Route::resource('tramitesHabilitadosMotivos','TramitesHabilitadosMotivosController');
@@ -38,6 +39,7 @@ Route::group( ['middleware' => ['auth']], function() {
 
   //MODIFICACIONES DEL SISTEMA
   Route::resource('precheck', 'PreCheckController');
+  Route::get('anularPreCheckComprobante','PreCheckController@anularPrecheckComprobante')->name('anularPrecheckComprobante');
   Route::get('anularPreCheckCenat','PreCheckController@anular_cenat')->name('anular_cenat');
   Route::get('anularPreCheckSinalic','PreCheckController@anular_sinalic')->name('anular_sinalic');
   Route::get('listado_teoicopc','TeoricoPcController@getTeoricoPc')->name('getTeoricoPc');
@@ -65,7 +67,7 @@ Route::get('generarCenatPrecheck','TramitesAInicarController@generarCenatPrechec
 //end PRECHECK
 
 //SAFIT
-Route::get('buscarBoletaPago', 'TramitesAInicarController@buscarBoletaPago');
+//Route::get('buscarBoletaPago', 'TramitesAInicarController@buscarBoletaPago');
 Route::post('consultarCenat',['uses' => 'TramitesAInicarController@consultarCenat','as' => 'consultarCenat']);
 Route::post('generarCenat', ['uses' => 'TramitesAInicarController@generarCenat','as' => 'generarCenat']);
 Route::get('checkPreCheck', ['uses' => 'PreCheckController@checkPreCheck','as' => 'checkPreCheck']);

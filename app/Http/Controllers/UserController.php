@@ -21,7 +21,7 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $users = User::latest();
+        $users = User::orderBy('id','desc');
         
         if(isset($request->search))
             $users = $users->where(function($query) use ($request) {
@@ -55,9 +55,9 @@ class UserController extends Controller
     {
         //Mostrar el rol Admin solo a los usuarios Admin
         if(Auth::user()->hasRole('Admin'))
-            $roles = Role::pluck('name', 'id');
+            $roles = Role::whereNull('deleted_at')->pluck('name', 'id');
         else
-            $roles = Role::where('name','<>','Admin')->pluck('name', 'id');
+            $roles = Role::where('name','<>','Admin')->whereNull('deleted_at')->pluck('name', 'id');
         
         $SysMultivalue = new SysMultivalue();        
         $sucursales = $SysMultivalue->sucursales();
@@ -121,7 +121,7 @@ class UserController extends Controller
     public function edit($id)
     {
         $user = User::find($id);
-        $roles = Role::pluck('name', 'id');
+        $roles = Role::whereNull('deleted_at')->pluck('name', 'id');
         $permissions = Permission::all('name', 'id');
         
         $SysMultivalue = new SysMultivalue();        
@@ -232,4 +232,27 @@ class UserController extends Controller
         $sql = User::where("id",$request->id)->update(array('activo' => $request->activo));
         return $sql;
     }
+
+    public function validateCredentialsLICTA($username, $password){
+        $datos_user = \DB::table('sys_users')
+            ->select('id', 'first_name', 'last_name', 'username', 'password', 'sector')
+            ->where('username', $username)
+            ->take(1)
+            ->get();
+
+        if($datos_user->first()) {
+            $pass = hash('sha256', $datos_user[0]->password);
+
+            if($password == $pass) {
+                    return true;
+            } else {
+                return false;
+            }
+
+        } else {
+            return false;
+        }
+
+    }
+
 }

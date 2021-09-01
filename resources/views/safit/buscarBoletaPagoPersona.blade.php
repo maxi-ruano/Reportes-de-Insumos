@@ -1,13 +1,23 @@
-@extends('layouts.templeate')
+@extends('layouts.app')
 @section('content')
 <!-- page content -->
+<div class="container">
+ 
+ <div class="wrapper-inner-tab-backgrounds-b">
+    <div class="wrapper-inner-tab-backgrounds-first">
+        <a target="_blank" href="{{ url('buscarBoletaPagoPersona') }}"><div class="sim-button-b button30"><span> Consultar CENAT </span></div></a>
+    </div>
 
-@include('safit.botoneraPrecheck')
-<div class="row">
+    <div class="wrapper-inner-tab-backgrounds-second">
+        <a target="_blank" href="{{ url('checkPreCheck') }}"><div class="sim-button-b button30"><span> PRECHECK </span></div></a>
+    </div>
+ </div>
+
+ <div class="row">
   <div class="col-md-12 col-sm-12 col-xs-12">
     <div class="x_panel">
         <div class="x_title">
-          <h2>Verificar BOLETAS CENAT</h2>
+          <h3>Consultar CENAT</h3>
           <div class="clearfix"></div>
         </div>
       <div class="x_content">
@@ -35,7 +45,7 @@
         {{ Form::close() }}
         <div class="clearfix"></div>
         
-        @if (isset($boletas))
+        @if ($boletas != null)
             @if (!empty($boletas->datosBoletaPago->datosBoletaPagoParaPersona))
               <div class="x_panel">
                 <h2> {{ $boletas->rspDescrip }}</h2>
@@ -87,18 +97,20 @@
                 @endforeach
                 </tbody>
               </table>
-            @else
-              <div class="alert alert-danger alert-dismissible fade in" role="alert">
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
-                <strong> {{ $boletas->rspDescrip }} </strong>
-              </div>
             @endif
+        @endif
+
+        @if ($error != '')
+          <div class="alert alert-danger alert-dismissible fade in" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+            <strong> {{ $error }} </strong>
+          </div>
         @endif
       </div>
     </div>
   </div>
+ </div>
 </div>
-
 <!-- /page content -->
 @endsection
 

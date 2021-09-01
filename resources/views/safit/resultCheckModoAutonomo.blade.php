@@ -1,6 +1,6 @@
 <div class="clearfix"></div>
 <div class="row">
-  <div class="col-md-6 col-sm-6 col-xs-12">
+  <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12">
     <div class="x_panel">
       <div class="x_title">
         <h2>Datos Tramite <small></small></h2>
@@ -18,6 +18,10 @@
               <h3><div id="documento_texto"></div></h3>
               <span>Documento</span>
             </li>
+            <li style="max-width:35px;">
+              <h3><div id="sexo_texto"></div></h3>
+              <span>Sexo</span>
+            </li>
             <li>
               <h3><div id="fecha_nacimiento_texto"></div></h3>
               <span>Fecha de Nacimiento</span>
@@ -28,6 +32,18 @@
             </li>
           </ul>
         </div>
+        <div class="flex">
+          <ul class="list-inline count2">
+            <li>
+              <h3><div id="precheck_texto" class="red"></div></h3>
+              <span>Precheck</span>
+            </li>
+            <li style="width:200px;">
+              <h3><div id="licta_texto" class="red"></div></h3>
+              <span>Tramite LICTA</span>
+            </li>
+          </ul>
+        </div>
         <div id="logTurno">
           
         </div>
@@ -35,7 +51,7 @@
       </div>
     </div>
   </div>
-  <div class="col-md-6 col-sm-6 col-xs-12">
+  <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12">
     <div class="x_panel">
       <div class="x_title">
         <h2>Log de Pre-Check <small></small></h2>
@@ -57,8 +73,6 @@
 
 @push('scripts')
   <script>
-    
-    /* TODO este codigo debera ir en un js compilado, ya q es reutilizado en checkModoAutonomo.blade.php*/
     function getPreCheck(id){
       $("#nombre_texto, #documento_texto, #fecha_nacimiento_texto, #nacionalidad_texto").empty();
 
@@ -75,18 +89,22 @@
             }else if(msg){
 
               mostrarPreCheck(msg.precheck, msg.datosPersona);
-
-              //Bloquear todas las opciones del PreCheck para el Rol Auditoria
-              @if(Auth::check())
-                @if(Auth::user()->hasRole('Auditoria'))
-                  $(".modal-body a").attr("disabled","disabled").attr('onclick','');
+              const estado = msg.datosPersona.estado;
+              if(estado == 8) {
+                $(".modal-body a, .modal-body button").attr("disabled", "disabled").attr('onclick', '');
+              }else{
+                //Bloquear todas las opciones del PreCheck para el Rol Auditoria
+                @if(Auth::check())
+                  @if(Auth::user()->hasRole('Auditoria'))
+                    $(".modal-body a, .modal-body button").attr("disabled","disabled").attr('onclick','');
+                  @endif
                 @endif
-              @endif
+              }
               
             }
           },
           error: function(xhr, status, error) {
-              var err = eval("(" + xhr.responseText + ")");
+              const err = eval("(" + xhr.responseText + ")");
           }
       });
   }
@@ -113,8 +131,18 @@
 
       $('#nombre_texto').html(datosPersona.nombre+' '+datosPersona.apellido);
       $('#documento_texto').html(datosPersona.nro_doc);
+      $('#sexo_texto').html(datosPersona.sexo);
       $('#fecha_nacimiento_texto').html(fecha_nac);
       $('#nacionalidad_texto').html(datosPersona.nacionalidad);
+      if(datosPersona.estado == 8)
+        $('#precheck_texto').html('VENCIDO');
+      else
+        $('#precheck_texto').html('VIGENTE');
+
+      if(datosPersona.tramite_dgevyl_id)
+        $('#licta_texto').html(datosPersona.tramite_dgevyl_id);
+      else
+        $('#licta_texto').html('NO INICIADO');
   }
 
   function mostrarMensajeError(error, tramite_habilitado_id){
@@ -132,18 +160,48 @@
     var updated = new Date(precheck.updated_at).toISOString().slice(0,10);
   
       if(precheck.validado){
-          error = 'Verificado';
+          error = '';
           type = 'success';
-          verificado = true;
+	  verificado = true;
 
-          if(precheck.description == 'LIBRE DEUDA'){
-            precheck_libredeuda = true;
-          }
+	  switch (precheck.description){
+                case 'LIBRE DEUDA':
+		     	precheck_libredeuda = true;
+		     	info = (precheck.comprobante)?'Comprobante Nro. <span class="red">'+precheck.comprobante+' </span> <br>'+precheck.updated_at : '';
+                        break;
+                case 'BUI':
+                        info = (precheck.boleta)? 'Boleta Nro. <span class="red">'+precheck.boleta.nro_boleta+'</span> Importe <span class="red"> $ '+precheck.boleta.importe_total+'</span> Fecha de pago <span class="green"> '+precheck.boleta.fecha_pago+'</span>' : '';
+                        break;
+                case 'EMISION BOLETA SAFIT':
+                         info = (precheck.comprobante)?'Boleta Nro. <span class="red">'+precheck.comprobante+'</span> Importe <span class="red">$'+tramite.bop_monto+'</span> Código <span class="red" style="font-size:10px;">'+tramite.bop_cb+'</span> Fecha de pago <span class="green">'+tramite.bop_fec_pag+'</span>':'';
+                        break;
+		case 'CHARLA VIRTUAL':
+			var aprobado = '';
+			var texto = '';
+			var vencimiento = '';
 
-          if(precheck.description == 'BUI'){
-            info = (precheck.boleta) ? ' Boleta Nro. <span class="red">' + precheck.boleta.nro_boleta + '</span> Importe <span class="red"> $ ' + precheck.boleta.importe_total + '</span> Fecha de pago <span class="green"> ' + precheck.boleta.fecha_pago + '</span>' : '';
-          }else{
-            info = (precheck.comprobante) ? 'Comprobante Nro. <span class="red">'+precheck.comprobante+' </span> <br>'+precheck.updated_at : '';
+			if(precheck.charla){
+			   if(precheck.charla.aprobado){
+				type = 'success';
+				aprobado = 'Si';
+				if(precheck.charla.fecha_vencimiento < tramite.fecha_turno){
+					type = 'warning';
+					texto = '<span class="red"> <b>SE ENCUENTRA VENCIDA </b></span> <br>';
+				}
+				vencimiento = '<br> Vence: <span class="green">'+precheck.charla.fecha_vencimiento_txt+'</span>';
+			   }else{
+				type = 'danger';
+				aprobado = 'No';
+			   }
+
+			   info = texto+' Código: <span class="red">' + precheck.charla.codigo+'</span>  Aprobado:<b class="red">'+aprobado+'</b> <i class= "fa fa-check-circle fa-lg" style="color:green"></i> <br> Categoria: <span class="red"> '+precheck.charla.categoria+'</span> '+vencimiento;
+			}else{
+				info = 'No se encontró la Charla';
+				type = 'danger';
+			}
+                        break;
+                default:
+                         info = (precheck.comprobante)?'Comprobante Nro. <span class="red">'+precheck.comprobante+'</span><br>'+precheck.updated_at:'';
           }
 
       }else{
@@ -153,12 +211,13 @@
             response_ws = precheck.error.response_ws
             error =  precheck.error.description
             verificado = true;
+            console.log(response_ws);
           }
         }else{
           error =  'No verificado';
           response_ws = '';
         }
-        console.log(response_ws);
+        
         //Si tiene un Plan de Pagos mostrar su fecha de vencimiento
         if(error.toUpperCase().indexOf("PLAN DE PAGO") > -1){
           var metadata = JSON.parse(precheck.error.response_ws);
@@ -199,9 +258,13 @@
       if(tramite.tramite_dgevyl_id == null && precheck.description != 'SINALIC' && type != 'success' ){
           precheckOnclick = 'onclick="runPrecheck('+precheck.tramite_a_iniciar_id+','+precheck.validation_id+')" ';
       }
-
+	
+      var mostrar = '';
+      if( precheck.description == 'SINALIC' && error == 'No verificado' ){
+      	mostrar = ' style="display:none;" ';
+      }
       //Boton del Log Prec-Check con su descripcion y fecha de ejecucion o Nro. Comrpobante
-      html = '<li>'+
+      html = '<li '+mostrar+'>'+
           '<div class="block_precheck">'+
           '<div class="tags_precheck">'+
               '<a id="btn_precheck_'+precheck.validation_id+'" '+precheckOnclick+' class="btn btn-'+type+' btn-xs btn-block">'+
@@ -220,9 +283,9 @@
           '</div>'+
       '</li>';
 
-      //Emitir Certificado SAFIT si no se encontro por WS
-      if(precheck.validation_id == '3' && type=='danger' && error != 'No verificado'){
-        var options;
+      //GENERAR CENAT solo que no este vencido y no este iniciado en licta
+      if(precheck.validation_id == '3' && type=='danger' && error != 'No verificado' && tramite.estado != 8 && tramite.tramite_dgevyl_id == null){
+        var options = '';
         @foreach ($centrosEmisores as $key => $value)
           @if($value->safit_cem_id == 1)
             options += '<option value="{{ $value->safit_cem_id }}" selected="selected"> {{ $value->name }} </option>';
@@ -259,7 +322,7 @@
             }
           }else{
             $('#logTurno').append("(*) <span class='red'> Debe verificar "+precheck.description+" </span> <br>");
-            $("#btn_precheck_"+precheck.validation_id).click();
+	    $("#btn_precheck_"+precheck.validation_id).click();
           }  
         }
       }
@@ -289,14 +352,15 @@
             $('#logPreCheck .msjcenat').html('***'+msg[1]);
         },
         error: function(xhr, status, error) {
-          $('#logPreCheck').html('ocurrio un error!! Intenta de nuevo...');
+          $('#logPreCheck .msjcenat').html('ocurrio un error!! Intenta de nuevo...');
         }
       });
     }
   }
 
   function runPrecheck(id, validation){
-    console.log(id+' '+validation);
+    console.log('Verficando Precheck:');
+    console.log('id: '+id+' validation:'+validation);
     
     $.ajax({
       headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
@@ -309,15 +373,14 @@
         $('#logPreCheck').html('<img src="'+img+'" width="200" > Verificando... ');
       },
       success: function( msg ) {
-        console.log('Finalizo: '+msg);
+        console.log(msg);
         getPreCheck(id);
       },
       error: function(xhr, status, error) {
-        $('#logPreCheck').html('ocurrio un error!! Intenta de nuevo...');
+        console.log('ocurrio un error: '+error);
+        getPreCheck(id);
       }
     });
-
-    console.log('continuando');
   }
   
   function getPaseTurno(id){

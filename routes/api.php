@@ -49,6 +49,12 @@ Route::group(['prefix'=>'reportes', 'middleware'=>'cors'], function(){
     Route::get('get_precheck_comprobantes', 'PreCheckController@get_precheck_comprobantes')->name('get_precheck_comprobantes');
 });
 
+//API desarrolladas para conexion con los web services
+Route::group(['prefix'=>'ws', 'middleware'=>'cors'], function(){
+    Route::get('getLibreDeuda', 'TramitesAInicarController@api_getLibreDeuda')->name('getLibreDeuda');
+});
+
+
 //API desarrolladas para consultar internas del sistema
 Route::group(['prefix'=>'funciones', 'middleware'=>'cors'], function(){
     Route::post('obtenerSucursales', 'DashboardController@obtenerSucursales')->name('obtenerSucursales');

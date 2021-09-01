@@ -60,6 +60,22 @@ class Controller extends BaseController
                 define($const,$value->value);
         }
 
-        //dd('se realizo la definicion de constantes');
+    }
+
+    public function file_contents_exist($url)
+    {
+	if($url == NULL) return false;
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $data = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch); 
+        if($httpcode>=200 && $httpcode<300){
+            return true;
+        } else {
+            return false;
+        }
     }
 }

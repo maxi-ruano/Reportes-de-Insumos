@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -9,6 +8,7 @@ use App\TramitesAIniciar;
 use App\Http\Controllers\SoapController;
 use App\Http\Controllers\WsClienteSafitController;
 use App\Http\Controllers\WsClienteSinalicController;
+use App\Http\Controllers\WsCharlaVirtualController;
 use App\AnsvPaises;
 use App\SysMultivalue;
 use App\SigeciPaises;
@@ -20,12 +20,13 @@ use App\AnsvCelExpedidor;
 use App\EmisionBoletaSafit;
 use App\ValidacionesPrecheck;
 use App\TramitesHabilitados;
+use App\Http\Controllers\UserController;
 
 class TramitesAInicarController extends Controller
 {
   private $localhost = '192.168.76.33';
   private $diasEnAdelante = 1;
-  private $cantidadDias = 5;
+  private $cantidadDias = 2;
   private $fecha_inicio = '';
   private $fecha_fin = '';
   private $munID = 1;
@@ -40,7 +41,7 @@ class TramitesAInicarController extends Controller
 
   //BUI
   private $motivoTurnoEnElDia = '25';
-  private $conceptoBui = [["07.02.28"], ["07.02.31"], ["07.02.32"], ["07.02.33"], ["07.02.34"], ["07.02.35"]];
+  private $motivoReimpresion  = '29'; 
   private $userBui;
   private $passwordBui;
   private $urlVerificacionBui;
@@ -104,7 +105,6 @@ class TramitesAInicarController extends Controller
   }
 
   public function guardarDatosBoleta($persona, $boleta, $siguienteEstado){
-    //$persona = TramitesAIniciar::find($persona->id);
     $persona->bop_cb = (isset($boleta->bopCB)?$boleta->bopCB:$boleta->bop_cb);
     $persona->bop_monto = (isset($boleta->bopMonto)?$boleta->bopMonto:$boleta->bop_monto);
     $persona->bop_fec_pag = (isset($boleta->bopFecPag)?$boleta->bopFecPag:$boleta->bop_fec_pag);
@@ -150,21 +150,27 @@ class TramitesAInicarController extends Controller
     return true;
   }
 
-  //Cambiar el concepto de BUI solo si motivo es TURNO EN EL DIA
-  public function esTurnoEnElDia($tramite) {
-    $existe = TramitesHabilitados::where('tramites_a_iniciar_id',$tramite->id)->where('motivo_id', $this->motivoTurnoEnElDia)->count();
-    if($existe){
-      $this->conceptoBui = [["07.02.30"]];
-      return true;
+  //Cambiar el concepto de BUI solo si motivo es TURNO EN EL DIA o REIMPRESION
+  public function obtenerConceptosBui($tramite) {
+    $turno = TramitesHabilitados::where('tramites_a_iniciar_id',$tramite->id)->where('deleted', false)->orderby('id','DESC')->first();
+    $motivo = isset($turno->motivo_id)?$turno->motivo_id:'';
+    switch ($motivo) {
+	case $this->motivoTurnoEnElDia:
+      		$conceptos = [["07.02.30"]];
+	case $this->motivoReimpresion:
+		$conceptos = [["07.02.49"]];
+	default:
+		$conceptos = [["07.02.28"], ["07.02.31"], ["07.02.32"], ["07.02.33"], ["07.02.34"], ["07.02.35"]];
     }
-    return false;
+    return $conceptos;
   }
 
-  public function existeTramiteAIniciarConPrecheck($nro_doc, $tipo_doc, $nacionalidad){
+  public function existeTramiteAIniciarConPrecheck($nro_doc, $tipo_doc, $sexo, $nacionalidad){
     $existe = TramitesAIniciar::orderBy('id','desc')
                     ->where('nacionalidad',$nacionalidad)
                     ->where('nro_doc',$nro_doc)
                     ->where('tipo_doc',$tipo_doc)
+                    ->where('sexo',strtoupper($sexo))
                     ->where('estado', '!=', TURNO_VENCIDO)
                     ->whereNull('tramite_dgevyl_id')
                     ->first();      
@@ -205,10 +211,11 @@ class TramitesAInicarController extends Controller
   }
 
   public function asignarTurnoEnTramitesAIniciar($turno){
-    $tipo_doc = $turno->tipoDocLicta();
     $nacionalidad = $this->getIdPais($turno->nacionalidad());
-    $tramiteAIniciar = $this->existeTramiteAIniciarConPrecheck($turno->numdoc, $tipo_doc, $nacionalidad);
-    
+    $tipo_doc = $turno->tipoDocLicta();
+    $sexo = $turno->getSexo();
+    $tramiteAIniciar = $this->existeTramiteAIniciarConPrecheck($turno->numdoc, $tipo_doc, $sexo, $nacionalidad);
+
     if($tramiteAIniciar){
       $tramiteAIniciar->sigeci_idcita = $turno->idcita;
       $tramiteAIniciar->save();
@@ -228,7 +235,6 @@ class TramitesAInicarController extends Controller
   }
 
   public function guardarTurnoEnTramitesAInicar($turno, $siguienteEstado){
-    
       $tramiteAIniciar = new TramitesAIniciar();
       $tramiteAIniciar->apellido = $turno->apellido;
       $tramiteAIniciar->nombre = $turno->nombre;
@@ -280,7 +286,7 @@ class TramitesAInicarController extends Controller
   }
 
   public function gestionarLibreDeuda($tramite, $estadoValidacion, $siguienteEstado){
-    $res = $this->verificarLibreDeuda($tramite);   
+    $res = $this->verificarLibreDeuda($tramite);
     if(!$res['res']){
       $this->guardarError((object)$res, $estadoValidacion, $tramite->id);
     }else {
@@ -289,50 +295,63 @@ class TramitesAInicarController extends Controller
     }
   }
 
-  public function verificarLibreDeuda($tramite){
+  public function verificarLibreDeuda($tramite){	  
     $tramite = TramitesAIniciar::find($tramite->id);
-    $res = array();  
-    $datos = "method=getLibreDeuda".
-             "&tipoDoc=".$tramite->tipoDocLibreDeuda().
-             "&numeroDoc=".$tramite->nro_doc.
-             "&userName=".$this->userLibreDeuda.
-             "&userPass=".$this->passwordLibreDeuda;
-    $wsresult = file_get_contents($this->urlLibreDeuda.$datos, false);
-    if ($wsresult == FALSE){
-      $res['res'] = false;
-      $res['error'] = 'Error en el Ws de Libre Deuda';
-      $res['request'] = $datos;
-      $res['response'] = null;
-      return $res;
-    }else{
-      $p = xml_parser_create();
-      xml_parse_into_struct($p, $wsresult, $vals, $index);
-      xml_parser_free($p);
-      $json = json_encode($vals);
-      $array = json_decode($json,TRUE);
-      $persona = null;
-      $libreDeuda = null;
+    $res = array();
+    $url = $this->urlLibreDeuda; 
+
+    if($this->file_contents_exist($url)){
+
+	$datos = "method=getLibreDeuda".
+             	"&tipoDoc=".$tramite->tipoDocLibreDeuda().
+             	"&numeroDoc=".$tramite->nro_doc.
+             	"&userName=".$this->userLibreDeuda.
+	     	"&userPass=".$this->passwordLibreDeuda;
+    	$options=array("ssl"=>array("verify_peer"=>false,"verify_peer_name"=>false));
+    	$wsresult = file_get_contents($url.$datos, false, stream_context_create($options));
+	
+	if ($wsresult == FALSE){
+      		$res['res'] = false;
+      		$res['error'] = 'Error en el Ws de Libre Deuda';
+      		$res['request'] = $datos;
+      		$res['response'] = null;
+    	}else{
+      		$p = xml_parser_create();
+      		xml_parse_into_struct($p, $wsresult, $vals, $index);
+      		xml_parser_free($p);
+      		$json = json_encode($vals);
+      		$array = json_decode($json,TRUE);
+      		$persona = null;
+      		$libreDeuda = null;
       
-      foreach ($array as $key => $value) {
-        if($value['tag'] == 'ERROR' ){
-          $res['res'] = false;
-          $res['error'] = ( isset($value['value'])? $value['value'] : "" );
-          $res['request'] = $datos;
-          $res['response'] = $array;
-          return $res;
-        }
-        else{
-          if($value['tag'] == 'PERSONA' )
-            $persona = $value['attributes'];
-          if($value['tag'] == 'LIBREDEUDA' )
-            $libreDeuda = $value['attributes'];
-        }
-      }
-        $libreDeudaHdr = $this->guardarDatosPersonaLibreDeuda($persona, $tramite);
-        $this->guardarDatosLibreDeuda($libreDeuda, $libreDeudaHdr);
-        $res['res'] = true;
-        $res['comprobante'] = $libreDeuda['NUMEROLD'];
-    }
+      		foreach ($array as $key => $value) {
+        	    if($value['tag'] == 'ERROR' ){
+          		$res['res'] = false;
+          		$res['error'] = ( isset($value['value'])? $value['value'] : "" );
+          		$res['request'] = $datos;
+          		$res['response'] = $array;
+			return $res;
+        	    }else{
+          		if($value['tag'] == 'PERSONA' )
+            		   $persona = $value['attributes'];
+          		if($value['tag'] == 'LIBREDEUDA' )
+            		   $libreDeuda = $value['attributes'];
+        	    }
+      		}
+		
+		if(isset($libreDeuda['NUMEROLD'])){
+			$libreDeudaHdr = $this->guardarDatosPersonaLibreDeuda($persona, $tramite);
+        		$this->guardarDatosLibreDeuda($libreDeuda, $libreDeudaHdr);
+        		$res['res'] = true;
+        		$res['comprobante'] = $libreDeuda['NUMEROLD'];
+		}
+    	}
+    }else{
+    	$res['res'] = false;
+        $res['error'] = 'El web service no se enuentra disponible';
+        $res['request'] = $url;
+        $res['response'] = null;
+    }	
     return $res;
   }
 
@@ -386,6 +405,53 @@ class TramitesAInicarController extends Controller
     $LibreDeudaLns->save();
   }
 
+  //API expuesta para se use desde LICTA - por problemas de permiso al servidor 
+  public function api_getLibreDeuda(Request $request){
+  	
+	if( isset($request->nrodoc) && isset($request->tipodoc) && isset($request->nu) && isset($request->pu) )
+	{
+	    $username = $request->nu;
+	    $password = $request->pu;
+
+	    $userdb = new UserController();
+	    if($userdb->validateCredentialsLICTA($username, $password))
+	    {
+	    	$url = $this->urlLibreDeuda;
+    		if($this->file_contents_exist($url)){
+		
+	    	   $params = "method=getLibreDeuda".
+             	  	"&tipoDoc=".$request->tipodoc.
+             	  	"&numeroDoc=".$request->nrodoc.
+             	  	"&userName=".$this->userLibreDeuda.
+             	  	"&userPass=".$this->passwordLibreDeuda;
+    	    	   $options  = array("ssl"=>array("verify_peer"=>false,"verify_peer_name"=>false));
+      	    	   $wsresult = file_get_contents($url.$params, false, stream_context_create($options));
+		
+		   /*
+		    * Convertir el resultado en JSON
+		   $response = $wsresult;
+		   if($respose == false){
+			 $wsresult = array( 'error'=> true, 'message' => 'Error de conexion con el WS');
+		   }else{
+			$p = xml_parser_create();
+      			xml_parse_into_struct($p, $response, $vals, $index);
+      			xml_parser_free($p);
+      			$json = json_encode($vals);
+      			$info = json_decode($json,TRUE);
+	    		$wsresult = array( 'error'=> false, 'message' => 'Acceso verificado', 'response' => $info);
+		   } */
+		}else{
+			$wsresult = array( 'error'=> true, 'message' => 'El web service no se encuentra disponible.');
+		}
+	    }else{
+		$wsresult = array( 'error'=> true, 'message' => 'Acceso denegado por credenciales incorrectas.');
+	    }
+	}else{
+		$wsresult = array( 'error'=> true, 'message' => 'Los parametros ingresados son incorrectos.');
+	}
+	
+	return $wsresult;
+  }
 
   /**
   * MicroservicioController: 3) Metodos asociados para completarBoletasEnTramitesAIniciar
@@ -402,7 +468,7 @@ class TramitesAInicarController extends Controller
     }
   }
 
-  public function  buscarBoletaSafit($persona, $siguienteEstado){
+  public function buscarBoletaSafit($persona, $siguienteEstado){
       $persona = TramitesAIniciar::find($persona->id);
       $res = $this->getBoleta($persona);
       if(empty($res->error)){
@@ -415,61 +481,74 @@ class TramitesAInicarController extends Controller
   }
 
   public function getBoleta($persona){
-    $res = array('error' => '');
-    $this->wsSafit->iniciarSesion();
-    $boletas = $this->wsSafit->getBoletas($persona);
-    $this->wsSafit->cerrarSesion();
+    $res = array('error' => "", 'request' => "",'response' => "");
     $boleta = null;
-    if(!empty($boletas->datosBoletaPago->datosBoletaPagoParaPersona)){
-      foreach ($boletas->datosBoletaPago->datosBoletaPagoParaPersona as $key => $boletaI) {
-        if($this->esBoletaValida($boletaI)){
-          if(!is_null($boleta)){
-            if( date($boletaI->bopFecPag) >= date($boleta->bopFecPag)) // para obtener la boleta mas reciente
-              $boleta = $boletaI;
-          }else
-            $boleta = $boletaI;
-        }else{
-          $res['error'] = "No existe ninguna boleta valida para esta persona";
-        }
-      }
-    }else {
-      if($boletas!=null)
-        $res['error'] = $boletas->rspDescrip;
-      else
-        $res['error'] = "existe un problema con Ws de sinalic";
-    }
 
-    if(!is_null($boleta)){
-      $persona = TramitesAIniciar::find($persona->id);
-      $persona->sexo = $boletas->datosBoletaPago->datosPersonaBoletaPago->oprSexo;
-      $persona->save();
-      $res = $boleta;
-    }else{
-      if($boleta = $this->buscarBoletaSafitEnTurnosVencidos($persona)){
-        $res['error'] = '';
+    $prorroga_cuarentena = $this->obtener_prorroga_cuarentena($persona);
+
+    $conexion = $this->wsSafit->iniciarSesion();
+    if($conexion->success){
+      $consulta = $this->wsSafit->getBoletas($persona);
+      $this->wsSafit->cerrarSesion();
+
+      $res['request'] = $consulta->request;
+      $res['response'] = $consulta->response;
+      $boletas = $consulta->response;
+
+      if(isset($boletas->rspID)){
+        if($boletas->rspID == 1){
+          foreach ($boletas->datosBoletaPago->datosBoletaPagoParaPersona as $key => $boletaI) {
+            if($this->esBoletaValida($boletaI, $prorroga_cuarentena)){
+              if(!is_null($boleta)){
+                if( date($boletaI->bopFecPag) >= date($boleta->bopFecPag)) // para obtener la boleta mas reciente
+                  $boleta = $boletaI;
+              }else{
+                $boleta = $boletaI;
+              }
+            }else{
+              $res['error'] = "No existe ninguna boleta vigente acreditada sin utilizar";
+            }
+          }
+        }else{
+          $res['error'] = $boletas->rspDescrip;
+        }
+      }else{
+        $res['error'] = "Ha ocurrido un error inesperado";
+      }
+
+      if(!is_null($boleta)){
+        $persona = TramitesAIniciar::find($persona->id);
+        $persona->sexo = $boletas->datosBoletaPago->datosPersonaBoletaPago->oprSexo;
+        $persona->save();
         $res = $boleta;
       }else{
-        $res['request'] = $persona;
-        $res['response'] = $boletas;
-        $res = (object)$res;
+        if($boleta = $this->buscarBoletaSafitEnTurnosVencidos($persona)){
+          $res['error'] = '';
+          $res = $boleta;
+        }
       }
+
+    }else{
+      $res = $conexion;
     }
 
-    return $res;
+    return (object) $res;
   }
 
-  public function esBoletaValida($boleta){
+  public function esBoletaValida($boleta, $prorroga = 0){
     $res = false;
+    $dias = DIAS_VALIDEZ_BOLETA_CENAT + $prorroga;
+    //verificamos que la boleta no esta utilizada, este acreditada y su fecha de pago cumpla con los meses de vigencia   
     if($boleta->bopEstado == $this->estadoBoletaNoUtilizada)
       if($boleta->munID == $this->munID)
         if($boleta->estID == $this->estID)
-          if($this->fechaDeVencimientoValida($boleta->bopFecPag, 3))
+          if($this->fechaDeVencimientoValida($boleta->bopFecPag, $dias))
             $res = true;
     return $res;
   }
 
-  public function fechaDeVencimientoValida($fecha, $mesesValido){
-    $nuevaFecha = strtotime ( '+'.$mesesValido.' month' , strtotime ( $fecha ) ) ;
+  public function fechaDeVencimientoValida($fecha, $dias){
+    $nuevaFecha = strtotime ( '+'.$dias.' days' , strtotime ( $fecha ) ) ;
     if (date('Y-m-d') < date('Y-m-d', $nuevaFecha))
       $res = true;
     else
@@ -483,7 +562,6 @@ class TramitesAInicarController extends Controller
   */
   public function emitirBoletasVirtualPago($estadoActual, $estadoValidacion, $siguienteEstado){
     $tramitesAIniciar = $this->getTramitesAIniciar($estadoActual, $this->fecha_inicio, $this->fecha_fin);
-    $this->wsSafit->iniciarSesion();
     foreach ($tramitesAIniciar as $key => $tramiteAIniciar) {
       try{
         $this->gestionarBoletaSafit($tramiteAIniciar, $estadoValidacion, $siguienteEstado);
@@ -499,33 +577,41 @@ class TramitesAInicarController extends Controller
     $demorado = false;
     $tramiteAIniciar = TramitesAIniciar::find($tramiteAIniciar->id);
     $tramiteAIniciar->tipo_doc = $tramiteAIniciar->tipoDocSafit();
-    $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);
-    if(isset($res->rspID)){
-      if($res->rspID == 1){
-        if(isset($res->reincidencias->rspReincidente)){
-          if($res->reincidencias->rspReincidente == "P"){
-            $array = array('error' => "El Cenat esta demorado",
-                          'request' => $tramiteAIniciar,
-                          'response' => $res);
-            $this->guardarError((object)$array, $estadoValidacion, $tramiteAIniciar->id);
-            $demorado = true;
+    
+    $conexion = $this->wsSafit->iniciarSesion();
+    if($conexion->success){
+      $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAIniciar);
+      $this->wsSafit->cerrarSesion();
+      if(isset($res->rspID)){
+        if($res->rspID == 1){
+          if(isset($res->reincidencias->rspReincidente)){
+            if($res->reincidencias->rspReincidente == "P"){
+              $array = array('error' => "El Cenat esta demorado",
+                            'request' => $tramiteAIniciar,
+                            'response' => $res);
+              $this->guardarError((object)$array, $estadoValidacion, $tramiteAIniciar->id);
+              $demorado = true;
+            }
           }
-        }
-        if(!$demorado){
-          $this->guardarValidacion($tramiteAIniciar, true, $estadoValidacion, $tramiteAIniciar->bop_id);
-          $this->actualizarEstado($tramiteAIniciar, $siguienteEstado);
-          $this->guardarEmisionBoleta($tramiteAIniciar, $this->localhost);
+          if(!$demorado){
+            $this->guardarValidacion($tramiteAIniciar, true, $estadoValidacion, $tramiteAIniciar->bop_id);
+            $this->actualizarEstado($tramiteAIniciar, $siguienteEstado);
+            $this->guardarEmisionBoleta($tramiteAIniciar, $this->localhost);
+          }
+        }else{
+          $array = array('error' => $res->rspDescrip,
+                        'request' => $tramiteAIniciar,
+                        'response' => $res);
+          $this->guardarError((object)$array, $estadoValidacion, $tramiteAIniciar->id);
         }
       }else{
-        $array = array('error' => $res->rspDescrip,
+        $array = array('error' => $res,
                       'request' => $tramiteAIniciar,
                       'response' => $res);
         $this->guardarError((object)$array, $estadoValidacion, $tramiteAIniciar->id);
       }
     }else{
-      $array = array('error' => $res,
-                    'request' => $tramiteAIniciar,
-                    'response' => $res);
+      $array = $conexion;
       $this->guardarError((object)$array, $estadoValidacion, $tramiteAIniciar->id);
     }
   }
@@ -563,9 +649,9 @@ class TramitesAInicarController extends Controller
   }
 
   public function gestionarBui($tramite, $estadoValidacion, $siguienteEstado){
-    $verificar = $this->esTurnoEnElDia($tramite);
+    $conceptos = $this->obtenerConceptosBui($tramite);
     $error = 'ninguno';
-      foreach ($this->conceptoBui as $key => $value) {
+      foreach ($conceptos as $key => $value) {
         $res = $this->verificarBui($tramite, $value);
         if( !empty($res['error']) ){
           if($res['error'] != $error){
@@ -585,6 +671,8 @@ class TramitesAInicarController extends Controller
 
     \Log::info('['.date('h:i:s').'] Se inicia verificarBui() tramiteAIniciar ID: '.$tramite->id); 
 
+    $prorroga_cuarentena = $this->obtener_prorroga_cuarentena($tramite);
+    
     $nro_boleta = null;
     $tramite = TramitesAIniciar::find($tramite->id);
     $data = array("TipoDocumento" => $tramite->tipoDocBui(),
@@ -598,7 +686,7 @@ class TramitesAInicarController extends Controller
       if(isset($res->mensaje))
         $mensaje = $res->mensaje;
     } else {
-      if($boleta = $this->existeBoletaHabilitada($res->boletas)){
+      if($boleta = $this->existeBoletaHabilitada($res->boletas, $prorroga_cuarentena)){
         if(!$this->boletaUtilizada($boleta)){
           $boletaBui = BoletaBui::create(array(
           'id_boleta'=>$boleta->IDBoleta,
@@ -646,12 +734,13 @@ class TramitesAInicarController extends Controller
     return $result;
   }
 
-  public function existeBoletaHabilitada($boletas){
+  public function existeBoletaHabilitada($boletas, $prorroga = 0){
     $res = false;
+    $dias = DIAS_VALIDEZ_BOLETA_BUI + $prorroga;
     foreach ($boletas as $key => $boleta) {
       $boleta = (object)$boleta;
       $vto = substr($boleta->FechaPago,1,10);
-      $nuevaFecha = strtotime ( '+1 year' , strtotime ( $vto ) ) ;
+      $nuevaFecha = strtotime ( '+'.$dias.' days' , strtotime ( $vto ) ) ;
       if (date('Y-m-d') < date('Y-m-d',$nuevaFecha)){
           $res = $boleta;
           break;
@@ -703,7 +792,7 @@ class TramitesAInicarController extends Controller
   }
 
   public function validacionesTerminadas($id){
-      $res = ValidacionesPrecheck::where("tramite_a_iniciar_id", $id)->whereNotIn('validation_id',[SINALIC])->get();
+      $res = ValidacionesPrecheck::where("tramite_a_iniciar_id", $id)->whereNotIn('validation_id',[SINALIC,CHARLA_VIRTUAL])->get();
       foreach($res as $key => $validacion)
         if (!$validacion->validado)
           return false;
@@ -774,16 +863,25 @@ class TramitesAInicarController extends Controller
           break;
       }
 
-      $resultado = $this->interpretarResultado($datos, $response_ws, $res);
-      if(!empty($resultado->error)){
-        $this->guardarError($resultado, $siguienteEstado, $tramite->id);
-      }else {
-        $tramite->estado = $siguienteEstado;
-        $tramite->tramite_sinalic_id = $resultado->tramite_sinalic_id;
-        $tramite->response_ws = json_encode($response_ws);
-        $tramite->save();
-        //ACTUALIZAMOS en validaciones_precheck
-        $this->guardarValidacion($tramite, true, SINALIC, $tramite->tramite_sinalic_id);
+      if($response_ws){
+        /*//Corregimos casos que se requiere un renovacion pero iniciaron como nueva licencia
+        $tramiteNuevaLicencia = strpos($response_ws, 'IniciarTramiteNuevaLicencia');
+        if($tramiteNuevaLicencia == true && $tramite->tipo_tramite != 1){
+          $tramite->tipo_tramite = 1;
+          $tramite->save();
+        }*/
+
+        $resultado = $this->interpretarResultado($datos, $response_ws, $res);
+        if(!empty($resultado->error)){
+          $this->guardarError($resultado, $siguienteEstado, $tramite->id);
+        }else {
+          $tramite->estado = $siguienteEstado;
+          $tramite->tramite_sinalic_id = $resultado->tramite_sinalic_id;
+          $tramite->response_ws = json_encode($response_ws);
+          $tramite->save();
+          //ACTUALIZAMOS en validaciones_precheck
+          $this->guardarValidacion($tramite, true, SINALIC, $tramite->tramite_sinalic_id);
+        }
       }
     }
   }
@@ -879,6 +977,16 @@ class TramitesAInicarController extends Controller
   }
 
   public function getTipoTramite($ultimaLicencia){
+    /*****
+     * tipo_tramite_id_ansv
+        1 "OTORGAMIENTO"
+        2 "RENOVACION"
+        3 "DUPLICADO"
+        4 "AMPLIACION"
+        5 "REVALIDA"
+        6 "RENOVACION_AMPLIACION"
+    */
+
     if(!$ultimaLicencia || $this->licenciaVencidaMasDeUnAnio($ultimaLicencia))
       $res = 1;// OTORGAMIENTO
     else{
@@ -999,27 +1107,31 @@ class TramitesAInicarController extends Controller
       $emision = EmisionBoletaSafit::where('numero_boleta', $bop_cb)->first();
     
     if ($emision === null) {
-      $this->wsSafit->iniciarSesion();
-      $res = $this->wsSafit->consultarBoletaPago($bop_cb, $cem_id);
-      $this->wsSafit->cerrarSesion();
-      if(isset($res->rspID)){
-        if($res->rspID == 1){
-          $boleta = (object) array('nro_doc' => $res->datosBoletaPago->datosPersonaBoletaPago->oprDocumento,
-                                'tipo_doc' => $res->datosBoletaPago->datosPersonaBoletaPago->tdcID,
-                                'sexo' => $res->datosBoletaPago->datosPersonaBoletaPago->oprSexo,
-                                'nombre' => $res->datosBoletaPago->datosPersonaBoletaPago->oprNombre,
-                                'apellido' => $res->datosBoletaPago->datosPersonaBoletaPago->oprApellido,
-                                'bop_id' => $res->datosBoletaPago->bopID,
-                                'bop_cb' => $res->datosBoletaPago->bopCB,
-                                'bop_monto' => $res->datosBoletaPago->bopMonto,
-                                'bop_fec_pag' => $res->datosBoletaPago->bopFecPag,
-                                'cem_id' => $cem_id);
-          $resultado = ['boleta', $boleta];
+      $conexion = $this->wsSafit->iniciarSesion();
+      if($conexion->success){
+        $res = $this->wsSafit->consultarBoletaPago($bop_cb, $cem_id);
+        $this->wsSafit->cerrarSesion();
+        if(isset($res->rspID)){
+          if($res->rspID == 1){
+            $boleta = (object) array('nro_doc' => $res->datosBoletaPago->datosPersonaBoletaPago->oprDocumento,
+                                  'tipo_doc' => $res->datosBoletaPago->datosPersonaBoletaPago->tdcID,
+                                  'sexo' => $res->datosBoletaPago->datosPersonaBoletaPago->oprSexo,
+                                  'nombre' => $res->datosBoletaPago->datosPersonaBoletaPago->oprNombre,
+                                  'apellido' => $res->datosBoletaPago->datosPersonaBoletaPago->oprApellido,
+                                  'bop_id' => $res->datosBoletaPago->bopID,
+                                  'bop_cb' => $res->datosBoletaPago->bopCB,
+                                  'bop_monto' => $res->datosBoletaPago->bopMonto,
+                                  'bop_fec_pag' => $res->datosBoletaPago->bopFecPag,
+                                  'cem_id' => $cem_id);
+            $resultado = ['boleta', $boleta];
+          }else{
+            $resultado = ['error', $res->rspDescrip];
+          }
         }else{
-          $resultado = ['error', $res->rspDescrip];
+          $resultado = ['error',  'Ha ocurrido un error inesperado: '.$res];
         }
       }else{
-        $resultado = ['error',  'Ha ocurrido un error inesperado: '.$res];
+        $resultado = ['error',  $conexion->error];
       }
     }else{
       $resultado = ['success', 'El Cenat ya fue emitido'];
@@ -1060,31 +1172,35 @@ class TramitesAInicarController extends Controller
                                       'cem_id' => $request->cem_id);
     $emision = EmisionBoletaSafit::where('numero_boleta', $request->bop_id)->first();
     if ($emision === null) {
-      $this->wsSafit->iniciarSesion();
-      $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAInicar);
-      $this->wsSafit->cerrarSesion();
-      $demorado = false;
-      if(isset($res->rspID)){
-        if($res->rspID == 1){
-          if(isset($res->reincidencias->rspReincidente))
-            if($res->reincidencias->rspReincidente == "P"){
-              $resultado = ['error', 'El Cenat se encuentra Demorado'];
-              $demorado = true;
-            }
-            if(!$demorado){
-              //revertimos el tipo_doc a como se usa en licta
-              $sigeci = new Sigeci();
-              $sigeci->idtipodoc = $request->tipo_doc;
-              $request->tipo_doc = $sigeci->tipoDocLicta();
-              $this->guardarEmisionBoleta($request, $clientIP);
-              $resultado = ['success', $res->rspDescrip];
-            }
-        }else{
-          $resultado = ['error', $res->rspDescrip];
-        }
+      $conexion = $this->wsSafit->iniciarSesion();
+      if($conexion->success){
+        $res = $this->wsSafit->emitirBoletaVirtualPago($tramiteAInicar);
+        $this->wsSafit->cerrarSesion();
+        $demorado = false;
+        if(isset($res->rspID)){
+          if($res->rspID == 1){
+            if(isset($res->reincidencias->rspReincidente))
+              if($res->reincidencias->rspReincidente == "P"){
+                $resultado = ['error', 'El Cenat se encuentra Demorado'];
+                $demorado = true;
+              }
+              if(!$demorado){
+                //revertimos el tipo_doc a como se usa en licta
+                $sigeci = new Sigeci();
+                $sigeci->idtipodoc = $request->tipo_doc;
+                $request->tipo_doc = $sigeci->tipoDocLicta();
+                $this->guardarEmisionBoleta($request, $clientIP);
+                $resultado = ['success', $res->rspDescrip];
+              }
+          }else{
+            $resultado = ['error', $res->rspDescrip];
+          }
 
+        }else{
+          $resultado = ['error', 'Ha ocurrido un error inesperado: '.$res];
+        }
       }else{
-        $resultado = ['error', 'Ha ocurrido un error inesperado: '.$res];
+        $resultado = ['error', $conexion->error];
       }
     }else{
       $resultado = ['success', 'El Cenat ya fue emitido'];
@@ -1095,18 +1211,24 @@ class TramitesAInicarController extends Controller
   public function buscarBoletaPagoPersona(Request $request){
     $SysMultivalue = new SysMultivalue();
     $tipodocs = $SysMultivalue->tipodocs();
+    $error = '';
+    $boletas = null;
 
     if($request->nro_doc){
       $persona = TramitesAIniciar::selectRaw($request->tipo_doc.' as tipo_doc, '.$request->nro_doc.' as nro_doc')->first();
-      $this->wsSafit->iniciarSesion();
-      $boletas = $this->wsSafit->getBoletas($persona);
-      $this->wsSafit->cerrarSesion();
-
-      return View('safit.buscarBoletaPagoPersona')->with('tipodocs', $tipodocs)
-                                                  ->with('boletas', $boletas);
-    }else{
-      return View('safit.buscarBoletaPagoPersona')->with('tipodocs', $tipodocs);
+      $conexion = $this->wsSafit->iniciarSesion();
+      if($conexion->success){
+        $consulta = $this->wsSafit->getBoletas($persona);
+        $this->wsSafit->cerrarSesion();
+        $boletas = $consulta->response;
+        $error = (isset($boletas->rspDescrip))?$boletas->rspDescrip:'';
+      }else{        
+        $error = $conexion->error;
+      }
     }
+    return View('safit.buscarBoletaPagoPersona')->with('tipodocs', $tipodocs)
+                                                ->with('boletas', $boletas)
+                                                ->with('error', $error);
   }
 
   public function calcularFechas(){
@@ -1133,27 +1255,23 @@ class TramitesAInicarController extends Controller
   //FUNCIONES PARA TURNOS VENCIDOS
   public function revisarTurnosVencidos(){
     try{
-      //16 dias atras
-      $last_date = date('Y-m-d', strtotime('-'.(DIAS_VALIDEZ_TURNO).' days', strtotime(date('Y-m-d'))));
+      //16 dias atras - no aplica para el precheck, pasara a vencido en la tarde si no asiste a su turno
+      //$last_date = date('Y-m-d', strtotime('-'.(DIAS_VALIDEZ_TURNO).' days', strtotime(date('Y-m-d'))));
       
       $hoy = date('Y-m-d');
 
-      $sigeci = TramitesAIniciar::select('tramites_a_iniciar.id','tramites_a_iniciar.estado','sigeci.fecha as sigeci_fecha','tramites_habilitados.fecha as sath_fecha')
-                                  ->join('sigeci', 'sigeci.idcita', '=', 'tramites_a_iniciar.sigeci_idcita')
-                                  ->leftjoin('tramites_habilitados', 'tramites_habilitados.tramites_a_iniciar_id', '=', 'tramites_a_iniciar.id')
-                                  ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
-                                  ->where('tramites_a_iniciar.estado', '!=', TURNO_VENCIDO)
-                                  ->whereRaw(" sigeci.fecha <= '".$hoy."' AND (tramites_habilitados.fecha <= '".$hoy."' OR tramites_habilitados.fecha is null) ")
+      $precheck = TramitesAIniciar::whereNull('tramite_dgevyl_id')
+                                  ->where('estado', '!=', TURNO_VENCIDO)
+                                  ->whereNotIn('id',  function($query) use($hoy) {
+                                    $query->select('tramites_a_iniciar.id')
+                                      ->from('tramites_a_iniciar')
+                                      ->leftjoin('sigeci', 'sigeci.idcita', '=', 'tramites_a_iniciar.sigeci_idcita')
+                                      ->leftjoin('tramites_habilitados', 'tramites_habilitados.tramites_a_iniciar_id', '=', 'tramites_a_iniciar.id')
+                                      ->whereRaw("sigeci.fecha > '".$hoy."' OR tramites_habilitados.fecha > '".$hoy."' ");
+                                  })
                                   ->update(['estado' => TURNO_VENCIDO]);
 
-      $habilitados = TramitesAIniciar::join('tramites_habilitados', 'tramites_habilitados.tramites_a_iniciar_id', '=', 'tramites_a_iniciar.id')
-                                  ->where('tramites_habilitados.fecha', '<=', $hoy)
-                                  ->where('tramites_a_iniciar.estado', '!=', TURNO_VENCIDO)
-                                  ->whereNull('tramites_a_iniciar.tramite_dgevyl_id')
-                                  ->whereNull('tramites_a_iniciar.sigeci_idcita')                                  
-                                  ->update(['estado' => TURNO_VENCIDO]);
-      
-      \Log::info('['.date('h:i:s').'] revisarTurnosVencidos - Se da por TURNO_VENCIDO a los turnos menores igual a : '.$hoy);
+      \Log::info('['.date('h:i:s').'] revisarTurnosVencidos - Se da por TURNO_VENCIDO a los precheck menores igual a : '.$hoy);
 
       //PENDIENTE: anular los tramites iniciados en SINALIC que pasaron a VENCIDOS  y actualizar en tramites_a_iniciar
       $tramites = TramitesAIniciar::leftjoin("ansv_tramite","ansv_tramite.numero_tramite_ansv","tramites_a_iniciar.tramite_sinalic_id")
@@ -1164,12 +1282,8 @@ class TramitesAInicarController extends Controller
                     ->get();
 
       foreach ($tramites as $tramite){
-        if($this->anularTramiteSinalic($tramite->tramite_sinalic_id,'5','microservicio_turno_vencido')){ //Motivo:****OTROS
-          $actualizar = TramitesAIniciar::find($tramite->id)
-                        ->update([
-                                'tramite_sinalic_id' => null,
-                                'tipo_tramite' => null
-                          ]);
+        if($this->anularTramiteSinalic($tramite->tramite_sinalic_id,'5','microservicio_turno_vencido')){
+          $actualizar = TramitesAIniciar::find($tramite->id)->update([ 'tramite_sinalic_id' => null ]);
         }
       }
 
@@ -1178,8 +1292,47 @@ class TramitesAInicarController extends Controller
     }                    
   }
 
+  public function corregirAnsvTramite(){
+
+      $tramites = \DB::table('ansv_tramite')->whereBetween("fecha_reporte",['2019-09-01','2019-09-01'])->whereNull('numero_tramite_ansv')->get();
+      echo count($tramites); die();
+      echo '<br> ';
+      foreach ($tramites as $key => $tramite) {
+        $numero_tramite_ansv = null;
+        $ansv = \DB::table('ansv_success_msgs')->where('tramite_id',$tramite->tramite_id)->whereRaw(" numero_tramite_ansv > 0 ")->first();
+        if($ansv){
+          $numero_tramite_ansv = $ansv->numero_tramite_ansv;
+        }else{
+            $ansv = \DB::table('ansv_success_msgs')->where('tramite_id',$tramite->tramite_id)->whereRaw("metodo_llamado like 'Iniciar%' ")->first();
+            if($ansv){
+              $response = $ansv->response;
+              $posicion = strpos($response,'NumeroTramite');
+
+                if($posicion >0){
+
+                  if( strpos($response,'NumeroTramite";i:') ){
+                    $posicion+=17;
+                  }else{
+                    $posicion+=20;
+                  }
+
+                  $numero = substr($response,$posicion,8);
+
+                  if($numero>0){
+                    $numero_tramite_ansv = $numero;
+                  }
+                }
+          }
+        }
+
+        if($numero_tramite_ansv > 0 ){
+          $actualizar = \DB::table('ansv_tramite')->where('tramite_id',$tramite->tramite_id)->update([ 'numero_tramite_ansv' => $numero_tramite_ansv ]);
+        }
+      }
+  }
+
   public function buscarBoletaSafitEnTurnosVencidos($tramiteAIniciar){
-    $fecha_minima_pago = date('Y-m-d', strtotime('-'.(DIAS_VENCIMIENTO_BOLETA_SAFIT).' days', strtotime(date('Y-m-d'))));
+    $fecha_minima_pago = date('Y-m-d', strtotime('-'.(DIAS_VALIDEZ_BOLETA_CENAT).' days', strtotime(date('Y-m-d'))));
     $encontrado = null;
     $res = TramitesAIniciar::where('estado', TURNO_VENCIDO)
                     ->where('bop_fec_pag', '>', $fecha_minima_pago)
@@ -1196,4 +1349,31 @@ class TramitesAInicarController extends Controller
                                     'cemID' => $res->cem_id);
     return  $encontrado;
   }
+
+  public function getCharlaVirtual($tramite, $estadoValidacion){
+
+    $WsCharlaVirtual = new WsCharlaVirtualController();
+    $consulta = $WsCharlaVirtual->consultar($tramite);
+    if($consulta->success){
+	$codigo = $WsCharlaVirtual->guardar($consulta->response);
+	$this->guardarValidacion($tramite, true, $estadoValidacion, $codigo);
+    }else {
+      $this->guardarError($consulta, $estadoValidacion, $tramite->id);
+    }
+  }
+
+  public function obtener_prorroga_cuarentena($persona){
+	  $prorroga = 0;
+	  $cuarentena = \DB::table('t_cuarentena')
+		 		->where('nro_doc',$persona->nro_doc)
+				->where('tipo_doc',$persona->tipo_doc)
+				->where('sexo',strtoupper($persona->sexo))
+				->where('nacionalidad',$persona->nacionalidad)
+				->count();
+	  if($cuarentena){
+	  	$prorroga = DIAS_PRORROGA_CUARENTENA;
+	  }
+	  return $prorroga;
+  }
+
 }

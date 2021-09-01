@@ -2,7 +2,8 @@
 @section('content')
 <!-- page content -->
 
-@include('safit.botoneraPrecheck')
+<!--  Se elimina el acceso de generar un certificado - se realizara unicamente desde precheck con un turno 
+
 <div class="row">
   <div class="col-md-12 col-sm-12 col-xs-12">
     <div class="x_panel">
@@ -364,19 +365,18 @@
   </div>
 </div>
 
+-->
 <!-- /page content -->
 @endsection
 
 @push('scripts')
-  <script src="{{ asset('vendors/jquery/dist/jquery.min.js')}}"></script>
-  <!-- Bootstrap -->
-  <script src="{{ asset('vendors/bootstrap/dist/js/bootstrap.min.js')}}"></script>
   <!-- bootstrap-daterangepicker -->
   <script src="{{ asset('vendors/moment/min/moment.min.js')}}"></script>
   <script src="{{ asset('vendors/bootstrap-daterangepicker/daterangepicker.js')}}"></script>
   <!-- Custom Theme Scripts -->
   <script src="{{ asset('build/js/custom.min.js')}}"></script>
   <script>
+	/*
     $('#single_cal4').daterangepicker({
       singleDatePicker: true,
       singleClasses: "picker_4",
@@ -385,7 +385,7 @@
         }
     }, function(start, end, label) {
       console.log(start.toISOString(), end.toISOString(), label);
-    });
+    }); */
   </script>
 @endpush
 
