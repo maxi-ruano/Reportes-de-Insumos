@@ -162,7 +162,7 @@ class TramitesAInicarController extends Controller
 		      $conceptos = [["07.02.49"]];
           break;
 	  defeault:
-		$conceptos = [["07.02.28"], ["07.02.31"], ["07.02.32"], ["07.02.33"], ["07.02.34"], ["07.02.35"]];
+		$conceptos = [["07.02.28"], ["07.02.31"], ["07.02.32"], ["07.02.33"], ["07.02.34"], ["07.02.36"]];
     }
     return $conceptos;
   }
