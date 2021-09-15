@@ -155,11 +155,13 @@ class TramitesAInicarController extends Controller
     $turno = TramitesHabilitados::where('tramites_a_iniciar_id',$tramite->id)->where('deleted', false)->orderby('id','DESC')->first();
     $motivo = isset($turno->motivo_id)?$turno->motivo_id:'';
     switch ($motivo) {
-	case $this->motivoTurnoEnElDia:
+	  case $this->motivoTurnoEnElDia:
       		$conceptos = [["07.02.30"]];
-	case $this->motivoReimpresion:
-		$conceptos = [["07.02.49"]];
-	default:
+          break;
+	  case $this->motivoReimpresion:
+		      $conceptos = [["07.02.49"]];
+          break;
+	  defeault:
 		$conceptos = [["07.02.28"], ["07.02.31"], ["07.02.32"], ["07.02.33"], ["07.02.34"], ["07.02.35"]];
     }
     return $conceptos;
