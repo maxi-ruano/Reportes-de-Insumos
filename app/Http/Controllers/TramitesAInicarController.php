@@ -161,7 +161,7 @@ class TramitesAInicarController extends Controller
 	  case $this->motivoReimpresion:
 		      $conceptos = [["07.02.49"]];
           break;
-	  defeault:
+	  default:
 		$conceptos = [["07.02.28"], ["07.02.31"], ["07.02.32"], ["07.02.33"], ["07.02.34"], ["07.02.36"]];
     }
     return $conceptos;
