@@ -29,16 +29,20 @@ class Kernel extends ConsoleKernel
         //Validaciones Completas
         //$schedule->call('App\Http\Controllers\MicroservicioController@revisarValidaciones')->weekdays()->at('16:55');
 
-        //PRECHECK
+        //PRECHECK SIGECI
         $schedule->call('App\Http\Controllers\MicroservicioController@completarTurnosEnTramitesAIniciar')->weekdays()->at('18:40');//Turnos
         $schedule->call('App\Http\Controllers\MicroservicioController@verificarLibreDeudaDeTramites')->weekdays()->at('19:15');//Libre Deuda
         $schedule->call('App\Http\Controllers\MicroservicioController@verificarBuiTramites')->weekdays()->at('19:20');//Bui
         $schedule->call('App\Http\Controllers\MicroservicioController@completarBoletasEnTramitesAIniciar')->weekdays()->at('19:10');//Buscar Boleta Cenat
         $schedule->call('App\Http\Controllers\MicroservicioController@emitirBoletasVirtualPago')->weekdays()->at('19:30');//Obtener Certificado Virtual Cenat
-        
+
         //Revisar validaciones completas e iniciar en Sinalic
 	    $schedule->call('App\Http\Controllers\MicroservicioController@revisarValidaciones')->weekdays()->at('20:00');//Validaciones Completas
         $schedule->call('App\Http\Controllers\MicroservicioController@enviarTramitesASinalic')->weekdays()->at('20:10');//Turnos a Enviar a Sinalic
+        
+        //PRECHECK STD
+	    $schedule->call('App\Http\Controllers\MicroservicioController@tramitesReimpresionStd')->weekdays()->at('20:30');//
+        
         //FIN PRECHECK
     }
 

@@ -149,7 +149,7 @@ class TramitesHabilitadosController extends Controller
 
                 $tipo_doc   = $request->tipo_doc;
                 $nro_doc    = strtoupper($request->nro_doc);
-		$sexo 	    = $request->sexo;
+		        $sexo 	    = $request->sexo;
                 $pais       = $request->pais;
                 $fecha      = $request->fecha;
                 $motivo_id  = $request->motivo_id;
@@ -361,6 +361,55 @@ class TramitesHabilitadosController extends Controller
             ProcessPrecheck::dispatch($tramiteshabilitados);
 
         return true;
+    }
+
+    public function tramitesReimpresionStd(Request $request)
+    {
+        $data = $this->getDataStd();
+        
+        $tipo_doc   = $request->tipo_doc;
+        $nro_doc    = strtoupper($request->nro_doc);
+        $sexo 	    = $request->sexo;
+        $pais       = $request->pais;
+        $fecha      = $request->fecha;
+        $motivo_id  = $request->motivo_id;
+
+        /////////////////////////////////////////////////////////////////////////////
+
+                        //Si no existe ninguna restriccion entonces creamos el registro
+        $tramiteshabilitados = new TramitesHabilitados();
+        $tramiteshabilitados->fecha         = $fecha;
+        $tramiteshabilitados->apellido      = strtoupper($request->apellido);
+        $tramiteshabilitados->nombre        = strtoupper($request->nombre);
+        $tramiteshabilitados->tipo_doc      = $tipo_doc;
+        $tramiteshabilitados->nro_doc       = $nro_doc;
+        $tramiteshabilitados->sexo          = $sexo;
+        $tramiteshabilitados->fecha_nacimiento     = $request->fecha_nacimiento;
+        $tramiteshabilitados->pais          = $pais;
+        $tramiteshabilitados->user_id       = $request->user_id;
+        $tramiteshabilitados->sucursal      = $request->sucursal;
+        $tramiteshabilitados->motivo_id     = $motivo_id;
+        $tramiteshabilitados->habilitado = false;               
+        // $saved = $tramiteshabilitados->save();
+
+                $tipo_doc   = $request->tipo_doc;
+                $nro_doc    = strtoupper($request->nro_doc);
+		        $sexo 	    = $request->sexo;
+                $pais       = $request->pais;
+                $fecha      = $request->fecha;
+                $motivo_id  = $request->motivo_id;
+
+        foreach ($data as $tramite) {
+            $request->nombre = $tramite['nombreCiudadano'];
+            $request->apellido = $tramite['apellidoCiudadano'];
+            $request->tipo_doc = $tramite['tipoDocumentoCiudadano'];
+            $request->nro_doc = $tramite['numeroDocumentoCiudadano'];
+            $request->sexo = $tramite['generoCiudadano'];
+            // $request->pais = $tramite[''];
+            // $request->fecha = $tramite['fechaIngreso'];
+            $request->motivo_id = 29;
+        }
+
     }
 
     /**

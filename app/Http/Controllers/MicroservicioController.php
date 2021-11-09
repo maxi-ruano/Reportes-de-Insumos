@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\TramitesAIniciar;
 use App\Http\Controllers\TramitesAIniciarController;
+use App\Http\Controllers;
 use App\Tramites;
 use Log;
 
@@ -60,6 +61,14 @@ class MicroservicioController extends Controller
       \Log::info('['.date('h:i:s').'] '.'se inicio: enviarTramitesASinalic()');
       $tramitesAIniciar = new TramitesAInicarController();
       $tramitesAIniciar->enviarTramitesASinalic( VALIDACIONES_COMPLETAS, INICIO_EN_SINALIC);
+    }
+
+    public function tramitesReimpresionStd(){
+      \Log::info('['.date('h:i:s').'] '.'se inicio: tramitesReimpresionStd()');
+      $tramitesHabilitadosController = new TramitesHabilitadosController();
+
+      $tramitesHabilitadosController->tramitesReimpresionStd();
+    
     }
 
     public function run(){
