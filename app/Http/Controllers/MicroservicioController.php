@@ -66,8 +66,8 @@ class MicroservicioController extends Controller
     public function tramitesReimpresionStd(){
       \Log::info('['.date('h:i:s').'] '.'se inicio: tramitesReimpresionStd()');
       $tramitesHabilitadosController = new TramitesHabilitadosController();
-
-      $tramitesHabilitadosController->tramitesReimpresionStd();
+      //Aca, hay que ingresar los datos necesarios para correr la integración/ falta!
+      $tramitesHabilitadosController->tramitesReimpresionStd($ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo);
     
     }
 

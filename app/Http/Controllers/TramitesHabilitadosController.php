@@ -363,9 +363,11 @@ class TramitesHabilitadosController extends Controller
         return true;
     }
 
-    public function tramitesReimpresionStd(Request $request)
+    public function tramitesReimpresionStd($ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo)
     {
-        $data = $this->getDataStd();
+        $request = new Request();
+
+        $data = $this->solicitudDatosStd($ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo);
         
         $tipo_doc   = $request->tipo_doc;
         $nro_doc    = strtoupper($request->nro_doc);
@@ -376,7 +378,7 @@ class TramitesHabilitadosController extends Controller
 
         /////////////////////////////////////////////////////////////////////////////
 
-                        //Si no existe ninguna restriccion entonces creamos el registro
+            //Si no existe ninguna restriccion entonces creamos el registro
         $tramiteshabilitados = new TramitesHabilitados();
         $tramiteshabilitados->fecha         = $fecha;
         $tramiteshabilitados->apellido      = strtoupper($request->apellido);
@@ -673,7 +675,7 @@ class TramitesHabilitadosController extends Controller
             ProcessPrecheck::dispatch($turno);
         }
     }
-    private function getTokenStd()
+    private function obtenerTokenStd()
     {
         $curl = curl_init();
         //Homologacion
@@ -738,7 +740,7 @@ class TramitesHabilitadosController extends Controller
         ini_set('display_errors', '1');
         if (!file_exists('credenciales_std_hml.txt'))
         {
-            $array = $this->getTokenStd();
+            $array = $this->obtenerTokenStd();
         }else{
                 $fp = fopen('credenciales_std_hml.txt','rb');
                $array = unserialize(fread($fp, filesize('credenciales_std_hml.txt')));
