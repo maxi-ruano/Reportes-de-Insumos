@@ -673,4 +673,91 @@ class TramitesHabilitadosController extends Controller
             ProcessPrecheck::dispatch($turno);
         }
     }
+    private function getTokenStd()
+    {
+        $curl = curl_init();
+        //Homologacion
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => "https://servicios-hml.gcba.gob.ar/tramitesDigitales/auth/ad",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS =>"{\r\n\"usuario\": \"svc_licencias\",\r\n\"password\": \"Troquel1\"\r\n}",
+            CURLOPT_HTTPHEADER => array("Content-Type: application/json",
+                                    "client_id:" + env('CLIENT_ID'),
+                                    "client_secret:" + env('CLIENT_SECRET')),)
+        );
+    
+         $response = curl_exec($curl);
+         curl_close($curl);
+         $array = json_decode($response,TRUE);
+         $fp = fopen('credenciales_std_hml.txt', 'w');
+         fwrite($fp, serialize($array));
+         fclose($fp);
+         return $array;
+    }
+
+    private function obtenerDatosStd($token, $fecdes, $fechas, $estado, $metodo)
+    {
+        //$para = "fechaDesde=".$fecdes."&estadoGeneral=".$estado."&estadoDelEsquema=".$esquema; 
+            //echo $para.PHP_EOL; 
+        $para = "fechaDesde=".$fecdes."&fechaHasta=".$fechas."&estadogeneral=".$estado;
+            //echo $para.PHP_EOL;
+                $curl = curl_init();
+                //Homologacion
+                curl_setopt_array($curl, array(
+                CURLOPT_URL => "https://servicios-hml.gcba.gob.ar/tramitesDigitales/tipos/".$metodo."?".$para,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => "",
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => "GET",
+                CURLOPT_HTTPHEADER => array("Content-Type: application/json",
+                                        "client_id:" + env('CLIENT_ID'),
+                                        "client_secret:" + env('CLIENT_SECRET'),
+                                        "Authorization:".$token))
+                ); 
+        $response = curl_exec($curl);
+        curl_close($curl);
+        $array = json_decode($response,TRUE);
+        $fp = fopen('res_ws_std_hml_'.uniqid().'_'.$metodo.'.txt', 'w');
+        fwrite($fp, serialize($array));
+        fclose($fp);
+        return $array;   
+    }
+
+    private function solicitudDatosStd($ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo)
+    {
+        error_reporting(E_ALL);
+        ini_set('display_errors', '1');
+        if (!file_exists('credenciales_std_hml.txt'))
+        {
+            $array = $this->getTokenStd();
+        }else{
+                $fp = fopen('credenciales_std_hml.txt','rb');
+               $array = unserialize(fread($fp, filesize('credenciales_std_hml.txt')));
+               fclose($fp);
+        }
+        $actual_time = date('Y-m-d\TH:i:sO');
+        $expiration_time = date('Y-m-d\TH:i:sO', strtotime(substr($array["jwtclaimsSet"]["expirationTime"], 0, 19)));
+        if ($actual_time < $expiration_time){
+            //El Token Aun No Expiro Reutilizar del Archivo de Texto
+                $token = $array["authHeader"];
+                echo "Token Valido: ".$token."\n";
+        }else{
+                //El Token Expiro Solicitar Nuevamente
+                $array = $this->getTokenStd();
+                $token = $array["authHeader"];
+                echo "Token Expirado, Solicitado: ".$token."\n";
+        }
+        
+        return $this->obtenerDatosStd($token,$ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo);
+
+    }
 }
