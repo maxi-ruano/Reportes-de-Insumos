@@ -365,51 +365,59 @@ class TramitesHabilitadosController extends Controller
 
     public function tramitesReimpresionStd($ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo)
     {
-        $request = new Request();
-
         $data = $this->solicitudDatosStd($ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo);
         
-        $tipo_doc   = $request->tipo_doc;
-        $nro_doc    = strtoupper($request->nro_doc);
-        $sexo 	    = $request->sexo;
-        $pais       = $request->pais;
-        $fecha      = $request->fecha;
-        $motivo_id  = $request->motivo_id;
+        // $tipo_doc   = $request->tipo_doc;
+        // $nro_doc    = strtoupper($request->nro_doc);
+        // $sexo 	    = $request->sexo;
+        // $pais       = $request->pais;
+        // $fecha      = $request->fecha;
+        // $motivo_id  = $request->motivo_id;
 
         /////////////////////////////////////////////////////////////////////////////
 
             //Si no existe ninguna restriccion entonces creamos el registro
-        $tramiteshabilitados = new TramitesHabilitados();
-        $tramiteshabilitados->fecha         = $fecha;
-        $tramiteshabilitados->apellido      = strtoupper($request->apellido);
-        $tramiteshabilitados->nombre        = strtoupper($request->nombre);
-        $tramiteshabilitados->tipo_doc      = $tipo_doc;
-        $tramiteshabilitados->nro_doc       = $nro_doc;
-        $tramiteshabilitados->sexo          = $sexo;
-        $tramiteshabilitados->fecha_nacimiento     = $request->fecha_nacimiento;
-        $tramiteshabilitados->pais          = $pais;
-        $tramiteshabilitados->user_id       = $request->user_id;
-        $tramiteshabilitados->sucursal      = $request->sucursal;
-        $tramiteshabilitados->motivo_id     = $motivo_id;
-        $tramiteshabilitados->habilitado = false;               
+        // $tramiteshabilitados = new TramitesHabilitados();
+        // $tramiteshabilitados->fecha         = $fecha;
+        // $tramiteshabilitados->apellido      = strtoupper($request->apellido);
+        // $tramiteshabilitados->nombre        = strtoupper($request->nombre);
+        // $tramiteshabilitados->tipo_doc      = $tipo_doc;
+        // $tramiteshabilitados->nro_doc       = $nro_doc;
+        // $tramiteshabilitados->sexo          = $sexo;
+        // $tramiteshabilitados->fecha_nacimiento     = $request->fecha_nacimiento;
+        // $tramiteshabilitados->pais          = $pais;
+        // $tramiteshabilitados->user_id       = $request->user_id;
+        // $tramiteshabilitados->sucursal      = $request->sucursal;
+        // $tramiteshabilitados->motivo_id     = $motivo_id;
+        // $tramiteshabilitados->habilitado = false;               
         // $saved = $tramiteshabilitados->save();
 
-                $tipo_doc   = $request->tipo_doc;
-                $nro_doc    = strtoupper($request->nro_doc);
-		        $sexo 	    = $request->sexo;
-                $pais       = $request->pais;
-                $fecha      = $request->fecha;
-                $motivo_id  = $request->motivo_id;
+                // $tipo_doc   = $request->tipo_doc;
+                // $nro_doc    = strtoupper($request->nro_doc);
+		        // $sexo 	    = $request->sexo;
+                // $pais       = $request->pais;
+                // $fecha      = $request->fecha;
+                // $motivo_id  = $request->motivo_id;
 
         foreach ($data as $tramite) {
+            $request = new Request();
+
+            $request->fecha = date('Y-m-d');
             $request->nombre = $tramite['nombreCiudadano'];
             $request->apellido = $tramite['apellidoCiudadano'];
             $request->tipo_doc = $tramite['tipoDocumentoCiudadano'];
             $request->nro_doc = $tramite['numeroDocumentoCiudadano'];
             $request->sexo = $tramite['generoCiudadano'];
-            // $request->pais = $tramite[''];
-            // $request->fecha = $tramite['fechaIngreso'];
+            $request->fecha_nacimiento = null;
+            $request->pais = null;
+            // Usuario tramites a distancia
+            $request->user_id = '261';
+            //sucursal de reimpresiones
+            $request->sucursal= '180';
             $request->motivo_id = 29;
+            
+            $this->store($request);
+
         }
 
     }
@@ -601,9 +609,12 @@ class TramitesHabilitadosController extends Controller
         $fecha = date('Y-m-d', strtotime('+'.$sumar_dias.' days', strtotime(date('Y-m-d'))));  
         return $fecha;
     }
-    public function verificarLimite($sucursal, $motivo, $fecha){
+    public function verificarLimite($sucursal, $motivo, $fecha,$user = null ){
         $acceso= false;
-        $user = Auth::user();
+        if($user === null){
+            $user = Auth::user();
+
+        }
         $role_id = $user->roles->pluck('id')->first();
         $mensaje = 'LIMITE DIARIO PERMITIDO para la sucursal según el motivo seleccionado.!!';
 
@@ -688,7 +699,7 @@ class TramitesHabilitadosController extends Controller
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => "POST",
-            CURLOPT_POSTFIELDS =>"{\r\n\"usuario\": \"svc_licencias\",\r\n\"password\": \"Troquel1\"\r\n}",
+            CURLOPT_POSTFIELDS =>"{\r\n\"usuario\": \"".env('USER_STD')."\",\r\n\"password\": \"".env('PASS_USER_STD')."\"\r\n}",
             CURLOPT_HTTPHEADER => array("Content-Type: application/json",
                                     "client_id:" + env('CLIENT_ID'),
                                     "client_secret:" + env('CLIENT_SECRET')),)
