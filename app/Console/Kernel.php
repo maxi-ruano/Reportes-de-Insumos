@@ -41,7 +41,7 @@ class Kernel extends ConsoleKernel
         $schedule->call('App\Http\Controllers\MicroservicioController@enviarTramitesASinalic')->weekdays()->at('20:10');//Turnos a Enviar a Sinalic
         
         //PRECHECK STD
-	    $schedule->call('App\Http\Controllers\MicroservicioController@tramitesReimpresionStd')->weekdays()->at('20:30');//
+	    $schedule->call('App\Http\Controllers\MicroservicioController@tramitesReimpresionStd')->weekdays()->at('14:25');//
         
         //FIN PRECHECK
     }
