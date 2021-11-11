@@ -144,8 +144,9 @@ class TramitesHabilitadosController extends Controller
      */
     public function store(Request $request)
     {
+        $user = User::findOrFail($request->user_id);
         try{
-            if($this->verificarLimite($request->sucursal, $request->motivo_id, $request->fecha)){
+            if($this->verificarLimite($request->sucursal, $request->motivo_id, $request->fecha, $user)){
 
                 $tipo_doc   = $request->tipo_doc;
                 $nro_doc    = strtoupper($request->nro_doc);
@@ -163,7 +164,7 @@ class TramitesHabilitadosController extends Controller
                 //Validar si existe en tramites habilitados
                 $existe = TramitesHabilitados::where('tipo_doc',$tipo_doc)
                                                 ->where('nro_doc',$nro_doc)
-                                                ->where('pais',$pais)
+                                                // ->where('pais',$pais)
                                                 ->where('fecha',$fecha)
                                                 ->where('deleted',false)
                                                 ->count();
@@ -171,24 +172,22 @@ class TramitesHabilitadosController extends Controller
                     flash('El Documento Nro. '.$nro_doc.' tiene un turno asignado para el día '.$fecha.' por tramites habilitados')->error()->important();
                     return back();
                 }
-		//Validar si existe una licencia vigente para Duplicados
-		if ($motivo_id == '12') {
-                        $existe = \DB::table('tramites')
-                                ->where('nro_doc', $nro_doc)
-                                ->where('tipo_doc', $tipo_doc)
-                                ->where('pais', $pais)
-                                ->where('sexo', strtolower($sexo))
-                                ->whereRaw('estado IN(14, 95)')
-                                ->whereRaw('fec_vencimiento >= current_date')
-                                ->first();
+		        //Validar si existe una licencia vigente para Duplicados
+		        if ($motivo_id == '12') {
+                    $existe = \DB::table('tramites')
+                        ->where('nro_doc', $nro_doc)
+                        ->where('tipo_doc', $tipo_doc)
+                        ->where('pais', $pais)
+                        ->where('sexo', strtolower($sexo))
+                        ->whereRaw('estado IN(14, 95)')
+                        ->whereRaw('fec_vencimiento >= current_date')
+                        ->first();
 
-                        if (!$existe) {
-                              flash('El Documento Nro. ' . $nro_doc . ' no tiene una licencia VIGENTE.')->warning()->important();
-                        return back();
-                        }
+                    if (!$existe) {
+                            flash('El Documento Nro. ' . $nro_doc . ' no tiene una licencia VIGENTE.')->warning()->important();
+                    return back();
+                    }
                 }
-
-
                 //Validar si tiene turno en sigeci si el motivo es diferente de ERROR EN TURNO
                 if($motivo_id != '13'){
                     $existeturno = $this->existeTurnoSigeci($tipo_doc, $nro_doc, $fecha);
@@ -197,7 +196,6 @@ class TramitesHabilitadosController extends Controller
                         return back();
                     }
                 }
-
                 //Validar si tiene turno en LICTA, si el motivo es diferente a REINICIA TRAMITE
                 if($motivo_id != '14'){
                     $tramite = $this->existeTramiteEnCurso($tipo_doc, $nro_doc, $pais, $fecha);
@@ -217,21 +215,21 @@ class TramitesHabilitadosController extends Controller
                 }
 
 		//Validar motivo REIMPRESION no existe en LICTA un trámite inicado o finalizado
-		if($motivo_id == '29'){
-		  $existe = \DB::table('tramites')
-				->where('nro_doc',$nro_doc)
-				->where('tipo_doc',$tipo_doc)
-				->where('pais',$pais)
-				->where('sexo',strtolower($sexo))
-				->where('tipo_tramite_id', 1030)
-				->where('estado','<>',93)
-				->count();
+		// if($motivo_id == '29'){
+		//   $existe = \DB::table('tramites')
+		// 		->where('nro_doc',$nro_doc)
+		// 		->where('tipo_doc',$tipo_doc)
+		// 		// ->where('pais',$pais)
+		// 		->where('sexo',strtolower($sexo))
+		// 		->where('tipo_tramite_id', 1030)
+		// 		->where('estado','<>',93)
+		// 		->count();
 		  //Se comenta validadcion por cambio decreto enero 2021 donde permite hacer otro tramite de REIMPRESION
 		  /*if($existe){
 		  	flash('El Documento Nro. '.$nro_doc.' ya tiene en LICTA un trámite como REIMPRESION.')->warning()->important();
                         return back();	
 			} */
-		}
+		// }
 
                 //Si no existe ninguna restriccion entonces creamos el registro
                 $tramiteshabilitados = new TramitesHabilitados();
@@ -331,7 +329,6 @@ class TramitesHabilitadosController extends Controller
                 $precheck = $precheck_disponible;
 
         }
-
         //ASOCIAR PRECHECK A TRAMITES HABILITADOS
         if($precheck){
             $tramiteAIniciar = TramitesAIniciar::find($precheck->id);
@@ -366,96 +363,34 @@ class TramitesHabilitadosController extends Controller
     public function tramitesReimpresionStd($ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo)
     {
         $data = $this->solicitudDatosStd($ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo);
-        
-        // $tipo_doc   = $request->tipo_doc;
-        // $nro_doc    = strtoupper($request->nro_doc);
-        // $sexo 	    = $request->sexo;
-        // $pais       = $request->pais;
-        // $fecha      = $request->fecha;
-        // $motivo_id  = $request->motivo_id;
-
-        /////////////////////////////////////////////////////////////////////////////
-
-            //Si no existe ninguna restriccion entonces creamos el registro
-        // $tramiteshabilitados = new TramitesHabilitados();
-        // $tramiteshabilitados->fecha         = $fecha;
-        // $tramiteshabilitados->apellido      = strtoupper($request->apellido);
-        // $tramiteshabilitados->nombre        = strtoupper($request->nombre);
-        // $tramiteshabilitados->tipo_doc      = $tipo_doc;
-        // $tramiteshabilitados->nro_doc       = $nro_doc;
-        // $tramiteshabilitados->sexo          = $sexo;
-        // $tramiteshabilitados->fecha_nacimiento     = $request->fecha_nacimiento;
-        // $tramiteshabilitados->pais          = $pais;
-        // $tramiteshabilitados->user_id       = $request->user_id;
-        // $tramiteshabilitados->sucursal      = $request->sucursal;
-        // $tramiteshabilitados->motivo_id     = $motivo_id;
-        // $tramiteshabilitados->habilitado = false;               
-        // $saved = $tramiteshabilitados->save();
-
-                // $tipo_doc   = $request->tipo_doc;
-                // $nro_doc    = strtoupper($request->nro_doc);
-		        // $sexo 	    = $request->sexo;
-                // $pais       = $request->pais;
-                // $fecha      = $request->fecha;
-                // $motivo_id  = $request->motivo_id;
-
+    
         foreach ($data as $tramite) {
             $request = new Request();
 
             $request->fecha = date('Y-m-d');
             $request->nombre = $tramite['nombreCiudadano'];
             $request->apellido = $tramite['apellidoCiudadano'];
-            $request->tipo_doc = $tramite['tipoDocumentoCiudadano'];
+            
             $request->nro_doc = $tramite['numeroDocumentoCiudadano'];
             $request->sexo = $tramite['generoCiudadano'];
-            $request->fecha_nacimiento = null;
+            $request->fecha_nacimiento = date('Y-m-d',mktime(0,0,0,12,23,1994));
             $request->pais = null;
             // Usuario tramites a distancia
             $request->user_id = '261';
             //sucursal de reimpresiones
             $request->sucursal= '180';
             $request->motivo_id = 29;
+
+            if($tramite['tipoDocumentoCiudadano'] === 'DNI'){
+                $request->tipo_doc = '1';
+            }elseif($tramite['tipoDocumentoCiudadano'] === 'PASAPORTE'){
+                $request->tipo_doc = '4';
+            }
+
             
             $this->store($request);
-
         }
-
     }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-	//
-    }
-
     /**
      * Remove the specified resource from storage.
      *
@@ -609,12 +544,9 @@ class TramitesHabilitadosController extends Controller
         $fecha = date('Y-m-d', strtotime('+'.$sumar_dias.' days', strtotime(date('Y-m-d'))));  
         return $fecha;
     }
-    public function verificarLimite($sucursal, $motivo, $fecha,$user = null ){
+    public function verificarLimite($sucursal, $motivo, $fecha, $user){
         $acceso= false;
-        if($user === null){
-            $user = Auth::user();
 
-        }
         $role_id = $user->roles->pluck('id')->first();
         $mensaje = 'LIMITE DIARIO PERMITIDO para la sucursal según el motivo seleccionado.!!';
 
@@ -691,7 +623,7 @@ class TramitesHabilitadosController extends Controller
         $curl = curl_init();
         //Homologacion
         curl_setopt_array($curl, array(
-            CURLOPT_URL => "https://servicios-hml.gcba.gob.ar/tramitesDigitales/auth/ad",
+            CURLOPT_URL => env('URL_AUTH_STD'),
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => "",
             CURLOPT_MAXREDIRS => 10,
@@ -723,7 +655,7 @@ class TramitesHabilitadosController extends Controller
                 $curl = curl_init();
                 //Homologacion
                 curl_setopt_array($curl, array(
-                CURLOPT_URL => "https://servicios-hml.gcba.gob.ar/tramitesDigitales/tipos/".$metodo."?".$para,
+                CURLOPT_URL => env(URL_CONSULTA_STD).$metodo."?".$para,
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => "",
                 CURLOPT_MAXREDIRS => 10,
