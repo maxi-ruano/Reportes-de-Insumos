@@ -622,7 +622,6 @@ class TramitesHabilitadosController extends Controller
     }
     private function obtenerTokenStd()
     {
-        dd("client_id:" + env('CLIENT_ID'));
         $curl = curl_init();
         //Homologacion
         curl_setopt_array($curl, array(
@@ -636,8 +635,8 @@ class TramitesHabilitadosController extends Controller
             CURLOPT_CUSTOMREQUEST => "POST",
             CURLOPT_POSTFIELDS =>"{\r\n\"usuario\": \"".env('USER_STD')."\",\r\n\"password\": \"".env('PASS_USER_STD')."\"\r\n}",
             CURLOPT_HTTPHEADER => array("Content-Type: application/json",
-                                    "client_id:" + env('CLIENT_ID'),
-                                    "client_secret:" + env('CLIENT_SECRET')),)
+                                    "client_id:".env('CLIENT_ID'),
+                                    "client_secret:".env('CLIENT_SECRET')),)
         );
     
          $response = curl_exec($curl);
@@ -658,7 +657,7 @@ class TramitesHabilitadosController extends Controller
                 $curl = curl_init();
                 //Homologacion
                 curl_setopt_array($curl, array(
-                CURLOPT_URL => env(URL_CONSULTA_STD).$metodo."?".$para,
+                CURLOPT_URL => env('URL_CONSULTA_STD').$metodo."?".$para,
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => "",
                 CURLOPT_MAXREDIRS => 10,
@@ -667,8 +666,8 @@ class TramitesHabilitadosController extends Controller
                 CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                 CURLOPT_CUSTOMREQUEST => "GET",
                 CURLOPT_HTTPHEADER => array("Content-Type: application/json",
-                                        "client_id:" + env('CLIENT_ID'),
-                                        "client_secret:" + env('CLIENT_SECRET'),
+                                        "client_id:".env('CLIENT_ID'),
+                                        "client_secret:".env('CLIENT_SECRET'),
                                         "Authorization:".$token))
                 ); 
         $response = curl_exec($curl);
