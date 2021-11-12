@@ -622,6 +622,7 @@ class TramitesHabilitadosController extends Controller
     }
     private function obtenerTokenStd()
     {
+        dd("client_id:" + env('CLIENT_ID'));
         $curl = curl_init();
         //Homologacion
         curl_setopt_array($curl, array(
