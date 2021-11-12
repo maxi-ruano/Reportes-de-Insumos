@@ -70,6 +70,9 @@
                 <div class="wrapper-inner-tab-backgrounds-second-b"><div class="sim-button-b button28" onclick="location.href='{{ url('buscarBoletaPagoPersona') }}'" ><span>Boleta CENAT</span></div></div>
                 <div class="wrapper-inner-tab-backgrounds-third-b"><div class="sim-button-b button28" onclick="location.href='{{ url('checkPreCheck') }}'" ><span> PreCheck</span></div></div>
             </div>
+            <a class="btn btn-primary" href="{{ route('stdReimpresiones') }}">
+                Cargar tramites STD
+            </a>
 
         </div>
     </div>

@@ -390,6 +390,8 @@ class TramitesHabilitadosController extends Controller
             
             $this->store($request);
         }
+        return back();
+
     }
     /**
      * Remove the specified resource from storage.
