@@ -363,8 +363,12 @@ class TramitesHabilitadosController extends Controller
     public function tramitesReimpresionStd($ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo)
     {
         $data = $this->solicitudDatosStd($ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo);
-    
+        $paises = AnsvPaises::all();
+
         foreach ($data as $tramite) {
+            $fecha_nacimiento = $tramite['datosFormulario']['fecha_nacimiento']['valor'];
+            $pais = $tramite['datosFormulario']['nacionalidad']['valor'];
+
             $request = new Request();
 
             $request->fecha = date('Y-m-d');
@@ -373,20 +377,20 @@ class TramitesHabilitadosController extends Controller
             
             $request->nro_doc = $tramite['numeroDocumentoCiudadano'];
             $request->sexo = $tramite['generoCiudadano'];
-            $request->fecha_nacimiento = date('Y-m-d',mktime(0,0,0,12,23,1994));
-            $request->pais = null;
+            $request->fecha_nacimiento = implode('-',array_reverse(explode("/",$fecha_nacimiento)));
             // Usuario tramites a distancia
             $request->user_id = '261';
             //sucursal de reimpresiones
             $request->sucursal= '180';
             $request->motivo_id = 29;
 
+            $request->pais = $paises->where('iso_alfa_3',$pais)->first()->id_dgevyl;
+
             if($tramite['tipoDocumentoCiudadano'] === 'DNI'){
                 $request->tipo_doc = '1';
             }elseif($tramite['tipoDocumentoCiudadano'] === 'PASAPORTE'){
                 $request->tipo_doc = '4';
             }
-
             
             $this->store($request);
         }
