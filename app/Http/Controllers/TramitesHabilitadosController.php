@@ -368,6 +368,9 @@ class TramitesHabilitadosController extends Controller
         foreach ($data as $tramite) {
             $fecha_nacimiento = $tramite['datosFormulario']['fecha_nacimiento']['valor'];
             $pais = $tramite['datosFormulario']['nacionalidad']['valor'];
+            if($pais === null){
+                continue;
+            }
 
             $request = new Request();
 
