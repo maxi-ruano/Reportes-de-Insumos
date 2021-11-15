@@ -387,7 +387,12 @@ class TramitesHabilitadosController extends Controller
             $request->sucursal= '180';
             $request->motivo_id = 29;
 
-            $request->pais = $paises->where('iso_alfa_3',$pais)->first()->id_dgevyl;
+            if ($pais === 'ARG') {
+                $request->pais = '1';
+
+            }else{
+                $request->pais = $paises->where('iso_alfa_3',$pais)->first()->id_dgevyl;
+            }
 
             if($tramite['tipoDocumentoCiudadano'] === 'DNI'){
                 $request->tipo_doc = '1';
