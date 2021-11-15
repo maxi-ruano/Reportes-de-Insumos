@@ -649,9 +649,9 @@ class TramitesHabilitadosController extends Controller
          $response = curl_exec($curl);
          curl_close($curl);
          $array = json_decode($response,TRUE);
-         $fp = fopen('credenciales_std_hml.txt', 'w');
-         fwrite($fp, serialize($array));
-         fclose($fp);
+        //  $fp = fopen('credenciales_std_hml.txt', 'w');
+        //  fwrite($fp, serialize($array));
+        //  fclose($fp);
          return $array;
     }
 
@@ -680,9 +680,9 @@ class TramitesHabilitadosController extends Controller
         $response = curl_exec($curl);
         curl_close($curl);
         $array = json_decode($response,TRUE);
-        $fp = fopen('res_ws_std_hml_'.uniqid().'_'.$metodo.'.txt', 'w');
-        fwrite($fp, serialize($array));
-        fclose($fp);
+        // $fp = fopen('res_ws_std_hml_'.uniqid().'_'.$metodo.'.txt', 'w');
+        // fwrite($fp, serialize($array));
+        // fclose($fp);
         return $array;   
     }
 
@@ -690,26 +690,26 @@ class TramitesHabilitadosController extends Controller
     {
         error_reporting(E_ALL);
         ini_set('display_errors', '1');
-        if (!file_exists('credenciales_std_hml.txt'))
-        {
-            $array = $this->obtenerTokenStd();
-        }else{
-                $fp = fopen('credenciales_std_hml.txt','rb');
-               $array = unserialize(fread($fp, filesize('credenciales_std_hml.txt')));
-               fclose($fp);
-        }
-        $actual_time = date('Y-m-d\TH:i:sO');
-        $expiration_time = date('Y-m-d\TH:i:sO', strtotime(substr($array["jwtclaimsSet"]["expirationTime"], 0, 19)));
-        if ($actual_time < $expiration_time){
+        // if (!file_exists('credenciales_std_hml.txt'))
+        // {
+        $array = $this->obtenerTokenStd();
+        // }else{
+        //         $fp = fopen('credenciales_std_hml.txt','rb');
+        //        $array = unserialize(fread($fp, filesize('credenciales_std_hml.txt')));
+        //        fclose($fp);
+        // }
+        // $actual_time = date('Y-m-d\TH:i:sO');
+        // $expiration_time = date('Y-m-d\TH:i:sO', strtotime(substr($array["jwtclaimsSet"]["expirationTime"], 0, 19)));
+        // if ($actual_time < $expiration_time){
             //El Token Aun No Expiro Reutilizar del Archivo de Texto
-                $token = $array["authHeader"];
-                echo "Token Valido: ".$token."\n";
-        }else{
-                //El Token Expiro Solicitar Nuevamente
-                $array = $this->getTokenStd();
-                $token = $array["authHeader"];
-                echo "Token Expirado, Solicitado: ".$token."\n";
-        }
+        $token = $array["authHeader"];
+        //         echo "Token Valido: ".$token."\n";
+        // }else{
+        //         //El Token Expiro Solicitar Nuevamente
+        //         $array = $this->getTokenStd();
+        //         $token = $array["authHeader"];
+        //         echo "Token Expirado, Solicitado: ".$token."\n";
+        // }
         
         return $this->obtenerDatosStd($token,$ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo);
 
