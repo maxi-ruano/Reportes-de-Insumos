@@ -363,8 +363,15 @@ class TramitesHabilitadosController extends Controller
     public function tramitesReimpresionStd($ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo)
     {
         $data = $this->solicitudDatosStd($ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo);
-    
+        $paises = AnsvPaises::all();
+
         foreach ($data as $tramite) {
+            $fecha_nacimiento = $tramite['datosFormulario']['fecha_nacimiento']['valor'];
+            $pais = $tramite['datosFormulario']['nacionalidad']['valor'];
+            if($pais === null){
+                continue;
+            }
+
             $request = new Request();
 
             $request->fecha = date('Y-m-d');
@@ -373,23 +380,30 @@ class TramitesHabilitadosController extends Controller
             
             $request->nro_doc = $tramite['numeroDocumentoCiudadano'];
             $request->sexo = $tramite['generoCiudadano'];
-            $request->fecha_nacimiento = date('Y-m-d',mktime(0,0,0,12,23,1994));
-            $request->pais = null;
+            $request->fecha_nacimiento = implode('-',array_reverse(explode("/",$fecha_nacimiento)));
             // Usuario tramites a distancia
             $request->user_id = '261';
             //sucursal de reimpresiones
             $request->sucursal= '180';
             $request->motivo_id = 29;
 
+            if ($pais === 'ARG') {
+                $request->pais = '1';
+
+            }else{
+                $request->pais = $paises->where('iso_alfa_3',$pais)->first()->id_dgevyl;
+            }
+
             if($tramite['tipoDocumentoCiudadano'] === 'DNI'){
                 $request->tipo_doc = '1';
             }elseif($tramite['tipoDocumentoCiudadano'] === 'PASAPORTE'){
                 $request->tipo_doc = '4';
             }
-
             
             $this->store($request);
         }
+        return back();
+
     }
     /**
      * Remove the specified resource from storage.
@@ -633,16 +647,16 @@ class TramitesHabilitadosController extends Controller
             CURLOPT_CUSTOMREQUEST => "POST",
             CURLOPT_POSTFIELDS =>"{\r\n\"usuario\": \"".env('USER_STD')."\",\r\n\"password\": \"".env('PASS_USER_STD')."\"\r\n}",
             CURLOPT_HTTPHEADER => array("Content-Type: application/json",
-                                    "client_id:" + env('CLIENT_ID'),
-                                    "client_secret:" + env('CLIENT_SECRET')),)
+                                    "client_id:".env('CLIENT_ID'),
+                                    "client_secret:".env('CLIENT_SECRET')),)
         );
     
          $response = curl_exec($curl);
          curl_close($curl);
          $array = json_decode($response,TRUE);
-         $fp = fopen('credenciales_std_hml.txt', 'w');
-         fwrite($fp, serialize($array));
-         fclose($fp);
+        //  $fp = fopen('credenciales_std_hml.txt', 'w');
+        //  fwrite($fp, serialize($array));
+        //  fclose($fp);
          return $array;
     }
 
@@ -655,7 +669,7 @@ class TramitesHabilitadosController extends Controller
                 $curl = curl_init();
                 //Homologacion
                 curl_setopt_array($curl, array(
-                CURLOPT_URL => env(URL_CONSULTA_STD).$metodo."?".$para,
+                CURLOPT_URL => env('URL_CONSULTA_STD').$metodo."?".$para,
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => "",
                 CURLOPT_MAXREDIRS => 10,
@@ -664,16 +678,16 @@ class TramitesHabilitadosController extends Controller
                 CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                 CURLOPT_CUSTOMREQUEST => "GET",
                 CURLOPT_HTTPHEADER => array("Content-Type: application/json",
-                                        "client_id:" + env('CLIENT_ID'),
-                                        "client_secret:" + env('CLIENT_SECRET'),
+                                        "client_id:".env('CLIENT_ID'),
+                                        "client_secret:".env('CLIENT_SECRET'),
                                         "Authorization:".$token))
                 ); 
         $response = curl_exec($curl);
         curl_close($curl);
         $array = json_decode($response,TRUE);
-        $fp = fopen('res_ws_std_hml_'.uniqid().'_'.$metodo.'.txt', 'w');
-        fwrite($fp, serialize($array));
-        fclose($fp);
+        // $fp = fopen('res_ws_std_hml_'.uniqid().'_'.$metodo.'.txt', 'w');
+        // fwrite($fp, serialize($array));
+        // fclose($fp);
         return $array;   
     }
 
@@ -681,26 +695,26 @@ class TramitesHabilitadosController extends Controller
     {
         error_reporting(E_ALL);
         ini_set('display_errors', '1');
-        if (!file_exists('credenciales_std_hml.txt'))
-        {
-            $array = $this->obtenerTokenStd();
-        }else{
-                $fp = fopen('credenciales_std_hml.txt','rb');
-               $array = unserialize(fread($fp, filesize('credenciales_std_hml.txt')));
-               fclose($fp);
-        }
-        $actual_time = date('Y-m-d\TH:i:sO');
-        $expiration_time = date('Y-m-d\TH:i:sO', strtotime(substr($array["jwtclaimsSet"]["expirationTime"], 0, 19)));
-        if ($actual_time < $expiration_time){
+        // if (!file_exists('credenciales_std_hml.txt'))
+        // {
+        $array = $this->obtenerTokenStd();
+        // }else{
+        //         $fp = fopen('credenciales_std_hml.txt','rb');
+        //        $array = unserialize(fread($fp, filesize('credenciales_std_hml.txt')));
+        //        fclose($fp);
+        // }
+        // $actual_time = date('Y-m-d\TH:i:sO');
+        // $expiration_time = date('Y-m-d\TH:i:sO', strtotime(substr($array["jwtclaimsSet"]["expirationTime"], 0, 19)));
+        // if ($actual_time < $expiration_time){
             //El Token Aun No Expiro Reutilizar del Archivo de Texto
-                $token = $array["authHeader"];
-                echo "Token Valido: ".$token."\n";
-        }else{
-                //El Token Expiro Solicitar Nuevamente
-                $array = $this->getTokenStd();
-                $token = $array["authHeader"];
-                echo "Token Expirado, Solicitado: ".$token."\n";
-        }
+        $token = $array["authHeader"];
+        //         echo "Token Valido: ".$token."\n";
+        // }else{
+        //         //El Token Expiro Solicitar Nuevamente
+        //         $array = $this->getTokenStd();
+        //         $token = $array["authHeader"];
+        //         echo "Token Expirado, Solicitado: ".$token."\n";
+        // }
         
         return $this->obtenerDatosStd($token,$ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo);
 
