@@ -164,7 +164,7 @@ class TramitesHabilitadosController extends Controller
                 //Validar si existe en tramites habilitados
                 $existe = TramitesHabilitados::where('tipo_doc',$tipo_doc)
                                                 ->where('nro_doc',$nro_doc)
-                                                // ->where('pais',$pais)
+                                                ->where('pais',$pais)
                                                 ->where('fecha',$fecha)
                                                 ->where('deleted',false)
                                                 ->count();
@@ -250,7 +250,12 @@ class TramitesHabilitadosController extends Controller
                 $this->guardarObservacion($tramiteshabilitados->id, $request->observacion);
 
                 //ASIGNAR O GENERAR PRECHECK
-                $this->asignarPrecheck($tramiteshabilitados->id);
+                $asignarPrecheck = $this->asignarPrecheck($tramiteshabilitados->id);
+
+                if($asignarPrecheck && $user->id === '261')
+                {
+                    return true;
+                }
 
                 Flash::success('El Tramite se ha creado correctamente');
                 return redirect()->route('tramitesHabilitados.create');
@@ -354,20 +359,21 @@ class TramitesHabilitadosController extends Controller
         }
 
         //Enviamos al QUEUE para procesar las validaciones Precheck en segundo plano
-        if ($tramiteAIniciar->tramite_dgevyl_id == null)
+        if ($tramiteAIniciar->tramite_dgevyl_id == null){
             ProcessPrecheck::dispatch($tramiteshabilitados);
-
+        }
         return true;
     }
 
     public function tramitesReimpresionStd($ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo)
     {
-        $data = $this->solicitudDatosStd($ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo);
+        $data = $this->solicitudDatosStd($ws_fecDes, $ws_fecHas,$ws_estado,$ws_metodo);
         $paises = AnsvPaises::all();
 
         foreach ($data as $tramite) {
             $fecha_nacimiento = $tramite['datosFormulario']['fecha_nacimiento']['valor'];
             $pais = $tramite['datosFormulario']['nacionalidad']['valor'];
+        
             if($pais === null){
                 continue;
             }
@@ -393,14 +399,16 @@ class TramitesHabilitadosController extends Controller
             }else{
                 $request->pais = $paises->where('iso_alfa_3',$pais)->first()->id_dgevyl;
             }
-
             if($tramite['tipoDocumentoCiudadano'] === 'DNI'){
                 $request->tipo_doc = '1';
+
             }elseif($tramite['tipoDocumentoCiudadano'] === 'PASAPORTE'){
                 $request->tipo_doc = '4';
             }
-            
-            $this->store($request);
+            if($this->store($request)){
+                $this->cambioEstadoDeEsquema($tramite['numeroTramite'],"Listo para trabajar");
+            };
+
         }
         return back();
 
@@ -657,13 +665,16 @@ class TramitesHabilitadosController extends Controller
         //  $fp = fopen('credenciales_std_hml.txt', 'w');
         //  fwrite($fp, serialize($array));
         //  fclose($fp);
-         return $array;
+
+        $token = $array["authHeader"];
+
+        return $token;
     }
 
     private function obtenerDatosStd($token, $fecdes, $fechas, $estado, $metodo)
     {
         //$para = "fechaDesde=".$fecdes."&estadoGeneral=".$estado."&estadoDelEsquema=".$esquema; 
-            //echo $para.PHP_EOL; 
+            //echo $para.PHP_EOL;
         $para = "fechaDesde=".$fecdes."&fechaHasta=".$fechas."&estadogeneral=".$estado;
             //echo $para.PHP_EOL;
                 $curl = curl_init();
@@ -697,7 +708,7 @@ class TramitesHabilitadosController extends Controller
         ini_set('display_errors', '1');
         // if (!file_exists('credenciales_std_hml.txt'))
         // {
-        $array = $this->obtenerTokenStd();
+        $token = $this->obtenerTokenStd();
         // }else{
         //         $fp = fopen('credenciales_std_hml.txt','rb');
         //        $array = unserialize(fread($fp, filesize('credenciales_std_hml.txt')));
@@ -707,7 +718,6 @@ class TramitesHabilitadosController extends Controller
         // $expiration_time = date('Y-m-d\TH:i:sO', strtotime(substr($array["jwtclaimsSet"]["expirationTime"], 0, 19)));
         // if ($actual_time < $expiration_time){
             //El Token Aun No Expiro Reutilizar del Archivo de Texto
-        $token = $array["authHeader"];
         //         echo "Token Valido: ".$token."\n";
         // }else{
         //         //El Token Expiro Solicitar Nuevamente
@@ -718,5 +728,55 @@ class TramitesHabilitadosController extends Controller
         
         return $this->obtenerDatosStd($token,$ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo);
 
+    }
+    private function transicionEstadoEsquema($token, $tramite, $data)
+    {
+        $curl = curl_init();
+        //Homologacion
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => env('URL_TRANSICION_STD').$tramite.'/transicion',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "UTF-8",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "POST",
+        CURLOPT_POSTFIELDS => $data,
+        CURLOPT_HTTPHEADER => array("Content-Type: application/json",
+                                "client_id:".env('CLIENT_ID'),
+                                "client_secret:".env('CLIENT_SECRET'),
+                                "Authorization:".$token),));
+
+        $response = curl_exec($curl);
+        $array = json_decode($response,TRUE);
+        curl_close($curl);
+        return $array;
+    }
+    private function cambioEstadoDeEsquema($numTramiteStd,$estado_a_enviar,$idmotivo='',$observaciones='')
+    {
+        $token = $this->obtenerTokenStd();
+
+        $data="{".'"archivos":[],"estado":"'.$estado_a_enviar.'","motivo":"'.$idmotivo.'","observaciones": "'.$observaciones.'"'."}";
+        //$tramitestdEjemplo = "00002117/20";
+        $tramite = str_replace("/","",$numTramiteStd);
+        $array = $this->transicionEstadoEsquema($token, $tramite, $data);
+
+        if (array_key_exists('idError', $array) or array_key_exists('message', $array)){
+            \Log::warning('['.date('h:i:s').'] '." Error en el tramite numero: $tramite. Error WS Detalle, ID error: {$array['idError']} - {$array['error']},{$array['message']}.");
+            return false;
+        }else{
+            try {
+                \DB::table('std_solicitudes')
+                ->where('numero_tramite',$numTramiteStd)
+                ->update(['estado_esquema'=>$estado_a_enviar]);    
+            
+                \Log::info("Cambio de esquema, realizado con exito para el tramite de STD: $numTramiteStd, al estado de esquema: $estado_a_enviar");  
+                return true;
+
+            } catch (Exception $e) {
+                return "Fatal error - ".$e->getMessage();
+            }
+        }   
     }
 }

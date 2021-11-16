@@ -72,7 +72,7 @@ class MicroservicioController extends Controller
       $ws_estado = 'Abierto';
       $ws_metodo = 'ReimpresiondeCredenciales';
 
-      $tramitesHabilitadosController->tramitesReimpresionStd($ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo);
+      $tramitesHabilitadosController->tramitesReimpresionStd($ws_fecDes,$ws_fecHas,$ws_estado,$ws_metodo);
     
     }
 
