@@ -157,9 +157,13 @@ class TramitesHabilitadosController extends Controller
 
                 //validar PASAPORTE acepte letras y numeros de lo contrario solo numeros
                 if($tipo_doc == '4')
+                {
                     $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/^[0-9a-zA-Z]+$/']);
+                }
                 else
+                {
                     $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^(\d+)?$)/u']);
+                }
 
                 //Validar si existe en tramites habilitados
                 $existe = TramitesHabilitados::where('tipo_doc',$tipo_doc)
@@ -365,9 +369,9 @@ class TramitesHabilitadosController extends Controller
         return true;
     }
 
-    public function tramitesReimpresionStd($ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo)
+    public function tramitesReimpresionStd($ws_fecDes, $ws_fecHas,$ws_estado,$ws_esquema,$ws_metodo)
     {
-        $data = $this->solicitudDatosStd($ws_fecDes, $ws_fecHas,$ws_estado,$ws_metodo);
+        $data = $this->solicitudDatosStd($ws_fecDes, $ws_fecHas,$ws_estado,$ws_esquema,$ws_metodo);
         $paises = AnsvPaises::all();
 
         foreach ($data as $tramite) {
@@ -671,11 +675,11 @@ class TramitesHabilitadosController extends Controller
         return $token;
     }
 
-    private function obtenerDatosStd($token, $fecdes, $fechas, $estado, $metodo)
+    private function obtenerDatosStd($token,$fecDes,$fecHas,$estado,$esquema,$metodo)
     {
-        //$para = "fechaDesde=".$fecdes."&estadoGeneral=".$estado."&estadoDelEsquema=".$esquema; 
+        //$para = "fechaDesde=".$fecDes."&estadoGeneral=".$estado."&estadoDelEsquema=".$esquema; 
             //echo $para.PHP_EOL;
-        $para = "fechaDesde=".$fecdes."&fechaHasta=".$fechas."&estadogeneral=".$estado;
+        $para = "fechaDesde=".$fecDes."&fechaHasta=".$fecHas."&estadogeneral=".$estado."&estadoDelEsquema=".$esquema;
             //echo $para.PHP_EOL;
                 $curl = curl_init();
                 //Homologacion
@@ -702,7 +706,7 @@ class TramitesHabilitadosController extends Controller
         return $array;   
     }
 
-    private function solicitudDatosStd($ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo)
+    private function solicitudDatosStd($ws_fecDes,$ws_fecHas,$ws_estado,$ws_esquema,$ws_metodo)
     {
         error_reporting(E_ALL);
         ini_set('display_errors', '1');
@@ -726,7 +730,7 @@ class TramitesHabilitadosController extends Controller
         //         echo "Token Expirado, Solicitado: ".$token."\n";
         // }
         
-        return $this->obtenerDatosStd($token,$ws_fecDes, $ws_fecHas,$ws_estado, $ws_metodo);
+        return $this->obtenerDatosStd($token,$ws_fecDes,$ws_fecHas,$ws_estado,$ws_esquema,$ws_metodo);
 
     }
     private function transicionEstadoEsquema($token, $tramite, $data)
