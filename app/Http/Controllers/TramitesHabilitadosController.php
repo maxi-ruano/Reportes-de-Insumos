@@ -393,22 +393,29 @@ class TramitesHabilitadosController extends Controller
             $request->fecha_nacimiento = implode('-',array_reverse(explode("/",$fecha_nacimiento)));
             // Usuario tramites a distancia
             $request->user_id = '261';
-            //sucursal de reimpresiones
+            // Sucursal de reimpresiones
             $request->sucursal= '180';
+            // Motivo tramite: reimpresiones
             $request->motivo_id = 29;
-
+            /*
+                En BD existe tres tipos de nacionaonalidades argentinas:
+                Opcional: id_dgevyl=83, naturalizado: id_dgevyl=75 y de nacimiento: id_dgevyl= 1
+                 
+            */
             if ($pais === 'ARG') {
                 $request->pais = '1';
 
             }else{
                 $request->pais = $paises->where('iso_alfa_3',$pais)->first()->id_dgevyl;
             }
+            // Recibimos DNI o PASAPORTE, en nuestra DB usamos números para el tipo_doc
             if($tramite['tipoDocumentoCiudadano'] === 'DNI'){
                 $request->tipo_doc = '1';
 
             }elseif($tramite['tipoDocumentoCiudadano'] === 'PASAPORTE'){
                 $request->tipo_doc = '4';
             }
+            //Si retorna true, cambia el estado del esquema en al tabla std_solicitudes y del lado de STD   
             if($this->store($request)){
                 $this->cambioEstadoDeEsquema($tramite['numeroTramite'],"Listo para trabajar");
             };
