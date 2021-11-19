@@ -162,7 +162,7 @@ class TramitesHabilitadosController extends Controller
                 }
                 else
                 {
-                    $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^(\d+)?$)/u']);
+                   // $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^(\d+)?$)/u']);
                 }
 
                 //Validar si existe en tramites habilitados
@@ -768,13 +768,16 @@ class TramitesHabilitadosController extends Controller
     {
         $token = $this->obtenerTokenStd();
 
-        $data="{".'"archivos":[],"estado":"'.$estado_a_enviar.'","motivo":"'.$idmotivo.'","observaciones": "'.$observaciones.'"'."}";
-        //$tramitestdEjemplo = "00002117/20";
+        //$data="{".'"estado":"'.$estado_a_enviar.'","motivo":"'.$idmotivo.'","observaciones": "'.$observaciones.'"'.',"archivos":[]'."}";
+	//$tramitestdEjemplo = "00002117/20";
+	$data = array('estado'=>$estado_a_enviar,'motivo'=>$idmotivo,'observaciones'=>$observaciones,'archivos'=>[]);
+        
         $tramite = str_replace("/","",$numTramiteStd);
-        $array = $this->transicionEstadoEsquema($token, $tramite, $data);
+        $array = $this->transicionEstadoEsquema($token,$tramite,json_encode($data));
 
-        if (array_key_exists('idError', $array) or array_key_exists('message', $array)){
-            \Log::warning('['.date('h:i:s').'] '." Error en el tramite numero: $tramite. Error WS Detalle, ID error: {$array['idError']} - {$array['error']},{$array['message']}.");
+
+        if (array_key_exists('idError', $array) || array_key_exists('message', $array)){
+            \Log::warning('['.date('h:i:s').'] '." Error en el tramite numero: $numTramiteStd. Error WS Detalle, message: {$array['message']}.");
             return false;
         }else{
             try {
