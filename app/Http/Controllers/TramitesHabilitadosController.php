@@ -144,21 +144,29 @@ class TramitesHabilitadosController extends Controller
      */
     public function store(Request $request)
     {
+        $user = User::findOrFail($request->user_id);
         try{
-            if($this->verificarLimite($request->sucursal, $request->motivo_id, $request->fecha)){
+            if($this->verificarLimite($request->sucursal, $request->motivo_id, $request->fecha, $user)){
 
                 $tipo_doc   = $request->tipo_doc;
                 $nro_doc    = strtoupper($request->nro_doc);
-		$sexo 	    = $request->sexo;
+		        $sexo 	    = $request->sexo;
                 $pais       = $request->pais;
                 $fecha      = $request->fecha;
                 $motivo_id  = $request->motivo_id;
 
                 //validar PASAPORTE acepte letras y numeros de lo contrario solo numeros
-                if($tipo_doc == '4')
-                    $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/^[0-9a-zA-Z]+$/']);
-                else
+                
+                if ($user->id != '318') {
+                    if($tipo_doc == '4')
+                    {
+                        $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/^[0-9a-zA-Z]+$/']);
+                    }
+                    else
+                    {
                     $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^(\d+)?$)/u']);
+                    }
+                }
 
                 //Validar si existe en tramites habilitados
                 $existe = TramitesHabilitados::where('tipo_doc',$tipo_doc)
@@ -171,24 +179,22 @@ class TramitesHabilitadosController extends Controller
                     flash('El Documento Nro. '.$nro_doc.' tiene un turno asignado para el día '.$fecha.' por tramites habilitados')->error()->important();
                     return back();
                 }
-		//Validar si existe una licencia vigente para Duplicados
-		if ($motivo_id == '12') {
-                        $existe = \DB::table('tramites')
-                                ->where('nro_doc', $nro_doc)
-                                ->where('tipo_doc', $tipo_doc)
-                                ->where('pais', $pais)
-                                ->where('sexo', strtolower($sexo))
-                                ->whereRaw('estado IN(14, 95)')
-                                ->whereRaw('fec_vencimiento >= current_date')
-                                ->first();
+		        //Validar si existe una licencia vigente para Duplicados
+		        if ($motivo_id == '12') {
+                    $existe = \DB::table('tramites')
+                        ->where('nro_doc', $nro_doc)
+                        ->where('tipo_doc', $tipo_doc)
+                        ->where('pais', $pais)
+                        ->where('sexo', strtolower($sexo))
+                        ->whereRaw('estado IN(14, 95)')
+                        ->whereRaw('fec_vencimiento >= current_date')
+                        ->first();
 
-                        if (!$existe) {
-                              flash('El Documento Nro. ' . $nro_doc . ' no tiene una licencia VIGENTE.')->warning()->important();
-                        return back();
-                        }
+                    if (!$existe) {
+                            flash('El Documento Nro. ' . $nro_doc . ' no tiene una licencia VIGENTE.')->warning()->important();
+                    return back();
+                    }
                 }
-
-
                 //Validar si tiene turno en sigeci si el motivo es diferente de ERROR EN TURNO
                 if($motivo_id != '13'){
                     $existeturno = $this->existeTurnoSigeci($tipo_doc, $nro_doc, $fecha);
@@ -197,7 +203,6 @@ class TramitesHabilitadosController extends Controller
                         return back();
                     }
                 }
-
                 //Validar si tiene turno en LICTA, si el motivo es diferente a REINICIA TRAMITE
                 if($motivo_id != '14'){
                     $tramite = $this->existeTramiteEnCurso($tipo_doc, $nro_doc, $pais, $fecha);
@@ -217,21 +222,21 @@ class TramitesHabilitadosController extends Controller
                 }
 
 		//Validar motivo REIMPRESION no existe en LICTA un trámite inicado o finalizado
-		if($motivo_id == '29'){
-		  $existe = \DB::table('tramites')
-				->where('nro_doc',$nro_doc)
-				->where('tipo_doc',$tipo_doc)
-				->where('pais',$pais)
-				->where('sexo',strtolower($sexo))
-				->where('tipo_tramite_id', 1030)
-				->where('estado','<>',93)
-				->count();
+		// if($motivo_id == '29'){
+		//   $existe = \DB::table('tramites')
+		// 		->where('nro_doc',$nro_doc)
+		// 		->where('tipo_doc',$tipo_doc)
+		// 		// ->where('pais',$pais)
+		// 		->where('sexo',strtolower($sexo))
+		// 		->where('tipo_tramite_id', 1030)
+		// 		->where('estado','<>',93)
+		// 		->count();
 		  //Se comenta validadcion por cambio decreto enero 2021 donde permite hacer otro tramite de REIMPRESION
 		  /*if($existe){
 		  	flash('El Documento Nro. '.$nro_doc.' ya tiene en LICTA un trámite como REIMPRESION.')->warning()->important();
                         return back();	
 			} */
-		}
+		// }
 
                 //Si no existe ninguna restriccion entonces creamos el registro
                 $tramiteshabilitados = new TramitesHabilitados();
@@ -252,7 +257,12 @@ class TramitesHabilitadosController extends Controller
                 $this->guardarObservacion($tramiteshabilitados->id, $request->observacion);
 
                 //ASIGNAR O GENERAR PRECHECK
-                $this->asignarPrecheck($tramiteshabilitados->id);
+                $asignarPrecheck = $this->asignarPrecheck($tramiteshabilitados->id);
+
+                if($asignarPrecheck && $user->id === '318')
+                {
+                    return true;
+                }
 
                 Flash::success('El Tramite se ha creado correctamente');
                 return redirect()->route('tramitesHabilitados.create');
@@ -331,7 +341,6 @@ class TramitesHabilitadosController extends Controller
                 $precheck = $precheck_disponible;
 
         }
-
         //ASOCIAR PRECHECK A TRAMITES HABILITADOS
         if($precheck){
             $tramiteAIniciar = TramitesAIniciar::find($precheck->id);
@@ -357,46 +366,68 @@ class TramitesHabilitadosController extends Controller
         }
 
         //Enviamos al QUEUE para procesar las validaciones Precheck en segundo plano
-        if ($tramiteAIniciar->tramite_dgevyl_id == null)
+        if ($tramiteAIniciar->tramite_dgevyl_id == null){
             ProcessPrecheck::dispatch($tramiteshabilitados);
-
+        }
         return true;
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
+    public function tramitesReimpresionStd($ws_fecDes, $ws_fecHas,$ws_estado,$ws_esquema,$ws_metodo)
     {
-        //
-    }
+        $data = $this->solicitudDatosStd($ws_fecDes, $ws_fecHas,$ws_estado,$ws_esquema,$ws_metodo);
+        $paises = AnsvPaises::all();
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
+        foreach ($data as $tramite) {
+            $fecha_nacimiento = $tramite['datosFormulario']['fecha_nacimiento']['valor'];
+            $pais = $tramite['datosFormulario']['nacionalidad']['valor'];
+        
+            if($pais === null){
+                continue;
+            }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-	//
-    }
+            $request = new Request();
 
+            $request->fecha = date('Y-m-d');
+            $request->nombre = $tramite['nombreCiudadano'];
+            $request->apellido = $tramite['apellidoCiudadano'];
+            
+            $request->nro_doc = $tramite['numeroDocumentoCiudadano'];
+            $request->sexo = $tramite['generoCiudadano'];
+            $request->fecha_nacimiento = implode('-',array_reverse(explode("/",$fecha_nacimiento)));
+            // Usuario tramites a distancia
+            $request->user_id = '318';
+            //$request->user_id = '261';
+            // Sucursal de reimpresiones
+            $request->sucursal= '180';
+            // Motivo tramite: reimpresiones
+            $request->motivo_id = 29;
+            /*
+                En BD existe tres tipos de nacionaonalidades argentinas:
+                Opcional: id_dgevyl=83, naturalizado: id_dgevyl=75 y de nacimiento: id_dgevyl= 1
+                 
+            */
+            if ($pais === 'ARG') {
+                $request->pais = '1';
+
+            }else{
+                $request->pais = $paises->where('iso_alfa_3',$pais)->first()->id_dgevyl;
+            }
+            // Recibimos DNI o PASAPORTE, en nuestra DB usamos números para el tipo_doc
+            if($tramite['tipoDocumentoCiudadano'] === 'DNI'){
+                $request->tipo_doc = '1';
+
+            }elseif($tramite['tipoDocumentoCiudadano'] === 'PASAPORTE'){
+                $request->tipo_doc = '4';
+            }
+            //Si retorna true, cambia el estado del esquema en al tabla std_solicitudes y del lado de STD   
+            if($this->store($request)){
+                $this->cambioEstadoDeEsquema($tramite['numeroTramite'],"Listo para trabajar");
+            };
+
+        }
+        return back();
+
+    }
     /**
      * Remove the specified resource from storage.
      *
@@ -550,9 +581,9 @@ class TramitesHabilitadosController extends Controller
         $fecha = date('Y-m-d', strtotime('+'.$sumar_dias.' days', strtotime(date('Y-m-d'))));  
         return $fecha;
     }
-    public function verificarLimite($sucursal, $motivo, $fecha){
+    public function verificarLimite($sucursal, $motivo, $fecha, $user){
         $acceso= false;
-        $user = Auth::user();
+
         $role_id = $user->roles->pluck('id')->first();
         $mensaje = 'LIMITE DIARIO PERMITIDO para la sucursal según el motivo seleccionado.!!';
 
@@ -623,5 +654,147 @@ class TramitesHabilitadosController extends Controller
             //Crear registro en tramitesAIniciar y procesar el Precheck
             ProcessPrecheck::dispatch($turno);
         }
+    }
+    private function obtenerTokenStd()
+    {
+        $curl = curl_init();
+        //Homologacion
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => env('URL_AUTH_STD'),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS =>"{\r\n\"usuario\": \"".env('USER_STD')."\",\r\n\"password\": \"".env('PASS_USER_STD')."\"\r\n}",
+            CURLOPT_HTTPHEADER => array("Content-Type: application/json",
+                                    "client_id:".env('CLIENT_ID'),
+                                    "client_secret:".env('CLIENT_SECRET')),)
+        );
+    
+         $response = curl_exec($curl);
+         curl_close($curl);
+         $array = json_decode($response,TRUE);
+        //  $fp = fopen('credenciales_std_hml.txt', 'w');
+        //  fwrite($fp, serialize($array));
+        //  fclose($fp);
+
+        $token = $array["authHeader"];
+
+        return $token;
+    }
+
+    private function obtenerDatosStd($token,$fecDes,$fecHas,$estado,$esquema,$metodo)
+    {
+        //$para = "fechaDesde=".$fecDes."&estadoGeneral=".$estado."&estadoDelEsquema=".$esquema; 
+            //echo $para.PHP_EOL;
+        $para = "fechaDesde=".$fecDes."&fechaHasta=".$fecHas."&estadogeneral=".$estado."&estadoDelEsquema=".$esquema;
+            //echo $para.PHP_EOL;
+                $curl = curl_init();
+                //Homologacion
+                curl_setopt_array($curl, array(
+                CURLOPT_URL => env('URL_CONSULTA_STD').$metodo."?".$para,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => "",
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => "GET",
+                CURLOPT_HTTPHEADER => array("Content-Type: application/json",
+                                        "client_id:".env('CLIENT_ID'),
+                                        "client_secret:".env('CLIENT_SECRET'),
+                                        "Authorization:".$token))
+                ); 
+        $response = curl_exec($curl);
+        curl_close($curl);
+        $array = json_decode($response,TRUE);
+        // $fp = fopen('res_ws_std_hml_'.uniqid().'_'.$metodo.'.txt', 'w');
+        // fwrite($fp, serialize($array));
+        // fclose($fp);
+        return $array;   
+    }
+
+    private function solicitudDatosStd($ws_fecDes,$ws_fecHas,$ws_estado,$ws_esquema,$ws_metodo)
+    {
+        error_reporting(E_ALL);
+        ini_set('display_errors', '1');
+        // if (!file_exists('credenciales_std_hml.txt'))
+        // {
+        $token = $this->obtenerTokenStd();
+        // }else{
+        //         $fp = fopen('credenciales_std_hml.txt','rb');
+        //        $array = unserialize(fread($fp, filesize('credenciales_std_hml.txt')));
+        //        fclose($fp);
+        // }
+        // $actual_time = date('Y-m-d\TH:i:sO');
+        // $expiration_time = date('Y-m-d\TH:i:sO', strtotime(substr($array["jwtclaimsSet"]["expirationTime"], 0, 19)));
+        // if ($actual_time < $expiration_time){
+            //El Token Aun No Expiro Reutilizar del Archivo de Texto
+        //         echo "Token Valido: ".$token."\n";
+        // }else{
+        //         //El Token Expiro Solicitar Nuevamente
+        //         $array = $this->getTokenStd();
+        //         $token = $array["authHeader"];
+        //         echo "Token Expirado, Solicitado: ".$token."\n";
+        // }
+        
+        return $this->obtenerDatosStd($token,$ws_fecDes,$ws_fecHas,$ws_estado,$ws_esquema,$ws_metodo);
+
+    }
+    private function transicionEstadoEsquema($token, $tramite, $data)
+    {
+        $curl = curl_init();
+        //Homologacion
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => env('URL_TRANSICION_STD').$tramite.'/transicion',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "UTF-8",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "POST",
+        CURLOPT_POSTFIELDS => $data,
+        CURLOPT_HTTPHEADER => array("Content-Type: application/json",
+                                "client_id:".env('CLIENT_ID'),
+                                "client_secret:".env('CLIENT_SECRET'),
+                                "Authorization:".$token),));
+
+        $response = curl_exec($curl);
+        $array = json_decode($response,TRUE);
+        curl_close($curl);
+        return $array;
+    }
+    private function cambioEstadoDeEsquema($numTramiteStd,$estado_a_enviar,$idmotivo='',$observaciones='')
+    {
+        $token = $this->obtenerTokenStd();
+
+        //$data="{".'"estado":"'.$estado_a_enviar.'","motivo":"'.$idmotivo.'","observaciones": "'.$observaciones.'"'.',"archivos":[]'."}";
+	//$tramitestdEjemplo = "00002117/20";
+	$data = array('estado'=>$estado_a_enviar,'motivo'=>$idmotivo,'observaciones'=>$observaciones,'archivos'=>[]);
+        
+        $tramite = str_replace("/","",$numTramiteStd);
+        $array = $this->transicionEstadoEsquema($token,$tramite,json_encode($data));
+
+
+        if (array_key_exists('idError', $array) || array_key_exists('message', $array)){
+            \Log::warning('['.date('h:i:s').'] '." Error en el tramite numero: $numTramiteStd. Error WS Detalle, message: {$array['message']}.");
+            return false;
+        }else{
+            try {
+                \DB::table('std_solicitudes')
+                ->where('numero_tramite',$numTramiteStd)
+                ->update(['estado_esquema'=>$estado_a_enviar]);    
+            
+                \Log::info("Cambio de esquema, realizado con exito para el tramite de STD: $numTramiteStd, al estado de esquema: $estado_a_enviar");  
+                return true;
+
+            } catch (Exception $e) {
+                return "Fatal error - ".$e->getMessage();
+            }
+        }   
     }
 }

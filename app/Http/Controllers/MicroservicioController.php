@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\TramitesAIniciar;
 use App\Http\Controllers\TramitesAIniciarController;
+use App\Http\Controllers;
 use App\Tramites;
 use Log;
 
@@ -60,6 +61,20 @@ class MicroservicioController extends Controller
       \Log::info('['.date('h:i:s').'] '.'se inicio: enviarTramitesASinalic()');
       $tramitesAIniciar = new TramitesAInicarController();
       $tramitesAIniciar->enviarTramitesASinalic( VALIDACIONES_COMPLETAS, INICIO_EN_SINALIC);
+    }
+
+    public function tramitesReimpresionStd(){
+      \Log::info('['.date('h:i:s').'] '.'se inicio: tramitesReimpresionStd()');
+      $tramitesHabilitadosController = new TramitesHabilitadosController();
+
+      $ws_fecDes = date('Y-m-d', mktime(0,0,0,date('m'),date('d')-1,date('Y')));
+      $ws_fecHas = date('Y-m-d');
+      $ws_estado = 'Abierto';
+      $ws_esquema = 'Verificada';
+      $ws_metodo = 'ReimpresiondeCredenciales';
+
+      $tramitesHabilitadosController->tramitesReimpresionStd($ws_fecDes,$ws_fecHas,$ws_estado,$ws_esquema,$ws_metodo);
+    
     }
 
     public function run(){
