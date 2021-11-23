@@ -169,7 +169,7 @@ class TramitesAInicarController extends Controller
 
   public function existeTramiteAIniciarConPrecheck($nro_doc, $tipo_doc, $sexo, $nacionalidad){
     $existe = TramitesAIniciar::orderBy('id','desc')
-                    // ->where('nacionalidad',$nacionalidad)
+                    ->where('nacionalidad',$nacionalidad)
                     ->where('nro_doc',$nro_doc)
                     ->where('tipo_doc',$tipo_doc)
                     ->where('sexo',strtoupper($sexo))
