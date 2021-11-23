@@ -65,7 +65,6 @@ Route::get('runPrecheck','MicroservicioController@runPrecheck')->name('runPreche
 Route::get('actualizarPaseATurno', 'PreCheckController@actualizarPaseATurno');
 Route::get('generarCenatPrecheck','TramitesAInicarController@generarCenatPrecheck')->name('generarCenatPrecheck');
 
-Route::get('stdReimpresiones','MicroservicioController@tramitesReimpresionStd')->name('stdReimpresiones');
 //end PRECHECK
 
 //SAFIT

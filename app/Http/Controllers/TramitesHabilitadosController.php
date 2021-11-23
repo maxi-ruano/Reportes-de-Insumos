@@ -156,13 +156,16 @@ class TramitesHabilitadosController extends Controller
                 $motivo_id  = $request->motivo_id;
 
                 //validar PASAPORTE acepte letras y numeros de lo contrario solo numeros
-                if($tipo_doc == '4')
-                {
-                    $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/^[0-9a-zA-Z]+$/']);
-                }
-                else
-                {
-                   // $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^(\d+)?$)/u']);
+                
+                if ($user->id != '318') {
+                    if($tipo_doc == '4')
+                    {
+                        $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/^[0-9a-zA-Z]+$/']);
+                    }
+                    else
+                    {
+                    $this->validate($request, ['nro_doc' => 'required|min:0|max:10|regex:/(^(\d+)?$)/u']);
+                    }
                 }
 
                 //Validar si existe en tramites habilitados
@@ -256,7 +259,7 @@ class TramitesHabilitadosController extends Controller
                 //ASIGNAR O GENERAR PRECHECK
                 $asignarPrecheck = $this->asignarPrecheck($tramiteshabilitados->id);
 
-                if($asignarPrecheck && $user->id === '261')
+                if($asignarPrecheck && $user->id === '318')
                 {
                     return true;
                 }
@@ -392,7 +395,7 @@ class TramitesHabilitadosController extends Controller
             $request->sexo = $tramite['generoCiudadano'];
             $request->fecha_nacimiento = implode('-',array_reverse(explode("/",$fecha_nacimiento)));
             // Usuario tramites a distancia
-            $request->user_id = '261';
+            $request->user_id = '318';
             // Sucursal de reimpresiones
             $request->sucursal= '180';
             // Motivo tramite: reimpresiones
