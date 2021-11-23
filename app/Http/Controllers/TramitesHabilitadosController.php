@@ -396,6 +396,7 @@ class TramitesHabilitadosController extends Controller
             $request->fecha_nacimiento = implode('-',array_reverse(explode("/",$fecha_nacimiento)));
             // Usuario tramites a distancia
             $request->user_id = '318';
+            //$request->user_id = '261';
             // Sucursal de reimpresiones
             $request->sucursal= '180';
             // Motivo tramite: reimpresiones
