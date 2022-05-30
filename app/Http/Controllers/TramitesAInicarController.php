@@ -155,9 +155,9 @@ class TramitesAInicarController extends Controller
     $turno = TramitesHabilitados::where('tramites_a_iniciar_id',$tramite->id)->where('deleted', false)->orderby('id','DESC')->first();
     $motivo = isset($turno->motivo_id)?$turno->motivo_id:'';
     switch ($motivo) {
-	  case $this->motivoTurnoEnElDia:
-      		$conceptos = [["07.02.30"]];
-          break;
+	 // case $this->motivoTurnoEnElDia:
+      	//	$conceptos = [["07.02.30"]];
+         // break;
 	  case $this->motivoReimpresion:
 		      $conceptos = [["07.02.49"]];
           break;
@@ -486,7 +486,7 @@ class TramitesAInicarController extends Controller
     $res = array('error' => "", 'request' => "",'response' => "");
     $boleta = null;
 
-    $prorroga_cuarentena = $this->obtener_prorroga_cuarentena($persona);
+    //$prorroga_cuarentena = $this->obtener_prorroga_cuarentena($persona); //Ya no se usa mas
 
     $conexion = $this->wsSafit->iniciarSesion();
     if($conexion->success){
@@ -500,7 +500,7 @@ class TramitesAInicarController extends Controller
       if(isset($boletas->rspID)){
         if($boletas->rspID == 1){
           foreach ($boletas->datosBoletaPago->datosBoletaPagoParaPersona as $key => $boletaI) {
-            if($this->esBoletaValida($boletaI, $prorroga_cuarentena)){
+            if($this->esBoletaValida($boletaI)){ //Se saca el parametro $prorroga_cuarentena
               if(!is_null($boleta)){
                 if( date($boletaI->bopFecPag) >= date($boleta->bopFecPag)) // para obtener la boleta mas reciente
                   $boleta = $boletaI;
@@ -673,7 +673,7 @@ class TramitesAInicarController extends Controller
 
     \Log::info('['.date('h:i:s').'] Se inicia verificarBui() tramiteAIniciar ID: '.$tramite->id); 
 
-    $prorroga_cuarentena = $this->obtener_prorroga_cuarentena($tramite);
+   // $prorroga_cuarentena = $this->obtener_prorroga_cuarentena($tramite); //Ya no se usa
     
     $nro_boleta = null;
     $tramite = TramitesAIniciar::find($tramite->id);
@@ -688,7 +688,7 @@ class TramitesAInicarController extends Controller
       if(isset($res->mensaje))
         $mensaje = $res->mensaje;
     } else {
-      if($boleta = $this->existeBoletaHabilitada($res->boletas, $prorroga_cuarentena)){
+      if($boleta = $this->existeBoletaHabilitada($res->boletas)){ //Se deja de pasar $prorroga_cuarentena
         if(!$this->boletaUtilizada($boleta)){
           $boletaBui = BoletaBui::create(array(
           'id_boleta'=>$boleta->IDBoleta,
@@ -707,11 +707,12 @@ class TramitesAInicarController extends Controller
         $mensaje = "No dispone de ninguna boleta habilitada";
       }
     }
-    if($nro_boleta)
-      $res = array('comprobante' => $nro_boleta);  
-    else
+    if($nro_boleta){
+      $res = array('comprobante' => $nro_boleta);
+      $mensaje = 'Numero de Comprobante: ' . $res['comprobante'];
+    }else{
       $res = array('error' => $mensaje, 'request' => $data, 'response' => $res);
-
+    }
     \Log::info('['.date('h:i:s').'] '.' se ejecuto peticionCurl(), concepto: '.$concepto[0].' mensaje: '.$mensaje); 
 
     return $res;
@@ -1269,7 +1270,12 @@ class TramitesAInicarController extends Controller
                                       ->from('tramites_a_iniciar')
                                       ->leftjoin('sigeci', 'sigeci.idcita', '=', 'tramites_a_iniciar.sigeci_idcita')
                                       ->leftjoin('tramites_habilitados', 'tramites_habilitados.tramites_a_iniciar_id', '=', 'tramites_a_iniciar.id')
-                                      ->whereRaw("sigeci.fecha > '".$hoy."' OR tramites_habilitados.fecha > '".$hoy."' ");
+       
+
+//                               ->whereRaw("sigeci.fecha > '".$hoy."' OR tramites_habilitados.fecha > '".$hoy."' ");
+
+->whereRaw("sigeci.fecha::DATE > '".$hoy."' OR tramites_habilitados.fecha::DATE > '".$hoy."' OR (tramites_habilitados.fecha::DATE >= '2021-11-25' AND tramites_habilitados.motivo_id = '29') ");
+
                                   })
                                   ->update(['estado' => TURNO_VENCIDO]);
 

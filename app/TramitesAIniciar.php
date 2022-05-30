@@ -12,7 +12,7 @@ class TramitesAIniciar extends Model
 {
   protected $table = 'tramites_a_iniciar';
   protected $fillable = ['id', 'nombre', 'apellido','tipo_doc', 'tipo_tramite', 'nro_doc', 'nacionalidad', 'sexo', 'estado',
-                         'bop_cb', 'bop_monto', 'bop_fec_pag', 'bop_id', 'cem_id', 'tramite_sinalic_id'];
+                         'bop_cb', 'bop_monto', 'bop_fec_pag', 'bop_id', 'cem_id', 'tramite_sinalic_id','std_solicitud_id'];
 
   public function tipoTramite()
   {

@@ -39,7 +39,8 @@
                     <th class="column-title">Sexo</th>
                     <th class="column-title">Fecha</th>
                     <th class="column-title">Sucursal</th>
-                    <th class="column-title">Motivo</th>
+		    <th class="column-title">Motivo</th>
+		    <th class="column-title">Num.Tramite STD</th>
                     <th class="column-title">Usuario</th>
                     <!-- Establecer condicion para mostrar u ocultar el boton Habilitar -->
                     <th class="column-title" style="width:auto!important;">Habilitado</th>
@@ -72,7 +73,13 @@
                                 {{ $row->motivo_id }}
                             @endif
                         @endif
+		    </td>
+		    <td>
+                        <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Num.Tramite STD {{ $row->std_solicitud_id }}">
+                            {{ $row->std_solicitud_id }}
+                        </span>
                     </td>
+
                     <td>
                         <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Creado {{ $row->created_at }} por el Rol: {{ $row->rol }}">    
                             {{ $row->user_id }}
@@ -87,7 +94,7 @@
                         @endcan
                         
                         @if($row->deleted == true || $row->tramite_dgevyl_id > 0 || $row->fecha != date('d-m-Y'))
-                            @php $disable_habilitado = 'disabled' @endphp
+                            @php $disable_habilitado = 'enable' @endphp
                         @endif
 
                         @if($row->deleted == false && $row->tramite_dgevyl_id > 0 && $row->habilitado == false && $row->fecha == date('d-m-Y'))

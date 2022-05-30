@@ -96,7 +96,15 @@
 		</div>
             </div>
 	</div> 
-        
+        <div class="form-group">
+            <div class="col-md-4 col-xs-12">
+                <div id="div_std">
+                     {!! Form::label('std_solicitud_id', ' Numero de tramite STD: ') !!}
+                     {!! Form::text('std_solicitud_id', isset($edit) ? $edit->std_solicitud_id : null, ['class' => 'form-control']) !!}
+                     <input type="hidden" name="precheck_id" id="precheck_id" value="">
+                </div>
+            </div>
+        </div>
         <div id="ultimo_turno"> </div>
         <hr>
         
@@ -161,6 +169,8 @@
                 $("#ultimo_turno").empty();
                 $("#precheck_id").val('');
                 $('button[type=submit]').attr("disabled",false);
+		$("#std_solicitud_id").removeAttr('required');
+		$("#std_solicitud_id").attr('disabled',true);
 
                 switch(motivo) {
                     case 'DIRECCIÓN':
@@ -250,6 +260,8 @@
 				if ( inhabilitado == false || v.inhab_rehabilitado == true){
 				    $("#ultimo_turno .icono").html(check_on);
                                	    $('button[type=submit]').attr("disabled",false);
+				    $('#std_solicitud_id').attr('required','required');
+				    $("#std_solicitud_id").attr('disabled',false);
 				}else{
 				    $("#ultimo_turno .icono").html(check_off);
 				    $("#ultimo_turno").append('<h4 class="red"> <i class="fa fa-user-times" style="font-size:30px;"></i> La persona se encuentra INHABILITADA!.</h4>');

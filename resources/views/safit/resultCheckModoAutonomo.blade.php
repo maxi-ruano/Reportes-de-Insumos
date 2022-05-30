@@ -242,10 +242,10 @@
           }else{
 
             //SOLO PARA DUPLICADO SE HABILITA PASE SIGUIENTE SECTOR
-            if(precheck.description == 'LIBRE DEUDA' && tramite.motivo == "DUPLICADO"){
+            if(precheck.description == 'LIBRE DEUDA' && (tramite.motivo == "DUPLICADO" || tramite.motivo == 'REIMPRESION')){
               precheck_libredeuda = true;
               type = 'warning';
-              info = '<span class="red"> TURNO SOLICITADO POR DUPLICADO </span>';
+              info = '<span class="red"> TURNO SOLICITADO POR DUPLICADO  O REIMPRESIÓN</span>';
             }else{
               info = ((precheck.error) ? precheck.error.created_at : '');
             }
