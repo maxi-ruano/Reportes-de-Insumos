@@ -32,7 +32,7 @@
               <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">
               </label>
               <div class="col-md-6 col-sm-6 col-xs-12">
-                <button id="buscarTramite" type="submit" class="btn btn-primary btn-block">Buscar</button>
+                <button id="buscarTramite" type="submit" class="btn btn-primary btn-block" onClick="bloquea()" >Buscar</button>
               </div>
             </div>
             <table id="tramites" class="table table-striped">
@@ -59,6 +59,21 @@
     </div>
   </div>
  </div>
+
+<script>
+var boton = document.getElementById('buscarTramite');
+boton.addEventListener("click", bloquea, false); 
+
+function bloquea(){
+  if(boton.disabled == false){
+     boton.disabled = true;
+     
+     setTimeout(function(){
+        boton.disabled = false;
+    }, 5000)
+  }
+}
+</script>
  @include('safit.resultCheckModoAutonomo')
 
 @endsection

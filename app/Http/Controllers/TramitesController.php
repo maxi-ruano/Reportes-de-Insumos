@@ -68,6 +68,8 @@ class TramitesController extends Controller
       ///Gerencia de SACTA
       //array_push($autorizadas,'10.209.73.19','10.209.73.23','10.209.73.24','10.209.73.26','10.209.73.38','10.209.73.39','10.209.73.40','10.209.73.54','10.209.73.54','10.209.73.123','10.209.73.166');
       array_push($autorizadas, '10.170.7.190','172.30.113.35');
+      //BOTI
+      array_push($autorizadas, '10.0.1.2');
 
       $consulta = [];
 

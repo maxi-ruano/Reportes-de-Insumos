@@ -188,7 +188,7 @@
 					type = 'warning';
 					texto = '<span class="red"> <b>SE ENCUENTRA VENCIDA </b></span> <br>';
 				}
-				vencimiento = '<br> Vence: <span class="green">'+precheck.charla.fecha_vencimiento_txt+'</span>';
+				vencimiento = '<br> Vence: <span class="green">'+precheck.charla.fecha_vencimiento+'</span>';
 			   }else{
 				type = 'danger';
 				aprobado = 'No';

@@ -17,9 +17,6 @@ use App\Jobs\ProcessPrecheck;
 use App\Sigeci;
 use App\TramitesHabilitadosMotivos;
 use App\Http\Controllers\TramitesAInicarController;
-use Carbon\Carbon;
-use App\Tramites;
-
 
 class TramitesHabilitadosController extends Controller
 {
@@ -255,7 +252,6 @@ class TramitesHabilitadosController extends Controller
                 $tramiteshabilitados->sucursal      = $request->sucursal;
                 $tramiteshabilitados->motivo_id     = $motivo_id;
                 $tramiteshabilitados->habilitado = false;               
-		$tramiteshabilitados->std_solicitud_id = $request->std_solicitud_id;
                 $saved = $tramiteshabilitados->save();
 
                 $this->guardarObservacion($tramiteshabilitados->id, $request->observacion);
@@ -361,7 +357,6 @@ class TramitesHabilitadosController extends Controller
             $tramiteAIniciar->nacionalidad      = $nacionalidad;
             $tramiteAIniciar->fecha_nacimiento  = $tramiteshabilitados->fecha_nacimiento;
             $tramiteAIniciar->estado            = '1';
-	    $tramiteAIniciar->std_solicitud_id  = $tramiteshabilitados->std_solicitud_id;
             $tramiteAIniciar->save();
 
             $tramiteshabilitados->tramites_a_iniciar_id = $tramiteAIniciar->id;
@@ -389,29 +384,9 @@ class TramitesHabilitadosController extends Controller
       foreach ($data as $tramite) {
 
 
+	    $fecha_nacimiento = $tramite['datosFormulario']['fecha_nacimiento']['valor'];
 
-	
-	  //controlo que exista la fecha de nacimiento
-	   if (isset($tramite['datosFormulario']['fecha_nacimiento']['valor'])){
-
-		 $fecha_nacimiento = $tramite['datosFormulario']['fecha_nacimiento']['valor'];
-	   }else{
-		continue;
-           }
-	  /*  Estas líneas se usan para determinar si existe el codigo pais y si corresponde al valor que necesitamos
-	   if(isset($tramite['datosFormulario']['codigo_pais']['valor'])){   
-	   	$pais = $tramite['datosFormulario']['codigo_pais']['valor'];
-	   }else{
-	   	$pais = $tramite['datosFormulario']['nacionalidad']['valor'];
-	   }*/
-
-           $pais = $tramite['datosFormulario']['nacionalidad']['valor'];
-	   
-	   
-
-	  //if (strlen($pais)>3) continue;	//Esta línea es para el codigo pais
-
-
+            $pais = $tramite['datosFormulario']['nacionalidad']['valor'];
 
             $request = new Request();
 
@@ -429,25 +404,22 @@ class TramitesHabilitadosController extends Controller
             $request->sucursal= '180';
             // Motivo tramite: reimpresiones
             $request->motivo_id = 29;
-	    $request->std_solicitud_id = $tramite['numeroTramite'];
-
             /*
                 En BD existe tres tipos de nacionaonalidades argentinas:
                 Opcional: id_dgevyl=83, naturalizado: id_dgevyl=75 y de nacimiento: id_dgevyl= 1
                  
             */
-            if ($pais === 'Argentina') {
+            if ($pais === 'ARG') {
                 $request->pais = '1';
 
             }else{
-               //$request->pais = $paises->where('iso_alfa_3',$pais)->first()->id_dgevyl;
-               $request->pais = $paises->where('nombre',$pais)->first()->id_dgevyl;
+                $request->pais = $paises->where('iso_alfa_3',$pais)->first()->id_dgevyl;
             }
             // Recibimos DNI o PASAPORTE, en nuestra DB usamos números para el tipo_doc
             if($tramite['tipoDocumentoCiudadano'] === 'DNI'){
                 $request->tipo_doc = '1';
 
-            }elseif( (trim($tramite['tipoDocumentoCiudadano']) === 'DE') || (trim($tramite['tipoDocumentoCiudadano']) === 'CRP' ) ){
+            }elseif(trim($tramite['tipoDocumentoCiudadano']) === 'DE'){
                 $request->tipo_doc = '1';
             
 		}elseif($tramite['tipoDocumentoCiudadano'] === 'PAS'){
@@ -831,86 +803,5 @@ class TramitesHabilitadosController extends Controller
                 return "Fatal error - ".$e->getMessage();
             }
         }   
-    }
-
-    public function reimpresionesLicenciaEmitida()
-    {
-        $startDate = Carbon::today();
-        $endDate = $startDate->copy()->endOfDay();
-
-	//$startDate = Carbon::create(2022,7,9,0,0,0); 
-	//$endDate = Carbon::create(2022,7,9,23,59,59); 
-
-	$expiration_time = Carbon::now()->addHours(2);
-	$expiration_time_copy = $expiration_time->copy()->subMinute();
-
-	$fecDes = '2022-01-01';
-	$metodo = 'ReimpresiondeCredenciales';
-	$token = $this->obtenerTokenStd();
-
-        $tipo_id_reimpresion = 1030;
-        $estado_completado = 14;
-
-        $tramites =  Tramites::
-                        join('tramites_a_iniciar','tramites.tramite_id','tramites_a_iniciar.tramite_dgevyl_id')
-			->join('std_solicitudes','std_solicitudes.numero_tramite','tramites_a_iniciar.std_solicitud_id')
-                        ->where('tramites.estado',$estado_completado)
-                        ->whereBetween('modification_date',[$startDate,$endDate])
-                        ->where('tipo_tramite_id',$tipo_id_reimpresion)
-			->whereNotNull('std_solicitud_id')
-                        ->where('estado_esquema','!=','Licencia Emitida')
-                        ->get();
-
-
-
-        foreach($tramites as $tramite){
-            
-	    $tramite_id = $tramite->std_solicitud_id;
-
-	   if(Carbon::now() >= $expiration_time || Carbon::now() >= $expiration_time_copy){
-		\Log::info("Renuevo token");
-		$expiration_time = Carbon::now()->addHours(2);
-		$expiration_time_copy = $expiration_time->copy()->subMinute();
-		$token = $this->obtenerTokenStd();
-	    }
-
-            $std_tramite = $this->reimpresion_tramite($tramite_id,$fecDes,$metodo,$token);
-
-            if ($std_tramite[0]["estadoDelEsquema"] == "Verificando documentación"){
-                   $this->cambioEstadoDeEsquema($tramite_id,"Licencia Emitida");
-            }
-
-        }
-	return true;
-    }
-
-    public function reimpresion_tramite($numTramite,$fecDes,$metodo,$token){
-
-        $para = "fechaDesde=".$fecDes."&numeroTramite=".$numTramite;
-
-        $curl = curl_init();
-        
-	//
-        curl_setopt_array($curl, array(
-                CURLOPT_URL => env('URL_CONSULTA_STD').$metodo."?".$para,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => "",
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 0,
-               	CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => "GET",
-                CURLOPT_HTTPHEADER => array("Content-Type: application/json",
-                        "client_id:".env('CLIENT_ID'),
-                        "client_secret:".env('CLIENT_SECRET'),
-                        "Authorization:".$token))
-        ); 
-        $response = curl_exec($curl);
-
-        \Log::info($response);
-
-        curl_close($curl);
-        $array = json_decode($response,TRUE); 
-        return $array;
     }
 }

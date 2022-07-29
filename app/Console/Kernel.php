@@ -53,18 +53,16 @@ class Kernel extends ConsoleKernel
         $schedule->call('App\Http\Controllers\MicroservicioController@enviarTramitesASinalic')->saturdays()->at('10:10'); //Turnos a Enviar a Sinalic
         
         //PRECHECK STD
-//       $schedule->call('App\Http\Controllers\MicroservicioController@tramitesReimpresionStd')->weekdays()->at('17:00'); //Integración STD reimpresiones
-	
-	
+       $schedule->call('App\Http\Controllers\MicroservicioController@tramitesReimpresionStd')->weekdays()->at('07:51'); //Integración STD reimpresiones
        $schedule->call('App\Http\Controllers\MicroservicioController@tramitesReimpresionStd')->weekdays()->at('15:30'); //Integración STD reimpresiones
        $schedule->call('App\Http\Controllers\MicroservicioController@tramitesReimpresionStd')->saturdays()->at('11:30'); //Integración STD reimpresiones
 
-  //       $schedule->call('App\Http\Controllers\MicroservicioController@enviarTramitesASinalic')->saturdays()->at('10:49'); //Turnos a Enviar a Sinalic
+       //$schedule->call('App\Http\Controllers\MicroservicioController@enviarTramitesASinalic')->saturdays()->at('10:49'); //Turnos a Enviar a Sinalic
         //FIN PRECHECK
 
 	//Reimpresiones -> licencia emitida
-        $schedule->call('App\Http\Controllers\MicroservicioController@reimpresionesLicenciaEmitida')->weekdays()->at('06:30');
-        //$schedule->call('App\Http\Controllers\MicroservicioController@reimpresionesLicenciaEmitida')->weekdays()->at('08:00');
+        //$schedule->call('App\Http\Controllers\MicroservicioController@reimpresionesLicenciaEmitida')->weekdays()->at('06:30');
+        $schedule->call('App\Http\Controllers\MicroservicioController@reimpresionesLicenciaEmitida')->weekdays()->at('20:00');
         $schedule->call('App\Http\Controllers\MicroservicioController@reimpresionesLicenciaEmitida')->saturdays()->at('13:30');
     }
 

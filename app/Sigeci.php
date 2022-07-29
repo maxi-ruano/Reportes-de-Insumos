@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Tramites;
 use Illuminate\Database\Eloquent\Model;
 
 class Sigeci extends Model
@@ -69,11 +70,38 @@ class Sigeci extends Model
         break;
       case 6 :
         $tipoDoc = 4; //PASS -> PASS
-        break;        
+        break;
       default:
         $tipoDoc = 1; //DNI
         break;
     }
     return $tipoDoc;
+  }
+
+  public function docOriginal()
+  {
+   	$documento = $this->numdoc;
+        $tipo_doc = $this->tipoDocLicta();
+
+        if($tipo_doc == 1){
+                if((int)$documento < 10000000){
+                        $valor_entero = (int)$documento;
+
+                        $tramite = Tramites::where('nro_doc','LIKE','%'.$valor_entero.'%')
+                                          ->where('estado','14')
+                                          ->where('tipo_doc','1')
+                                          ->orderBy('nro_doc')
+                                          ->first();
+
+			if($tramite != null){
+	                        $documento_tramite = $tramite->nro_doc;
+        	                $diferencia = (int)$documento_tramite - $valor_entero;
+                	        if($diferencia === 0){
+                        	        $documento = $documento_tramite;
+                        	}
+			}
+                }
+        }
+	return $documento;
   }
 }

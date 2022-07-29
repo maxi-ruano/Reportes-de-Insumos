@@ -175,7 +175,8 @@ class TramitesAInicarController extends Controller
                     ->where('sexo',strtoupper($sexo))
                     ->where('estado', '!=', TURNO_VENCIDO)
                     ->whereNull('tramite_dgevyl_id')
-                    ->first();      
+		    ->whereNull('std_solicitud_id') //No tome precheck de reimpresion
+                    ->first();
     return $existe;
   }
 
@@ -241,7 +242,8 @@ class TramitesAInicarController extends Controller
       $tramiteAIniciar->apellido = $turno->apellido;
       $tramiteAIniciar->nombre = $turno->nombre;
       $tramiteAIniciar->tipo_doc = $turno->tipoDocLicta();
-      $tramiteAIniciar->nro_doc = $turno->numdoc;
+      //$tramiteAIniciar->nro_doc = $turno->numdoc;
+      $tramiteAIniciar->nro_doc = $turno->docOriginal();
       $tramiteAIniciar->nacionalidad = $this->getIdPais($turno->nacionalidad());
       $tramiteAIniciar->fecha_nacimiento = $turno->fechanac;
       $tramiteAIniciar->estado = $siguienteEstado;

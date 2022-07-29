@@ -67,14 +67,13 @@ class MicroservicioController extends Controller
       \Log::info('['.date('h:i:s').'] '.'se inicio: tramitesReimpresionStd()');
       $tramitesHabilitadosController = new TramitesHabilitadosController();
 
-     $ws_fecDes =  date('Y-m-d', mktime(0,0,0,date('m'),date('d')-1,date('Y')));
-     $ws_fecHas =  date('Y-m-d');
+      $ws_fecDes = // date('Y-m-d', mktime(0,0,0,date('m'),date('d')-1,date('Y')));
+      $ws_fecHas = // date('Y-m-d');
 
-      
-     $ws_fecDes = '2022-07-27';
-     $ws_fecHas = '2022-07-27';
+      $ws_fecDes = '2022-01-12';
+      $ws_fecHas = '2022-01-12';
 
-
+     
 
       $ws_estado = 'Abierto';
       $ws_esquema = 'Verificada';
@@ -83,16 +82,6 @@ class MicroservicioController extends Controller
       $tramitesHabilitadosController->tramitesReimpresionStd($ws_fecDes,$ws_fecHas,$ws_estado,$ws_esquema,$ws_metodo);
     
     }
-
-    public function reimpresionesLicenciaEmitida()
-    {
-      \Log::info('['.date('h:i:s').'] '.'se inicio: reimpresionesLicenciaEmitida()');
-      $tramitesHabilitadosController = new TramitesHabilitadosController();
-      $tramitesHabilitadosController->reimpresionesLicenciaEmitida(); 
-      \Log::info('['.date('h:i:s').'] '.'finalizo: reimpresionesLicenciaEmitida()');
-
-    }
-
 
     public function run(){
       ini_set('default_socket_timeout', 600);

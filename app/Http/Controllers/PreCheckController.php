@@ -157,6 +157,7 @@ class PreCheckController extends Controller
                       ->select('v.tramite_a_iniciar_id', 'v.validado', 's.description', 'v.validation_id','v.comprobante', 'v.updated_at')
                       ->join('sys_multivalue as s', 's.id', '=', 'v.validation_id')
                       ->where('s.type', 'VALP')
+		      ->whereNotIn('v.validation_id',['7']) //6 para charla
 		      ->where('v.tramite_a_iniciar_id', $tramiteAIniciar->id)
 		      ->orderby('s.id','desc')
 		      ->get();
@@ -194,12 +195,11 @@ class PreCheckController extends Controller
     foreach ($precheck as $key => $value) {
       if($value->validation_id == BUI){
         $value->boleta = BoletaBui::where('tramite_a_iniciar_id', $value->tramite_a_iniciar_id)->first();
-      }
-      if($value->validation_id == CHARLA_VIRTUAL){
-	 $value->charla = CharlaVirtual::where('codigo', trim($value->comprobante) )->first();
-	 if(isset($value->charla->fecha_vencimiento)){
+      }elseif($value->validation_id == CHARLA_VIRTUAL){
+	 $value->charla = CharlaVirtual::where('codigo', $value->comprobante )->first();
+	/* if(isset($value->charla->fecha_vencimiento)){
 	 	$value->charla->fecha_vencimiento_txt = date('d-m-Y', strtotime($value->charla->fecha_vencimiento));
-	 }
+	 }*/
       }
     } 
     return $precheck;
