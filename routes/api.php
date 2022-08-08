@@ -47,6 +47,7 @@ Route::group(['prefix'=>'reportes', 'middleware'=>'cors'], function(){
     Route::get('get_tramites_precheck', 'PreCheckController@get_tramites_precheck')->name('get_tramites_precheck');
     Route::get('get_licencias_emitidas', 'TramitesController@get_licencias_emitidas')->name('get_licencias_emitidas');
     Route::get('get_precheck_comprobantes', 'PreCheckController@get_precheck_comprobantes')->name('get_precheck_comprobantes');
+    Route::get('get_corresponde_reimpresion', 'TramitesController@get_corresponde_reimpresion')->name('get_corresponde_reimpresion');
 });
 
 //API desarrolladas para conexion con los web services
@@ -58,6 +59,12 @@ Route::group(['prefix'=>'ws', 'middleware'=>'cors'], function(){
 //API desarrolladas para consultar internas del sistema
 Route::group(['prefix'=>'funciones', 'middleware'=>'cors'], function(){
     Route::post('obtenerSucursales', 'DashboardController@obtenerSucursales')->name('obtenerSucursales');
+});
+
+//API App Movil
+Route::group(['prefix'=>'appMovil'], function(){
+   Route::get('buscarTramite','AppMovilController@buscarTramite');
+   Route::get('auth','AppMovilController@auth');
 });
 
 Route::fallback(function(){
