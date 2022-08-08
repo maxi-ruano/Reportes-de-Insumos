@@ -36,9 +36,11 @@ class AppMovilController extends Controller
 
 	public function buscarTramite(Request $request)
     {
-	$tramite = Tramites::where('tipo_doc',$request->tipo_doc)->where('nro_doc',$request->nro_doc)->where('pais',$request->pais)->get();
+	$tramite = Tramites::where('tramites.nro_doc',$request->nro_doc)->where('tramites.tipo_doc',$request->tipo_doc)->where('tramites.sexo',$request->sexo)->where('tramites.pais',$request->pais)->where('tramites.estado',93)->join('datos_personales',
+	'tramites.nro_doc', 'datos_personales.nro_doc')->get();
+	dd($tramite);
 	if($tramite){
-		dd($tramite);
+		
 		if(hash('md5',$request->password) == $user->password){
 			$response = [
 				"login" => true,

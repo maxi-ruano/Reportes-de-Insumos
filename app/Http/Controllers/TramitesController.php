@@ -207,17 +207,32 @@ class TramitesController extends Controller
 		$fecha_fin_ob = '2025-02-15';
 
 		//LOGICA REIMPRESION
-		$reimpresion = DB::select("SELECT * FROM std_validacion_reimpresiones ('$nro_doc','$sexo')");
+		$ultimo_tramite = DB::select("SELECT * FROM  std_ultimo_tramite('$nro_doc','$sexo')");
 
-		if(!$reimpresion){ //No corresponde reimpresión
-			$ultimo_tramite = DB::select("SELECT * FROM  std_ultimo_tramite('$nro_doc','$sexo')");
-			if(!$ultimo_tramite){
-				$corresponde = 'Otorgamiento';
+		if(!$ultimo_tramite){ //Otorgamiento: no existe licencia
+			$corresponde = "Otorgamiento";
+		}else{
+			$reimpresion = DB::select("SELECT * FROM std_validacion_reimpresiones('$nro_doc','$sexo')");
+
+			if($reimpresion){
+				$reimpresion_opcional = DB::select("SELECT * FROM std_validacion_reimpresiones('$nro_doc','$sexo')");
+
+				if($reimpresion_opcional){
+					$corresponde = "reimpresion opcional";
+				}else{
+					$corresponde = "reimpresion oblig";
+				}
 			}else{
 				$ultimo_tramite = $ultimo_tramite[0]; //para tomar el tramite
-				$fec_emision_licencia = $ultimo_tramite->fec_emision;
-				$fec_vencimiento_licencia = $ultimo_tramite->fec_vencimiento;
-				if($fec_emision_licencia >= $fecha_emi){ //despues de decreto
+        	                $fec_emision_licencia = $ultimo_tramite->fec_emision;
+	                        $fec_vencimiento_licencia = $ultimo_tramite->fec_vencimiento;
+
+			}
+
+			$ultimo_tramite = $ultimo_tramite[0]; //para tomar el tramite
+			$fec_emision_licencia = $ultimo_tramite->fec_emision;
+			$fec_vencimiento_licencia = $ultimo_tramite->fec_vencimiento;
+			/*if($fec_emision_licencia >= $fecha_emi){ //despues de decreto
 					if($fec_vencimiento_licencia > date("Y-m-d"."-12 month")){
 						$corresponde = "otorgamiento";
 					}else{
@@ -234,22 +249,19 @@ class TramitesController extends Controller
 						$corresponde = "otorgamiento";
 					}
 				}
-			}
+			}*/
 
 
 
 
 
 
-		}else{ //corresponde reimpresion
-			$corresponde = "reimpresion";
 		}
-
 
 		$consulta = [
 			'nrodoc' => $nro_doc,
 			'sexo' => $sexo,
-			'corresponde' => $corresponde
+			'tramite_a_realizar' => $corresponde
 		];
 	}else{
 		$consulta['error'] = "Los parametros ingresados son incorrectos.";
