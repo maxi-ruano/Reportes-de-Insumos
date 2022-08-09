@@ -230,14 +230,18 @@ class TramitesController extends Controller
 			}else{
 
 				if($fec_emision_licencia >= $fecha_emi){ //despues de decreto
-                                        if($fec_vencimiento_licencia > date("Y-m-d")."-12 month"){
+                                        if($fec_vencimiento_licencia < date("Y-m-d",strtotime(date('Y-m-d')."-12 month"))){
                                                 $corresponde = "otorgamiento";
                                         }else{
-                                                $corresponde = "renovacion";
+                                                if($fec_vencimiento_licencia > date("Y-m-d",strtotime(date('Y-m-d')."+ 2 month"))){
+                                                                $corresponde = "licencia vigente";
+						}else{
+								$corresponde = "renovacion";
+						}
                                         }
                                 }else{ //antes del decreto
                                         if($fec_vencimiento_licencia >= $fecha_fin_ob){ //si venció después del decreto, reimpresiones obligatorias
-                                                if($fec_vencimiento_licencia > date("Y-m-d")."-12 month"){
+                                                if($fec_vencimiento_licencia > date("Y-m-d",strtotime(date("Y-m-d")."-12 month"))){
                                                         $corresponde = "otorgamiento";
                                                 }else{
                                                         $corresponde = "renovacion";
@@ -246,42 +250,35 @@ class TramitesController extends Controller
                                                 $corresponde = "otorgamiento";
                                         }else{
 						if($fec_vencimiento_licencia >= $fecha_ini_op && $fec_vencimiento_licencia <= $fecha_fin_ob){
-							if($fec_vencimiento_licencia > date("Y-m-d")."+ 2 month"){
-								$corresponde = "renovacion asd";
+							if($fec_vencimiento_licencia > date("Y-m-d",strtotime(date('Y-m-d')."+ 2 month"))){
+								$corresponde = "licencia vigente";
 							}else if ($fec_vencimiento_licencia >= $fecha_ini_op && $fec_vencimiento_licencia <= $fecha_fin_op){
-								if($fec_vencimiento_licencia <= date('Y-m-d')."- 22 month"){
+								if($fec_vencimiento_licencia <= date("Y-m-d",strtotime(date('Y-m-d')."- 22 month"))){
 									$corresponde = "renovacion";
-								}else if ($fec_vencimiento_licencia <= date('Y-m-d')."- 36 month"){
+								}else if ($fec_vencimiento_licencia <= date("Y-m-d",strtotime(date('Y-m-d')."- 36 month"))){
 									$corresponde = "otorgamiento";
 								}
-							}else if (($fec_vencimiento_licencia >= $fecha_ini_op && $fec_vencimiento_licencia <= $fecha_fin_op) && $fec_vencimiento_licencia >= date("Y-m-d")."-12 month"){
+							}else if (($fec_vencimiento_licencia >= $fecha_ini_op && $fec_vencimiento_licencia <= $fecha_fin_op) && $fec_vencimiento_licencia >= date("Y-m-d",strtotime(date('Y-m-d')."-12 month"))){
 								$corresponde = "otorgamiento";
 							}
+						}
 					}
-				}
-                        } //fin else reimpre
+        	                }
+			} //fin else reimpre
 		} //fin else ultimo tramite
-
-
-
-
-
-
-
-
-		}
 
 		$consulta = [
 			'nrodoc' => $nro_doc,
 			'sexo' => $sexo,
-			'fec_emision_ultima_licencia' => isset($fec_emision_licencia) ? $fec_emision_licencia : "no hay datos",
-			'fec_vencimiento_ultima_licencia' => isset($fec_vencimiento_licencia) ? $fec_vencimiento_licencia : "no hay datos",
+			//'fec_emision_ultima_licencia' => isset($fec_emision_licencia) ? $fec_emision_licencia : "no hay datos",
+			//'fec_vencimiento_ultima_licencia' => isset($fec_vencimiento_licencia) ? $fec_vencimiento_licencia : "no hay datos",
 			'tramite_a_realizar' => $corresponde
 		];
 	}else{
 		$consulta['error'] = "Los parametros ingresados son incorrectos.";
 	}
 
-		return response()->json($consulta);
-    }
+	return response()->json($consulta);
+
+    } //fin funcion api
 }
