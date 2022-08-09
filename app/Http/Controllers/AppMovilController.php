@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\SysUsers;
 use App\Tramites;
+use App\SysMultivalue;
 
 class AppMovilController extends Controller
 {
@@ -36,30 +37,21 @@ class AppMovilController extends Controller
 
 	public function buscarTramite(Request $request)
     {
-	$tramite = Tramites::where('tramites.nro_doc',$request->nro_doc)->where('tramites.tipo_doc',$request->tipo_doc)->where('tramites.sexo',$request->sexo)->where('tramites.pais',$request->pais)->where('tramites.estado',93)->join('datos_personales',
-	'tramites.nro_doc', 'datos_personales.nro_doc')->get();
-	dd($tramite);
-	if($tramite){
-		
-		if(hash('md5',$request->password) == $user->password){
-			$response = [
-				"login" => true,
-				"error" => null,
-			];
-			return response()->json($response);
-		}else{
-			$response = [
-                                "login" => false,
-				"error" => "Error en credenciales",
-                        ];
-			return response()->json($response);
-		}
-	}else{
-		$response = [
-                        "login" => false,
-			"error" => "Error en credenciales",
-                ];
-		return response()->json($response);
-	}
+	$tramite = Tramites::where('tramites.nro_doc',$request->nro_doc)
+	->select('tramites.tramite_id', 'tramites.nro_doc', 'tramites.sexo' , 'datos_personales.nombre' ,'datos_personales.apellido','tramites.pais')
+	->where('tramites.tipo_doc',$request->tipo_doc)
+	->where('tramites.sexo',$request->sexo)
+	->where('tramites.pais',$request->pais)
+	->where('estado',9)
+	->join('datos_personales','tramites.nro_doc','datos_personales.nro_doc')->orderBy('tramite_id','desc')->first();
+		//dd($tramite);
+
+		return response()->json($tramite);
     }
+
+
+	public function getCodigoPais(Request $request){
+		$paises = SysMultivalue::where('type','PAIS')->orderBy('description','ASC')->pluck('description','id');
+		return response()->json($paises);
+	}
 }

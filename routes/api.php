@@ -63,8 +63,9 @@ Route::group(['prefix'=>'funciones', 'middleware'=>'cors'], function(){
 
 //API App Movil
 Route::group(['prefix'=>'appMovil'], function(){
-   Route::get('buscarTramite','AppMovilController@buscarTramite');
    Route::get('auth','AppMovilController@auth');
+   Route::get('getCodigoPais','AppMovilController@getCodigoPais');
+   Route::get('buscarTramite','AppMovilController@buscarTramite');
 });
 
 Route::fallback(function(){
