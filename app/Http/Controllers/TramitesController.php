@@ -226,6 +226,26 @@ class TramitesController extends Controller
 				$ultimo_tramite = $ultimo_tramite[0]; //para tomar el tramite
         	                $fec_emision_licencia = $ultimo_tramite->fec_emision;
 	                        $fec_vencimiento_licencia = $ultimo_tramite->fec_vencimiento;
+				//$corresponde = "algo";
+
+				if($fec_emision_licencia >= $fecha_emi){ //despues de decreto
+                                        if($fec_vencimiento_licencia > date("Y-m-d"."-12 month")){
+                                                $corresponde = "otorgamiento";
+                                        }else{
+                                                $corresponde = "renovacion";
+                                        }
+                                }else{ //antes del decreto
+                                        if($fec_vencimiento_licencia >= $fecha_fin_ob){ //si venció después del decreto, reimpresiones obligatorias
+                                                if($fec_vencimiento_licencia > date("Y-m-d"."-12 month")){
+                                                        $corresponde = "otorgamiento";
+                                                }else{
+                                                        $corresponde = "renovacion";
+                                                }
+                                        }else if ($fec_vencimiento_licencia <= $fecha_ini_op){ //venció antes del decreto, reimpresiones opcionales
+                                                $corresponde = "otorgamiento";
+                                        }
+                                }
+
 
 			}
 
