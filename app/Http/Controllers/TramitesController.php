@@ -193,12 +193,13 @@ class TramitesController extends Controller
 
     //API CORRESPONDE REIMPRESION
     public function get_corresponde_reimpresion(Request $request){
-	if(isset($request->nrodoc)&&isset($request->sexo)){
+	if(isset($request->nrodoc)&&isset($request->sexo)/*&&isset($request->tipodoc)*/){
 		$nro_doc = $request->nrodoc;
 		$sexo = $request->sexo;
+		//$tipo_doc = $request->tipodoc;
 
 		//Limite de fechas emision
-		$fecha_emi = '2020-03-17'; 
+		$fecha_emi = '2020-03-17';
 		//Limite de fecha opcionales
 		$fecha_ini_op = '2020-02-15';
 		$fecha_fin_op = '2021-12-31';
@@ -207,10 +208,19 @@ class TramitesController extends Controller
 		$fecha_fin_ob = '2025-02-15';
 
 		//LOGICA REIMPRESION
+		/*
+				Respuesta | Tramite
+				    1	  | Otorgamiento
+				    2	  | Renovación
+				    3	  | Reimpresión Obligatoria
+				    4	  | Reimpresión Opcional
+				    5	  | Licencia Vigente
+
+		*/
 		$ultimo_tramite = DB::select("SELECT * FROM  std_ultimo_tramite('$nro_doc','$sexo')");
 
 		if(!$ultimo_tramite){ //Otorgamiento: no existe licencia
-			$corresponde = "Otorgamiento";
+			$corresponde = 1;
 		}else{
 
 			$ultimo_tramite = $ultimo_tramite[0]; //para tomar el tramite
@@ -223,43 +233,45 @@ class TramitesController extends Controller
 				$reimpresion_opcional = DB::select("SELECT * FROM std_validacion_reimpresiones('$nro_doc','$sexo')");
 
 				if($reimpresion_opcional){
-					$corresponde = "reimpresion opcional";
+					$corresponde = 4;
 				}else{
-					$corresponde = "reimpresion oblig";
+					$corresponde = 3;
 				}
+
 			}else{
 
 				if($fec_emision_licencia >= $fecha_emi){ //despues de decreto
                                         if($fec_vencimiento_licencia < date("Y-m-d",strtotime(date('Y-m-d')."-12 month"))){
-                                                $corresponde = "otorgamiento";
+                                                $corresponde = 1;
                                         }else{
                                                 if($fec_vencimiento_licencia > date("Y-m-d",strtotime(date('Y-m-d')."+ 2 month"))){
-                                                                $corresponde = "licencia vigente";
+                                                                $corresponde = 5;
 						}else{
-								$corresponde = "renovacion";
+								$corresponde = 2;
 						}
                                         }
+
                                 }else{ //antes del decreto
                                         if($fec_vencimiento_licencia >= $fecha_fin_ob){ //si venció después del decreto, reimpresiones obligatorias
                                                 if($fec_vencimiento_licencia > date("Y-m-d",strtotime(date("Y-m-d")."-12 month"))){
-                                                        $corresponde = "otorgamiento";
+                                                        $corresponde = 1;
                                                 }else{
-                                                        $corresponde = "renovacion";
+                                                        $corresponde = 2;
                                                 }
                                         }else if ($fec_vencimiento_licencia <= $fecha_ini_op){ //venció antes del decreto, reimpresiones opcionales
-                                                $corresponde = "otorgamiento";
+                                                $corresponde = 1;
                                         }else{
 						if($fec_vencimiento_licencia >= $fecha_ini_op && $fec_vencimiento_licencia <= $fecha_fin_ob){
 							if($fec_vencimiento_licencia > date("Y-m-d",strtotime(date('Y-m-d')."+ 2 month"))){
-								$corresponde = "licencia vigente";
+								$corresponde = 5;
 							}else if ($fec_vencimiento_licencia >= $fecha_ini_op && $fec_vencimiento_licencia <= $fecha_fin_op){
 								if($fec_vencimiento_licencia <= date("Y-m-d",strtotime(date('Y-m-d')."- 22 month"))){
-									$corresponde = "renovacion";
+									$corresponde = 2;
 								}else if ($fec_vencimiento_licencia <= date("Y-m-d",strtotime(date('Y-m-d')."- 36 month"))){
-									$corresponde = "otorgamiento";
+									$corresponde = 1;
 								}
 							}else if (($fec_vencimiento_licencia >= $fecha_ini_op && $fec_vencimiento_licencia <= $fecha_fin_op) && $fec_vencimiento_licencia >= date("Y-m-d",strtotime(date('Y-m-d')."-12 month"))){
-								$corresponde = "otorgamiento";
+								$corresponde = 1;
 							}
 						}
 					}
