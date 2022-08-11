@@ -47,7 +47,7 @@ Route::group(['prefix'=>'reportes', 'middleware'=>'cors'], function(){
     Route::get('get_tramites_precheck', 'PreCheckController@get_tramites_precheck')->name('get_tramites_precheck');
     Route::get('get_licencias_emitidas', 'TramitesController@get_licencias_emitidas')->name('get_licencias_emitidas');
     Route::get('get_precheck_comprobantes', 'PreCheckController@get_precheck_comprobantes')->name('get_precheck_comprobantes');
-    Route::get('get_corresponde_reimpresion', 'TramitesController@get_corresponde_reimpresion')->name('get_corresponde_reimpresion');
+    Route::get('get_corresponde_tramite', 'TramitesController@get_corresponde_tramite')->name('get_corresponde_tramite');
 });
 
 //API desarrolladas para conexion con los web services
