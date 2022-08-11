@@ -191,8 +191,8 @@ class TramitesController extends Controller
       
     }
 
-    //API CORRESPONDE REIMPRESION
-    public function get_corresponde_reimpresion(Request $request){
+    //API CORRESPONDE TRAMITE
+    public function get_corresponde_tramite(Request $request){
 	if(isset($request->nrodoc)&&isset($request->sexo)/*&&isset($request->tipodoc)*/){
 		$nro_doc = $request->nrodoc;
 		$sexo = $request->sexo;

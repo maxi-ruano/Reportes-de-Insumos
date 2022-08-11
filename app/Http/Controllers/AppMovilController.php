@@ -41,7 +41,7 @@ class AppMovilController extends Controller
 		->select('id')
 		->first();
 
-		$codigoelegido = $codigopais->id;
+	$codigoelegido = $codigopais->id;
 
 	$tramite = Tramites::where('tramites.nro_doc',$request->nro_doc)
 	->select('tramites.tramite_id', 'tramites.nro_doc', 'tramites.sexo' , 'datos_personales.nombre' ,'datos_personales.apellido','tramites.pais')
@@ -52,6 +52,17 @@ class AppMovilController extends Controller
 	->join('datos_personales','tramites.nro_doc','datos_personales.nro_doc')->orderBy('tramite_id','desc')->first();
 		//dd($tramite);
 
-		return response()->json($tramite);
+		if($tramite)
+		{
+			$response = [
+				"inicio" => true,
+				"tramite" => $tramite
+			];
+		}else{
+			$response = [
+				"inicio" => false,
+			];
+		}
+	return response()->json($response);
     }
 }
