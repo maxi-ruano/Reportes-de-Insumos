@@ -230,7 +230,7 @@ class TramitesController extends Controller
 			$reimpresion = DB::select("SELECT * FROM std_validacion_reimpresiones('$nro_doc','$sexo')");
 
 			if($reimpresion){
-				$reimpresion_opcional = DB::select("SELECT * FROM std_validacion_reimpresiones('$nro_doc','$sexo')");
+				$reimpresion_opcional = DB::select("SELECT * FROM std_validacion_reimpresiones_opcional('$nro_doc','$sexo')");
 
 				if($reimpresion_opcional){
 					$corresponde = 4;
