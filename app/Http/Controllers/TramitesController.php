@@ -217,7 +217,7 @@ class TramitesController extends Controller
 				    5	  | Licencia Vigente
 
 		*/
-		$ultimo_tramite = DB::select("SELECT * FROM  std_ultimo_tramite('$nro_doc','$sexo')");
+		$ultimo_tramite = DB::select("SELECT * FROM  ultimo_tramite('$nro_doc','$sexo')");
 
 		if(!$ultimo_tramite){ //Otorgamiento: no existe licencia
 			$corresponde = 1;
