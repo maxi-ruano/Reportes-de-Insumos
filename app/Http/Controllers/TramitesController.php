@@ -215,6 +215,7 @@ class TramitesController extends Controller
 				    3	  | Reimpresión Obligatoria
 				    4	  | Reimpresión Opcional
 				    5	  | Licencia Vigente
+				    6	  | Licencia Vigente (pero debe reimprimir en el futuro)
 
 		*/
 		$ultimo_tramite = DB::select("SELECT * FROM  ultimo_tramite('$nro_doc','$sexo')");
@@ -263,7 +264,7 @@ class TramitesController extends Controller
                                         }else{
 						if($fec_vencimiento_licencia >= $fecha_ini_op && $fec_vencimiento_licencia <= $fecha_fin_ob){
 							if($fec_vencimiento_licencia > date("Y-m-d",strtotime(date('Y-m-d')."+ 2 month"))){
-								$corresponde = 5;
+								$corresponde = 6; //reimpresion obligatoria pero licencia vigente
 							}else if ($fec_vencimiento_licencia >= $fecha_ini_op && $fec_vencimiento_licencia <= $fecha_fin_op){
 								if($fec_vencimiento_licencia <= date("Y-m-d",strtotime(date('Y-m-d')."- 22 month"))){
 									$corresponde = 2;
