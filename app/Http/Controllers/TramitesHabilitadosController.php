@@ -208,13 +208,13 @@ class TramitesHabilitadosController extends Controller
                 }
                 //Validar si tiene turno en LICTA, si el motivo es diferente a REINICIA TRAMITE
                 if($motivo_id != '14'){
-                    $tramite = $this->existeTramiteEnCurso($tipo_doc, $nro_doc, $pais, $fecha);
+                    $tramite = $this->existeTramiteEnCurso($tipo_doc, $nro_doc, $pais, $fecha, $sexo);
                     if($tramite){
                         flash('El Documento Nro. '.$nro_doc.' tiene un turno iniciado en LICTA '.$tramite->tramite_id.' Por favor agregar por REINICIA TRAMITE')->warning()->important();
                         return back();
                     }
                 }
-		
+
 		//Validar motivo CUARENTENA exista en la tabla t_cuarentena
                 if($motivo_id == '28'){
                     $existe = $this->existePersonaEnCuarentena($tipo_doc, $nro_doc, $sexo, $pais);
@@ -534,7 +534,7 @@ class TramitesHabilitadosController extends Controller
                             ->where("nro_doc",$request->nro_doc)
                             ->where("sexo",$request->sexo)
                             ->orderBy('id','DESC')
-                            ->first();      
+                            ->first();
             }
         }
         return json_encode($encontrado);
@@ -589,12 +589,13 @@ class TramitesHabilitadosController extends Controller
                         ->count();
         return $sigeci;
     }
-    public function existeTramiteEnCurso($tipo_doc, $nro_doc, $pais, $fecha){
+    public function existeTramiteEnCurso($tipo_doc, $nro_doc, $pais, $fecha, $sexo){
         $tramite = \DB::table('tramites')
                         ->whereRaw("estado <= '13'")
                         ->where("tipo_doc",$tipo_doc)
                         ->where("nro_doc",$nro_doc)
                         ->where("pais",$pais)
+			->where("sexo",strtolower($sexo))
                         ->whereRaw("fec_inicio > current_date - interval '3 month' ")
                         ->first();
         return $tramite;
