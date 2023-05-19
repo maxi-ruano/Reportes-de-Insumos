@@ -40,6 +40,14 @@
         @endcan
 
       @endif
+      {{-- @if( session('usuario_rol') == 'ROL_ADMIN' || session('usuario_rol') == 'ROL_REPORTES_CONTROL_INSUMOS') --}}
+      <li>
+        <a href="{{ route('reporteControlInsumos2') }}">
+          <i class="fa fa-file"></i> Reporte Control de Insumos
+          <span class="fa fa-chevron-down"></span>
+        </a>
+      </li>
+      {{-- @endif --}}
 
       @if(session('usuario_rol_id') == '40' || session('usuario_rol') == 'ROL_ESCUELA' || session('usuario_rol') == 'ROL_ADMIN'
 	|| session('usuario_id') == '2722' || session('usuario_id') == '2790' || session('usuario_id') == '2432')
@@ -72,6 +80,7 @@
         </a>
       </li>
       @endif
+      
     </ul>
   </div>
 
