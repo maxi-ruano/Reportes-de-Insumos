@@ -92,9 +92,5 @@ Route::group(['prefix' => 'api'], function () {
 Route::get('reporteControlInsumos2',['uses' => 'ReportesController2@reporteControlInsumos2','as' => 'reporteControlInsumos2']);
 
 //EXCELL
-// Route::get('export', 'InsumosController@export')->name('insumos.export');
-Route::get('exportar-excel', 'ReportesController2@exportarExcel')->name('exportar.excel');
-
-// Route::get('exportar-insumos', 'ReportesController2@exportarExcel')->name('exportar.insumos');
-
 Route::get('/exportar-insumos', 'ReportesController2@exportarExcel')->name('exportar.insumos');
+Route::get('/reporte/control-insumos', 'ReportesController2@reporteControlInsumos2')->name('reporte.control.insumos');

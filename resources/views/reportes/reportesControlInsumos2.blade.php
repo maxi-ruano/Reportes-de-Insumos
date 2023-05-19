@@ -4,6 +4,42 @@
 <!-- page content -->
 <br>
 <br>
+<!-- Formulario de filtrado por sucursal -->
+{{-- <form action="{{ route('reporte.control.insumos') }}" method="GET">
+  <div class="form-group">
+    <label for="sucursal">Sucursal:</label>
+    <select class="form-control" name="sucursal" id="sucursal">
+      <option value="">Todos</option>
+      <option value="1">Sucursal 1</option>
+      <option value="2">Sucursal 2</option>
+      
+      <!-- Agrega más opciones de sucursales según tus necesidades -->
+    </select>
+  </div>
+  <button type="submit" class="btn btn-primary">Filtrar</button>
+</form>
+
+ --}}
+
+ <form action="{{ route('reporte.control.insumos') }}" method="GET">
+  <div class="form-group">
+    <label for="sucursal">Sucursal:</label>
+    <select class="form-control" name="sucursal" id="sucursal">
+      <option value="">Todos</option>
+      @foreach ($sucursales as $sucursal)
+        <option value="{{ $sucursal->id }}" {{ $sucursal->id == $sucursalSeleccionada ? 'selected' : '' }}>
+          {{ $sucursal->description }} <!-- Ajusta el nombre del campo de sucursal según tu modelo -->
+        </option>
+      @endforeach
+    </select>
+  </div>
+  <button type="submit" class="btn btn-primary">Filtrar</button>
+</form>
+
+
+
+
+
 
 
 <div class="row">
@@ -58,45 +94,17 @@
   </div>
 </div>
 
-{{-- <button id="descargarExcel" class="btn btn-primary">descargar Excel</button> --}}
-
-<button id="descargarExcel" class="btn btn-primary">descargar Excel</button>
 <p>
-Click <a href="{{route('exportar.insumos')}}"> aqui </a>
+<a class="btn btn-primary" href="{{route('exportar.insumos')}}"> Descargar Excel</a>
 
 </p>
-<!-- /page content -->
+
 @endsection
 
 @section('scripts')
 
 
-<script>
-  document.getElementById('descargarExcel').addEventListener('click', function() {
-      // Realizar una solicitud AJAX al servidor
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', '{{ route("exportar.insumos") }}', true);
-      xhr.responseType = 'blob';
 
-      xhr.onload = function() {
-          if (this.status === 200) {
-              // Crear un objeto URL con los datos del archivo
-              var blobUrl = window.URL.createObjectURL(this.response);
-
-              // Crear un enlace y hacer clic en él para descargar el archivo
-              var a = document.createElement('a');
-              a.href = blobUrl;
-              a.download = 'insumos.xlsx';
-              a.style.display = 'none';
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-          }
-      };
-
-      xhr.send();
-  });
-</script>
 
 
 
