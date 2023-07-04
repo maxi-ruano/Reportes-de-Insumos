@@ -9,50 +9,71 @@ use App\AnsvLotes;
 use App\SysMultivalue;
 use App\SysUsers;
 use App\ControlSecuenciaInsumos;
+use App\Insumos2;
+use App\Sucursal;
 
 class ReportesController extends Controller
 {
     function reporteControlInsumos(){
-      $fecha_ini = '2015-01-27';
-      $fecha_fin = '2015-07-28';
-      $sucursales = SysMultivalue::where('type', 'SUCU')->get();
-      $res = array();
-      foreach ($sucursales as $key => $sucursal) {
-        $lotes= AnsvLotes::where('sucursal_id', $sucursal->id)
-                         ->whereBetween('creation_date', [$fecha_ini, $fecha_fin])
-                         ->get();
+     
+      // $excludedIds = [150,100];
+      // $sucursalTipo = 'SUCU';
 
+      $sucursales = SysMultivalue::where('type', 'SUCU')->get();
+     
+
+      $res = array();
+
+      foreach ($sucursales as $key => $sucursal) {
+        //  dd($sucursal->id);
+        $lotes= AnsvLotes::where('sucursal_id', $sucursal->id)
+                        //  ->whereBetween('creation_date')
+                         ->get();
+                        //  dd($lotes);
         foreach ($lotes as $key => $lote) {
+          // dd($lote->id);
           //posiblemnte pordriamos agregar where fecha > a la fecha del lote
           $impresos = AnsvControl::select('nro_control')
                                  ->whereBetween('nro_control', [$lote->control_desde, $lote->control_hasta])
                                  ->where('liberado', 'false')
                                  ->orderBy('nro_control', 'asc')->get();
-
+  // dd($impresos);
           $asignados = AnsvControl::select('nro_control')
                                   ->whereBetween('nro_control', [$lote->control_desde, $lote->control_hasta])
                                   ->groupBy('nro_control')->get();
           $faltantesSecuencia = $this->getFaltantesSecuencia($impresos);
-          $cantidadImpresos = count($impresos);
+          $cantidadCodificados = count($impresos);
+        
           $descartados = AnsvDescartes::whereBetween('control', [$lote->control_desde, $lote->control_hasta])->get();
+    //  dd($descartados);
           $division = $this->dividirImpresosDescartados($impresos, $descartados);
-
+// dd($division);
           $descartadosImpresos = $division[0];
+
+          // dd($descartadosImpresos);
+          $arrayDescartadosImpresos = json_decode(json_encode($descartadosImpresos), true);
+          // dd($arrayDescartadosImpresos);
+          $descartesi = count($arrayDescartadosImpresos);
+          // dd($descar)
           $descartadosNoImpresos = $division[1];
-          $cantidadDescartados = count($descartados);
+          $arrayDescartadosNoImpresos = json_decode(json_encode($descartadosNoImpresos), true);
+          $descartesn = count($arrayDescartadosNoImpresos);
+
+           $cantidadDescartados = count($descartados);
+          //  dd($cantidadDescartados);
           $cantidadLote = $lote->control_hasta - $lote->control_desde + 1;
+          // dd($cantidadLote);
           $cantidadFaltantes = $lote->control_hasta - $impresos[count($impresos) - 1]['nro_control']; //$cantidadLote - ($cantidadImpresos + $cantidadDescartados);
+          // dd($cantidadFaltantes);
           $subRes = array(
               "sucursal"    => $sucursal->description,
               "loteDesde"  => $lote->control_desde,
               "loteHasta"  => $lote->control_hasta,
               "cantidadLote" => $cantidadLote,
-              "cantidadImpresos" => $cantidadImpresos,
-              "cantidadDescartadosImpresos" => count($descartadosImpresos),
-              "cantidadDescartadosNoImpresos" => count($descartadosNoImpresos),
-              "cantidadFaltantes" => $cantidadFaltantes,
-              "faltantesSecuencia" => $faltantesSecuencia,
-              "asignados" => count($asignados),
+              "cantidadCodificados" => $cantidadCodificados,
+           
+              "cantidadDescartados" => $cantidadDescartados
+            
           );
           array_push($res, (object)$subRes);
         } break;

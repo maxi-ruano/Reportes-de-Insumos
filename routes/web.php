@@ -1,5 +1,7 @@
 <?php
 use App\Http\Controllers\InsumosController;
+use App\Http\Controllers\ReportesController2;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -90,7 +92,42 @@ Route::group(['prefix' => 'api'], function () {
 
 //LOTES 
 Route::get('reporteControlInsumos2',['uses' => 'ReportesController2@reporteControlInsumos2','as' => 'reporteControlInsumos2']);
+Route::get('reporteControlInsumos',['uses' => 'ReportesController@reporteControlInsumos','as' => 'reporteControlInsumos']);
+
 
 //EXCELL
 Route::get('/exportar-insumos', 'ReportesController2@exportarExcel')->name('exportar.insumos');
+
+// FILTRO SUCURSALES
+
+// Route::get('/reporte/control-insumos', 'ReportesController2@reporteControlInsumos2')->name('reporte.control.insumos');
 Route::get('/reporte/control-insumos', 'ReportesController2@reporteControlInsumos2')->name('reporte.control.insumos');
+
+
+Route::get('/reporte/control-insumos/kit', 'ReportesController2@reporteControlInsumos2')->name('reporte.control.insumos.kit');
+//CODIFICADOS , DESCARTES , BLANCOS
+
+
+Route::get('/obtener-codificados', 'ReportesController2@obtenerCodificados')->name('obtener.codificados');
+
+Route::get('/obtener-descartes', 'ReportesController2@obtenerDescartes')->name('obtener.descartes');
+
+// Route::get('/obtener-blancos', 'ReportesController2@obtenerBlancos')->name('obtener.blancos');
+
+
+Route::get('/obtener-blancos', 'ReportesController2@obtenerBlancos')->name('obtener.blancos');
+
+
+Route::get('/descargar-excel', 'ReportesController2@descargarExcel')->name('descargar-excel');
+
+Route::get('/descargar-excel2', 'ReportesController2@descargarExcel2')->name('descargar-excel2');
+
+Route::get('/descargar-excel3', 'ReportesController2@descargarExcel3')->name('descargar-excel3');
+
+
+// Route::get('/descargar-excel2', 'ReportesController2@descargarExcel2')->name('descargar.excel2');
+
+// Route::get('/obtener-blancos/{loteId}', 'ReportesContoller2@obtenerBlancos')->name('obtener.blancos');
+
+
+// Route::get('/obtener_codificados', 'TuControlador@obtenerCodificados')->name('obtener_codificados');

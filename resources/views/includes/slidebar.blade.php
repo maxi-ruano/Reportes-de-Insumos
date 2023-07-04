@@ -40,14 +40,13 @@
         @endcan
 
       @endif
-      {{-- @if( session('usuario_rol') == 'ROL_ADMIN' || session('usuario_rol') == 'ROL_REPORTES_CONTROL_INSUMOS') --}}
       <li>
         <a href="{{ route('reporteControlInsumos2') }}">
-          <i class="fa fa-file"></i> Reporte Control de Insumos
+          <i class="fa fa-file"></i> Reporte Control de Insumos-(Lotes)
           <span class="fa fa-chevron-down"></span>
         </a>
       </li>
-      {{-- @endif --}}
+      
 
       @if(session('usuario_rol_id') == '40' || session('usuario_rol') == 'ROL_ESCUELA' || session('usuario_rol') == 'ROL_ADMIN'
 	|| session('usuario_id') == '2722' || session('usuario_id') == '2790' || session('usuario_id') == '2432')
@@ -72,14 +71,14 @@
         </a>
       </li>
       @endif
-      @if( session('usuario_rol') == 'ROL_ADMIN' || session('usuario_rol') == 'ROL_REPORTES_CONTROL_INSUMOS')
-      <li>
+       {{-- <li>
         <a href="{{ route('reporteControlInsumos') }}">
-          <i class="fa fa-file"></i> Reporte Control de Insumos
+          <i class="fa fa-file"></i> Reporte Control de Insumos (196)
           <span class="fa fa-chevron-down"></span>
         </a>
-      </li>
-      @endif
+      </li>  --}}
+      
+      
       
     </ul>
   </div>
@@ -101,3 +100,4 @@
   </a>
 </div>
 <!-- /menu footer buttons -->
+
